@@ -1,0 +1,37 @@
+Package: bigPLScox
+Version: 0.5.0
+Date: 2025-10-01
+Depends: R (>= 3.5.0)
+biocViews:
+Imports: 
+    bigmemory, 
+    bigalgebra, 
+    bigSurvSGD,
+    plsRcox, 
+    methods,
+    Rcpp,
+    rms, 
+    sgPLS, 
+    survival
+LinkingTo:
+    BH,
+    Rcpp,
+    RcppArmadillo,
+    bigmemory
+Suggests: testthat (>= 3.0.0), plsRcox
+Title: Partial Least Squares for Cox Models with Big Matrices 
+Authors@R: c(
+	person(given = "Frederic", family= "Bertrand", role = c("cre", "aut"), email = "frederic.bertrand@lecnam.net", comment = c(ORCID = "0000-0002-0837-8281")),
+	person(given = "Myriam", family= "Maumy-Bertrand", role = c("aut"), email = "myriam.maumy@ehesp.fr", comment = c(ORCID = "0000-0002-4615-1512")))
+Author: Frederic Bertrand [cre, aut] (<https://orcid.org/0000-0002-0837-8281>), Myriam Maumy-Bertrand [aut] (<https://orcid.org/0000-0002-4615-1512>)
+Maintainer: Frederic Bertrand <frederic.bertrand@lecnam.net>
+Description: Provides Partial least squares Regression and various regular, sparse or kernel, techniques for fitting Cox models for big data. Provides a Partial Least Squares (PLS) algorithm adapted to Cox proportional hazards models that works with bigmemory matrices without loading the entire dataset in memory. Also implements a gradient-descent based solver for Cox proportional hazards models that works directly on 'bigmemory' matrices.
+License: GPL-3
+Encoding: UTF-8
+URL: https://fbertran.github.io/bigPLScox/, https://github.com/fbertran/bigPLScox/
+BugReports: https://github.com/fbertran/bigPLScox/issues/
+Classification/MSC: 62N01, 62N02, 62N03, 62N99
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Config/testthat/edition: 3
+SystemRequirements: C++11
