@@ -74,7 +74,7 @@ result.sgPLS$group.size.Y
 
 
 ```{r}
-library(bigsgPLS)
+#library(bigsgPLS)
 ```
 
 

@@ -35,14 +35,28 @@ coefficient vectors.}
 \item{learning_rate}{Step size used for the gradient-descent updates.}
 }
 \value{
-A list with components \code{coefficients}, \code{loglik}, \code{iterations} and
-\code{converged} describing the fitted model.
+A list containing:
+\itemize{
+\item \code{coefficients}: Estimated coefficients of the Cox model fitted on the latent scores.
+\item \code{loglik}: Final partial log-likelihood.
+\item \code{iterations}: Number of gradient-descent iterations performed.
+\item \code{converged}: Logical flag indicating whether convergence was achieved.
+\item \code{scores}: Matrix of latent scores (one column per component).
+\item \code{loadings}: Matrix of loadings associated with each component.
+\item \code{weights}: Matrix of PLS weight vectors.
+\item \code{center}: Column means used for centring the predictors.
+\item \code{scale}: Column standard deviations used for scaling the predictors.
+}
 }
 \description{
 Fits a Cox proportional hazards regression model using a gradient-descent
-optimizer implemented in C++. The function operates directly on a
-\code{\link[bigmemory:big.matrix-class]{bigmemory::big.matrix}} object to avoid
-materialising large design matrices in memory.
+optimizer implemented in C++. Predictor columns are centred and scaled, true
+partial least squares (PLS) components are constructed using the same
+deflation strategy as \code{\link[=big_pls_cox]{big_pls_cox()}}, and gradient
+descent operates on the resulting latent score matrix. The function operates
+directly on a \code{\link[bigmemory:big.matrix-class]{bigmemory::big.matrix}}
+object to avoid materialising large design matrices in memory. The
+\pkg{survival} package must be available.
 }
 \examples{
 \dontrun{

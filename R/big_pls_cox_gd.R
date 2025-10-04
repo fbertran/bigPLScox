@@ -18,8 +18,16 @@
 #'   coefficient vectors.
 #' @param learning_rate Step size used for the gradient-descent updates.
 #'
-#' @return A list with components `coefficients`, `loglik`, `iterations` and
-#'   `converged` describing the fitted model.
+#' @return A list with components:
+#' * `coefficients`: Estimated Cox regression coefficients on the latent scores.
+#' * `loglik`: Final partial log-likelihood value.
+#' * `iterations`: Number of gradient-descent iterations performed.
+#' * `converged`: Logical flag indicating whether convergence was achieved.
+#' * `scores`: Matrix of latent score vectors (one column per component).
+#' * `loadings`: Matrix of loading vectors associated with each component.
+#' * `weights`: Matrix of PLS weight vectors.
+#' * `center`: Column means used to centre the predictors.
+#' * `scale`: Column scales (standard deviations) used to standardise the predictors.
 #'
 #' @examples
 #' \dontrun{
@@ -37,6 +45,9 @@ big_pls_cox_gd <- function(X, time, status, ncomp = NULL, max_iter = 500L,
                            tol = 1e-6, learning_rate = 0.01) {
   if (!inherits(X, "big.matrix")) {
     stop("`X` must be a big.matrix object", call. = FALSE)
+  }
+  if (!requireNamespace("survival", quietly = TRUE)) {
+    stop("Package 'survival' is required", call. = FALSE)
   }
   n <- nrow(X)
   p <- ncol(X)
@@ -71,7 +82,9 @@ big_pls_cox_gd <- function(X, time, status, ncomp = NULL, max_iter = 500L,
   if (length(learning_rate) != 1 || is.na(learning_rate) || learning_rate <= 0) {
     stop("`learning_rate` must be a strictly positive number", call. = FALSE)
   }
-  
-  big_pls_cox_gd_cpp(X@address, as.numeric(time), as.numeric(status), ncomp,
-                     max_iter, tol, learning_rate)
+
+  result <- big_pls_cox_gd_cpp(X@address, as.numeric(time), as.numeric(status),
+                               ncomp, max_iter, tol, learning_rate)
+
+  result
 }
