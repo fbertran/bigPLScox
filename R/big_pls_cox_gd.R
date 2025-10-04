@@ -86,5 +86,9 @@ big_pls_cox_gd <- function(X, time, status, ncomp = NULL, max_iter = 500L,
   result <- big_pls_cox_gd_cpp(X@address, as.numeric(time), as.numeric(status),
                                ncomp, max_iter, tol, learning_rate)
 
+  result$coefficients <- as.numeric(result$coefficients)
+  result$center <- as.numeric(result$center)
+  result$scale <- as.numeric(result$scale)
+
   result
 }

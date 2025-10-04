@@ -10,10 +10,11 @@ optimisation for a subset of variables.
 partialbigSurvSGDv0(
   name.col,
   datapath,
-  ncores,
-  resBigscale,
-  bigmemory.flag,
-  inf.mth
+  ncores = 1,
+  resBigscale = resultsBigscale,
+  bigmemory.flag = FALSE,
+  parallel.flag = FALSE,
+  inf.mth = "none"
 )
 }
 \arguments{
@@ -22,17 +23,24 @@ partialbigSurvSGDv0(
   \item{datapath}{File system path or connection where the big-memory backing
   file for the scaled design matrix is stored.}
   \item{ncores}{Number of processor cores allocated to the partial fitting
-  procedure.}
+  procedure. Defaults to \code{1}.}
   \item{resBigscale}{Result object returned by \code{\link{bigscale}}
-  containing scaling statistics to be reused.}
+  containing scaling statistics to be reused. By default the helper reuses
+  the globally cached \code{resultsBigscale} object created by
+  \code{\link{bigscale}}.}
   \item{bigmemory.flag}{Logical flag determining whether big-memory backed
-  matrices are used when loading and updating the design matrix.}
+  matrices are used when loading and updating the design matrix. Defaults to
+  \code{FALSE}.}
+  \item{parallel.flag}{Logical flag toggling the use of parallelised
+  stochastic gradient updates. Defaults to \code{FALSE}.}
   \item{inf.mth}{Inference method requested for the partial fit, such as
-  none, asymptotic, or bootstrap summaries.}
+  \code{"none"}, \code{"asymptotic"}, or bootstrap summaries. Defaults to
+  \code{"none"}.}
 }
 \value{
-An updated survival model object that reflects the partial fit using the
-selected columns.
+Either a numeric vector of log hazard-ratio coefficients or, when inference
+is requested, a matrix whose columns correspond to the inferred coefficient
+summaries for each penalisation setting.
 }
 \seealso{
 \code{\link{bigscale}} and \code{\link{bigSurvSGD.na.omit}}.
@@ -45,6 +53,7 @@ continued <- partialbigSurvSGDv0(
   ncores = 2,
   resBigscale = scaled,
   bigmemory.flag = TRUE,
+  parallel.flag = TRUE,
   inf.mth = "bootstrap"
 )
 }

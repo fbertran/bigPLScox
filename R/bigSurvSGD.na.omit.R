@@ -344,11 +344,11 @@ bigSurvSGD.na.omit <- function (formula = Surv(time = time, status = status) ~ .
     colnames(beta.hat) <- paste0("lambda=", lambdaAll)
     rownames(beta.hat) <- sub.col.names
     for (l in 1:length(lambdaAll)) {
-      results.hat <- bigSurvSGD::do.one(big.data = big.data, num.rows.chunk, 
-                            num.rows.big, norm.method, opt.method, beta.init, 
-                            beta.type = "single", lr.const, lr.tau, strata.size, 
-                            batch.size, num.epoch, b1, b2, eps, lambda = lambdaAll[l], 
-                            alpha, bootstrap = FALSE, features.indices, surv.indices, 
+      results.hat <- do.one(big.data = big.data, num.rows.chunk,
+                            num.rows.big, norm.method, opt.method, beta.init,
+                            beta.type = "single", lr.const, lr.tau, strata.size,
+                            batch.size, num.epoch, b1, b2, eps, lambda = lambdaAll[l],
+                            alpha, bootstrap = FALSE, features.indices, surv.indices,
                             features.mean, features.sd)
       beta.init <- results.hat
       beta.hat[, l] <- results.hat
@@ -511,14 +511,23 @@ bigSurvSGD.na.omit <- function (formula = Surv(time = time, status = status) ~ .
 #'
 #' @param name.col 
 #' @param datapath 
-#' @param ncores 
-#' @param resBigscale 
-#' @param bigmemory.flag 
-#' @param inf.mth 
+#' @param ncores Number of worker processes used for the partial refit. Defaults
+#'   to \code{1} for serial execution.
+#' @param resBigscale A scaling summary typically created by
+#'   \code{\link{bigscale}} that supplies column-wise means and standard
+#'   deviations.
+#' @param bigmemory.flag Logical flag indicating whether the design matrix is
+#'   backed by a \pkg{bigmemory} file on disk.
+#' @param parallel.flag Logical flag specifying whether stochastic gradient
+#'   updates should run in parallel across multiple cores.
+#' @param inf.mth Character string identifying the inference method to use,
+#'   such as \code{"none"}, \code{"asymptotic"}, or bootstrap routines.
 #'
 #' @return
-#' coefres: Log of hazards ratio. If no inference is used, it returns a vector for estimated coefficients: If inference is used, it returns a matrix including estimates and confidence intervals of coefficients. In case of penalization, it resturns a matrix with columns corresponding to lambdas.
-#' 
+#'   A numeric vector of log hazard-ratio estimates. When inference is enabled,
+#'   the helper returns a matrix whose columns contain the requested summaries
+#'   for each penalisation level.
+#'
 #' @seealso See Also \code{\link[bigSurvSGD]{bigSurvSGDbigSurvSGD}}
 #' @export
 #'

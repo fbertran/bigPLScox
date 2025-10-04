@@ -144,12 +144,12 @@ coxDKspls_sgplsDR <- function (Xplan, ...) UseMethod("coxDKspls_sgplsDR")
 #' @rdname coxDKspls_sgplsDR
 #' @export
 coxDKspls_sgplsDR.formula <-
-  function (Xplan, time, time2, event, type, origin, typeres = "deviance", 
-            collapse, weighted, scaleX = TRUE, scaleY = TRUE, ncomp = 
-              min(7, ncol(Xplan)), modepls = "regression", keepX, 
-            plot = FALSE, allres = FALSE, dataXplan = NULL, subset, weights, 
-            model_frame = FALSE, model_matrix = FALSE, 
-            contrasts.arg=NULL, kernel="rbfdot", hyperkernel, verbose=FALSE, ...) 
+  function (Xplan, time, time2, event, type, origin, typeres = "deviance",
+            collapse, weighted, scaleX = TRUE, scaleY = TRUE, ncomp =
+              min(7, ncol(Xplan)), ind.block.x = NULL, modepls = "regression", keepX,
+            plot = FALSE, allres = FALSE, dataXplan = NULL, subset, weights,
+            model_frame = FALSE, model_matrix = FALSE,
+            contrasts.arg=NULL, kernel="rbfdot", hyperkernel, verbose=FALSE, ...)
   {
     if (missing(dataXplan)) 
       dataXplan <- environment(Xplan)
@@ -193,10 +193,10 @@ coxDKspls_sgplsDR.formula <-
 #' @rdname coxDKspls_sgplsDR
 #' @export
 coxDKspls_sgplsDR.default <- 
-  function (Xplan, time, time2, event, type, origin, typeres = "deviance", 
-            collapse, weighted, scaleX = TRUE, scaleY = TRUE, 
-            ncomp = min(7,ncol(Xplan)), modepls = "regression", 
-            keepX, plot = FALSE, allres = FALSE, kernel="rbfdot", hyperkernel, verbose=FALSE, ...) 
+  function (Xplan, time, time2, event, type, origin, typeres = "deviance",
+            collapse, weighted, scaleX = TRUE, scaleY = TRUE,
+            ncomp = min(7,ncol(Xplan)), ind.block.x = NULL, modepls = "regression",
+            keepX, plot = FALSE, allres = FALSE, kernel="rbfdot", hyperkernel, verbose=FALSE, ...)
   {
     if (scaleX) {
       Xplan <- scale(Xplan)
@@ -273,13 +273,19 @@ coxDKspls_sgplsDR.default <-
     Xplan_kernDKspls_sgplsDR_mod <- kernlab::kernelMatrix(kernDKspls_sgplsDR_mod, as.matrix(Xplan))
     
     mf2 <- match.call(expand.dots = FALSE)
-    m2 <- match(c("ncomp"), names(mf2), 0L)
+    m2 <- match(c("ncomp", "ind.block.x"), names(mf2), 0L)
     mf2 <- mf2[c(1L, m2)]
     mf2$ncomp <- eval.parent(mf2$ncomp)
+    ind.block.eval <- if (missing(ind.block.x)) NULL else eval.parent(mf2$ind.block.x)
+    mf2$ind.block.x <- ind.block.eval
     mf2$X <- eval.parent(Xplan_kernDKspls_sgplsDR_mod)
     mf2$Y <- eval.parent(DR_coxph)
     mf2$mode <- eval.parent(modepls)
-    mf2$keepX <- if (missing(keepX)) {rep(length(mf2$ind.block.x)+1,mf2$ncomp)} else {eval.parent(keepX)}
+    mf2$keepX <- if (missing(keepX)) {rep(length(ind.block.eval)+1,mf2$ncomp)} else {eval.parent(keepX)}
+    if (is.null(ind.block.eval)) {
+      mf2$ind.block.x <- NULL
+      mf2 <- mf2[names(mf2) != "ind.block.x"]
+    }
     mf2$scale = FALSE
     mf2[[1L]] <- as.name("sPLS")
     if (mf2$ncomp == 0) {

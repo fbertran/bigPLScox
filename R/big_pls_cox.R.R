@@ -65,7 +65,7 @@ big_pls_cox <- function(X, time, status, ncomp = 2L, control = survival::coxph.c
   }
   control$iter.max <- max(50L, control$iter.max %||% 20L)
   
-  address <- bigmemory:::address(X)
+  address <- bigmemory::address(X)
   stats <- big_pls_cox_col_stats_cpp(address)
   means <- stats$mean
   sds <- stats$sd

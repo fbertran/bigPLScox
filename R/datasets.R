@@ -39,6 +39,35 @@ NULL
 
 
 
+#' Simulated survival dataset for Cox models
+#'
+#' The \code{dCox_sim} dataset contains simulated survival times, censoring
+#' indicators and two binary covariates for demonstrating the Cox-related
+#' procedures included in \pkg{bigPLScox}.
+#'
+#' @name dCox_sim
+#' @docType data
+#' @format A data frame with 10000 observations on the following 5 variables.
+#' \describe{
+#'   \item{id}{observation identifier}
+#'   \item{time}{simulated survival time}
+#'   \item{status}{event indicator (1 = event, 0 = censored)}
+#'   \item{x.1}{first binary covariate}
+#'   \item{x.2}{second binary covariate}
+#' }
+#' @keywords datasets
+#' @examples
+#' \donttest{
+#' data(dCox_sim)
+#' with(dCox_sim, table(status))
+#' }
+
+NULL
+
+
+
+
+
 #' Simulated dataset
 #' 
 #' This dataset provides explantory variables simulations and censoring status.
