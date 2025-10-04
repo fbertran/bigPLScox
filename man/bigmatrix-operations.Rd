@@ -2,9 +2,9 @@
 \docType{methods}
 \name{bigmatrix-operations}
 \alias{bigmatrix-operations}
-\alias{%*%,big.matrix,big.matrix-method}
-\alias{%*%,matrix,big.matrix-method}
-\alias{%*%,big.matrix,matrix-method}
+\alias{\%*\%,big.matrix,big.matrix-method}
+\alias{\%*\%,matrix,big.matrix-method}
+\alias{\%*\%,big.matrix,matrix-method}
 \alias{Arith,big.matrix,big.matrix-method}
 \alias{Arith,big.matrix,matrix-method}
 \alias{Arith,matrix,big.matrix-method}
@@ -12,9 +12,9 @@
 \alias{Arith,big.matrix,numeric-method}
 \title{Matrix and arithmetic operations for big.matrix objects}
 \usage{
-\S4method{%*%}{big.matrix,big.matrix}(x, y)
-\S4method{%*%}{matrix,big.matrix}(x, y)
-\S4method{%*%}{big.matrix,matrix}(x, y)
+\S4method{\%*\%}{big.matrix,big.matrix}(x, y)
+\S4method{\%*\%}{matrix,big.matrix}(x, y)
+\S4method{\%*\%}{big.matrix,matrix}(x, y)
 \S4method{Arith}{big.matrix,big.matrix}(e1, e2)
 \S4method{Arith}{big.matrix,matrix}(e1, e2)
 \S4method{Arith}{matrix,big.matrix}(e1, e2)

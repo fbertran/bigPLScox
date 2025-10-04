@@ -116,6 +116,12 @@ the weighted residuals are returned.}
 \item{ncomp}{The number of components to include in the model. It this is
 not supplied, min(7,maximal number) components is used.}
 
+\item{ind.block.x}{a vector of integers describing the grouping of the
+X-variables. \code{ind.block.x <- c(3,10,15)} means that \code{X} is
+structured into 4 groups: \code{X1} to \code{X3}; \code{X4} to \code{X10},
+\code{X11} to \code{X15} and \code{X16} to \code{Xp} where \code{p} is the
+number of variables in the X matrix.}
+
 \item{modepls}{character string. What type of algorithm to use, (partially)
 matching one of "regression", "canonical". See
 \code{\link[sgPLS]{gPLS}} for details}
@@ -175,12 +181,6 @@ Laplacian kernel, if \code{hyperkernel} is missing, the heuristics in sigest
 are used to calculate a good sigma value from the data.}
 
 \item{verbose}{Should some details be displayed ?}
-
-\item{ind.block.x}{a vector of integers describing the grouping of the
-X-variables. \code{ind.block.x <- c(3,10,15)} means that \code{X} is
-structured into 4 groups: \code{X1} to \code{X3}; \code{X4} to \code{X10},
-\code{X11} to \code{X15} and \code{X16} to \code{Xp} where \code{p} is the
-number of variables in the X matrix.}
 }
 \value{
 If \code{allres=FALSE} : \item{cox_DKspls_sgplsDR}{Final Cox-model.} If
