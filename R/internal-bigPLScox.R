@@ -299,15 +299,6 @@ getIndic = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),tim
 }
 
 
-
-
-
-
-
-
-
-
-
 getIndicCV = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),times.prederr=1:500,train.fit,plot.it=FALSE,tmax.train=max(Surv.rsp[,"time"][ object$Surv.rsp[,"status"] == 1 ]),tmax.test=max(Surv.rsp.new[,"time"][ object$Surv.rsp.new[,"status"] == 1 ])){
   try(attachNamespace("survival"),silent=TRUE)
   #on.exit(try(unloadNamespace("survival"),silent=TRUE))
@@ -506,7 +497,6 @@ getIndicCV = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),t
 }
 
 
-
 getIndicCViAUCSH = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),times.prederr=1:500,train.fit,plot.it=FALSE,tmax.train=max(Surv.rsp[,"time"][ object$Surv.rsp[,"status"] == 1 ]),tmax.test=max(Surv.rsp.new[,"time"][ object$Surv.rsp.new[,"status"] == 1 ])){
   try(attachNamespace("survival"),silent=TRUE)
   #on.exit(try(unloadNamespace("survival"),silent=TRUE))
@@ -543,7 +533,6 @@ getIndicCViAUCSH = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000
   
   return(object)
 }
-
 
 
 getIndicCViAUCSurvROCTest = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),times.prederr=1:500,train.fit,plot.it=FALSE,tmax.train=max(Surv.rsp[,"time"][ object$Surv.rsp[,"status"] == 1 ]),tmax.test=max(Surv.rsp.new[,"time"][ object$Surv.rsp.new[,"status"] == 1 ])){
@@ -606,10 +595,7 @@ getIndicCViAUCSurvROCTest = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=se
 }
 
 
-
-logplik = function (x, time, status, b, method = c("breslow", "efron"),
-                    return.all = FALSE)
-{
+logplik = function (x, time, status, b, method = c("breslow", "efron"), return.all = FALSE) {
   method <- match.arg(method)
   n <- length(time)
   o <- order(status, decreasing = T)
@@ -654,8 +640,7 @@ logplik = function (x, time, status, b, method = c("breslow", "efron"),
   }
 }
 
-getmin2 = function (lambda, cvm, cvsd)
-{
+getmin2 = function (lambda, cvm, cvsd) {
   cvmin = min(cvm, na.rm = TRUE)
   idmin = cvm <= cvmin
   lambda.min = max(lambda[idmin], na.rm = TRUE)
@@ -672,8 +657,7 @@ getmin2 = function (lambda, cvm, cvsd)
 }
 
 
-correctp.cox=function (x, y, eta, K, kappa, select, fit, verbose=FALSE) 
-{
+correctp.cox=function (x, y, eta, K, kappa, select, fit, verbose=FALSE)  {
   force(K)
   if (min(eta) < 0 | max(eta) >= 1) {
     if (max(eta) == 1) {

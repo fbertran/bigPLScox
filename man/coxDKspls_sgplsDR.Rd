@@ -184,8 +184,8 @@ are used to calculate a good sigma value from the data.}
 }
 \value{
 If \code{allres=FALSE} : \item{cox_DKspls_sgplsDR}{Final Cox-model.} If
-\code{allres=TRUE} : \item{tt_DKspls_sgplsDR}{PLSR components.} \item{cox_DKspls_sgplsDR}{Final
-Cox-model.} \item{DKspls_sgplsDR_mod}{The PLSR model.}
+\code{allres=TRUE} : \item{tt_DKspls_sgplsDR}{PLSR components.}
+\item{cox_DKspls_sgplsDR}{Final Cox-model.} \item{DKspls_sgplsDR_mod}{The PLSR model.}
 }
 \description{
 This function computes the Cox Model based on PLSR components computed model
@@ -204,17 +204,19 @@ model prediction accuracy on a test sample.
 data(micro.censure)
 data(Xmicro.censure_compl_imp)
 
-X_train_micro <- apply((as.matrix(Xmicro.censure_compl_imp)),FUN="as.numeric",MARGIN=2)[1:80,]
+X_train_micro <- apply((as.matrix(Xmicro.censure_compl_imp)),
+FUN="as.numeric",MARGIN=2)[1:80,]
 X_train_micro_df <- data.frame(X_train_micro)
 Y_train_micro <- micro.censure$survyear[1:80]
 C_train_micro <- micro.censure$DC[1:80]
 
-(cox_DKspls_sgplsDR_fit=coxDKspls_sgplsDR(X_train_micro,Y_train_micro,C_train_micro,
-ncomp=6,ind.block.x=c(3,10,15), alpha.x = rep(0.95, 6)))
-(cox_DKspls_sgplsDR_fit=coxDKspls_sgplsDR(~X_train_micro,Y_train_micro,C_train_micro,
-ncomp=6,ind.block.x=c(3,10,15), alpha.x = rep(0.95, 6)))
-(cox_DKspls_sgplsDR_fit=coxDKspls_sgplsDR(~.,Y_train_micro,C_train_micro,ncomp=6,
-dataXplan=X_train_micro_df,ind.block.x=c(3,10,15), alpha.x = rep(0.95, 6)))
+(cox_DKspls_sgplsDR_fit=coxDKspls_sgplsDR(X_train_micro,Y_train_micro,
+C_train_micro,ncomp=6,ind.block.x=c(3,10,15), alpha.x = rep(0.95, 6)))
+(cox_DKspls_sgplsDR_fit=coxDKspls_sgplsDR(~X_train_micro,Y_train_micro,
+C_train_micro,ncomp=6,ind.block.x=c(3,10,15), alpha.x = rep(0.95, 6)))
+(cox_DKspls_sgplsDR_fit=coxDKspls_sgplsDR(~.,Y_train_micro,C_train_micro,
+ncomp=6,dataXplan=X_train_micro_df,ind.block.x=c(3,10,15), 
+alpha.x = rep(0.95, 6)))
 
 rm(X_train_micro,Y_train_micro,C_train_micro,cox_DKspls_sgplsDR_fit)
 

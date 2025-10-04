@@ -151,8 +151,8 @@ of columns of data containing factors.}
 }
 \value{
 If \code{allres=FALSE} : \item{cox_spls_sgpls}{Final Cox-model.} If
-\code{allres=TRUE} : \item{tt_spls_sgpls}{PLSR components.} \item{cox_spls_sgpls}{Final
-Cox-model.} \item{spls_sgpls_mod}{The PLSR model.}
+\code{allres=TRUE} : \item{tt_spls_sgpls}{PLSR components.}
+\item{cox_spls_sgpls}{Final Cox-model.} \item{spls_sgpls_mod}{The PLSR model.}
 }
 \description{
 This function computes the Cox Model based on PLSR components computed model
@@ -171,7 +171,8 @@ model prediction accuracy on a test sample.
 data(micro.censure)
 data(Xmicro.censure_compl_imp)
 
-X_train_micro <- apply((as.matrix(Xmicro.censure_compl_imp)),FUN="as.numeric",MARGIN=2)[1:80,]
+X_train_micro <- apply((as.matrix(Xmicro.censure_compl_imp)),
+FUN="as.numeric",MARGIN=2)[1:80,]
 X_train_micro_df <- data.frame(X_train_micro)
 Y_train_micro <- micro.censure$survyear[1:80]
 C_train_micro <- micro.censure$DC[1:80]

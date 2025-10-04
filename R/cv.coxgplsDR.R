@@ -150,13 +150,15 @@
 #' data(micro.censure)
 #' data(Xmicro.censure_compl_imp)
 #' set.seed(123456)
-#' X_train_micro <- apply((as.matrix(Xmicro.censure_compl_imp)),FUN="as.numeric",MARGIN=2)[1:80,]
+#' X_train_micro <- apply((as.matrix(Xmicro.censure_compl_imp)),
+#' FUN="as.numeric",MARGIN=2)[1:80,]
 #' X_train_micro_df <- data.frame(X_train_micro)
 #' Y_train_micro <- micro.censure$survyear[1:80]
 #' C_train_micro <- micro.censure$DC[1:80]
 #' 
 #' #Should be run with a higher value of nt (at least 10)
-#' (cv.coxgplsDR.res=cv.coxgplsDR(list(x=X_train_micro,time=Y_train_micro,status=C_train_micro),ind.block.x=c(3,10,15),nt=3))
+#' (cv.coxgplsDR.res=cv.coxgplsDR(list(x=X_train_micro,time=Y_train_micro,
+#' status=C_train_micro),ind.block.x=c(3,10,15),nt=3))
 #' 
 #' @export cv.coxgplsDR
 cv.coxgplsDR =

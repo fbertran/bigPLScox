@@ -61,7 +61,6 @@ NULL
 #' data(dCox_sim)
 #' with(dCox_sim, table(status))
 #' }
-
 NULL
 
 

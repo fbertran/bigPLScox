@@ -1,21 +1,39 @@
-#' Title
+#' Construct Scaled Design Matrices for Big Survival Models
 #'
-#' @param formula 
-#' @param data 
-#' @param norm.method 
-#' @param strata.size 
-#' @param batch.size 
-#' @param features.mean 
-#' @param features.sd 
-#' @param parallel.flag 
-#' @param num.cores 
-#' @param bigmemory.flag 
-#' @param num.rows.chunk 
-#' @param col.names 
-#' @param type 
+#' Prepares a large-scale feature matrix for stochastic gradient 
+#' descent byapplying optional normalisation, stratified sampling, 
+#' and batching rules.
+#' 
+#' @param Model formula used to extract the outcome and predictors that
+#' should be included in the scaled design matrix.
+#' @param data Input data source containing the variables referenced in
+#' \code{formula}.
+#' @param norm.method Normalisation strategy (for example centring or
+#' standardising columns) applied to the feature matrix.
+#' @param strata.size Number of observations to retain from each stratum when
+#' constructing stratified batches.
+#' @param batch.size Total size of each mini-batch produced by the scaling
+#' routine.
+#' @param features.mean Optional vector of column means that can be reused to
+#' normalise multiple data sets in a consistent manner.
+#' @param features.sd Optional vector of column standard deviations that pairs
+#' with \code{features.mean} during scaling.
+#' @param parallel.flag Logical flag signalling whether the scaling work should
+#' be parallelised across cores.
+#' @param num.cores Number of processor cores allocated when
+#' \code{parallel.flag} is \code{TRUE}.
+#' @param bigmemory.flag Logical flag specifying whether intermediate results
+#' should be stored in \pkg{bigmemory}-backed matrices.
+#' @param num.rows.chunk Chunk size used when streaming data from on-disk
+#' objects into memory.
+#' @param col.names Optional character vector assigning column names to the
+#' generated design matrix.
+#' @param type Type of model or preprocessing target being prepared, such as
+#' survival or regression.
 #'
 #' @return
-#'   an object of the scaler class
+#'   A scaled design matrix of the scaler class along with metadata describing 
+#'   the transformation that was applied.
 #'   time.indices: indices of the time variable
 #'   cens.indices: indices of the censored variables 
 #'   features.indices: indices of the features 
@@ -26,11 +44,15 @@
 #'   nr: number of rows
 #'   nc: number of columns
 #'   col.names: columns names
+#'   
+#' @seealso [bigSurvSGD.na.omit()] for fitting models that use the scaled 
+#' features.
+#' 
 #' @export
 #'
 #' @examples
-#' 
-#' 1+1
+#' scaled <- bigscale(Surv(time, status) ~ ., data = my_training_data,
+#' norm.method = "standardize", batch.size = 128)
 #' 
 bigscale <- function (formula = Surv(time = time, status = status) ~ ., data, 
           norm.method = "standardize", strata.size = 20,

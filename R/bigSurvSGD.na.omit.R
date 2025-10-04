@@ -1,55 +1,102 @@
-#' Adapt bigSurvSGD to use na.omit
+#' Fit Survival Models with Stochastic Gradient Descent
 #'
-#' @param formula 
-#' @param data 
-#' @param norm.method 
-#' @param features.mean 
-#' @param features.sd 
-#' @param opt.method 
-#' @param beta.init 
-#' @param beta.type 
-#' @param lr.const 
-#' @param lr.tau 
-#' @param strata.size 
-#' @param batch.size 
-#' @param num.epoch 
-#' @param b1 
-#' @param b2 
-#' @param eps 
-#' @param inference.method 
-#' @param num.boot 
-#' @param num.epoch.boot 
-#' @param boot.method 
-#' @param lr.const.boot 
-#' @param lr.tau.boot 
-#' @param num.sample.strata 
-#' @param sig.level 
-#' @param beta0 
-#' @param alpha 
-#' @param lambda 
-#' @param nlambda 
-#' @param num.strata.lambda 
-#' @param lambda.scale 
-#' @param parallel.flag 
-#' @param num.cores 
-#' @param bigmemory.flag 
-#' @param num.rows.chunk 
-#' @param col.names 
-#' @param type 
+#' Performs stochastic gradient descent optimisation for large-scale survival
+#' models after removing observations with missing values.
 #'
-#' @return
-#' coef: Log of hazards ratio. If no inference is used, it returns a vector for estimated coefficients: If inference is used, it returns a matrix including estimates and confidence intervals of coefficients. In case of penalization, it resturns a matrix with columns corresponding to lambdas.
+#' @param formula Model formula describing the survival outcome and the set of
+#' predictors to include in the optimisation.
+#' @param data Input data set or connection to a big-memory backed design
+#' matrix that contains the variables referenced in \code{formula}.
+#' @param norm.method Normalization strategy applied to the feature matrix
+#' before optimisation, for example centring or standardising columns.
+#' @param features.mean Optional pre-computed column means used when
+#' normalising the features so that repeated fits can reuse shared
+#' statistics.
+#' @param features.sd Optional pre-computed column standard deviations used in
+#' concert with \code{features.mean} for scaling the predictors.
+#' @param opt.method Gradient based optimisation routine to employ, such as
+#' vanilla SGD or adaptive methods like Adam.
+#' @param beta.init Vector of starting values for the regression coefficients
+#' supplied when warm-starting the optimisation.
+#' @param beta.type Indicator controlling how \code{beta.init} is interpreted,
+#' for example whether the coefficients correspond to the original or
+#' normalised scale.
+#' @param lr.const Base learning-rate constant used by the stochastic
+#' gradient descent routine.
+#' @param lr.tau Learning-rate decay horizon or damping factor that moderates
+#' the step size schedule.
+#' @param strata.size Number of observations drawn per stratum when building
+#' mini-batches for the optimisation loop.
+#' @param batch.size Total number of observations assembled into each
+#' stochastic gradient batch.
+#' @param num.epoch Number of passes over the training data used during the
+#' optimisation.
+#' @param b1 First exponential moving-average rate used by adaptive methods
+#' such as Adam to smooth gradients.
+#' @param b2 Second exponential moving-average rate used by adaptive methods
+#' to smooth squared gradients.
+#' @param eps Numerical stabilisation constant added to denominators when
+#' updating the adaptive moments.
+#' @param inference.method Inference approach requested after fitting, for
+#' example naive asymptotics or bootstrap resampling.
+#' @param num.boot Number of bootstrap replicates to draw when
+#' \code{inference.method} relies on resampling.
+#' @param num.epoch.boot Number of optimisation epochs to run within each
+#' bootstrap replicate.
+#' @param boot.method Type of bootstrap scheme to apply, such as ordinary or
+#' stratified resampling.
+#' @param lr.const.boot Learning-rate constant used during bootstrap refits.
+#' @param lr.tau.boot Learning-rate decay factor applied during bootstrap
+#' refits.
+#' @param num.sample.strata Number of strata sampled without replacement during
+#' each bootstrap iteration when stratified resampling is selected.
+#' @param sig.level Significance level used when constructing confidence
+#' intervals or hypothesis tests.
+#' @param beta0 Optional vector of coefficients under the null hypothesis when
+#' performing hypothesis tests.
+#' @param alpha Elastic-net mixing parameter controlling the relative weight of
+#' \eqn{\ell_1} and \eqn{\ell_2} regularisation penalties.
+#' @param lambda Sequence of regularisation strengths supplied explicitly for
+#' penalised estimation.
+#' @param nlambda Number of automatically generated \code{lambda} values when a
+#' grid is produced internally.
+#' @param num.strata.lambda Number of strata used when tuning \code{lambda} via
+#' cross-validation or other search procedures.
+#' @param lambda.scale Scale on which the \code{lambda} grid is generated, for
+#' example logarithmic or linear spacing.
+#' @param parallel.flag Logical flag enabling parallel computation of
+#' gradients or bootstrap replicates.
+#' @param num.cores Number of processing cores to use when parallel execution
+#' is enabled.
+#' @param bigmemory.flag Logical flag indicating whether intermediate matrices
+#' should be stored using \pkg{bigmemory} backed objects.
+#' @param num.rows.chunk Row chunk size to use when streaming data from an
+#' on-disk matrix representation.
+#' @param col.names Optional character vector of column names associated with
+#' the feature matrix.
+#' @param type Type of survival model to fit, for example Cox proportional
+#' hazards or accelerated failure time variants.
+#'
+#' @return A fitted model object storing the learned coefficients, optimisation
+#' metadata, and any requested inference summaries.
+#' coef: Log of hazards ratio. If no inference is used, it returns a vector for 
+#' estimated coefficients: If inference is used, it returns a matrix including 
+#' estimates and confidence intervals of coefficients. In case of penalization, 
+#' it resturns a matrix with columns corresponding to lambdas.
 #' coef.exp: Exponentiated version of coef (hazards ratio).
 #' lambda: Returns lambda(s) used for penalizarion.
 #' alpha: Returns alpha used for penalizarion.
 #' features.mean: Returns means of features, if given or calculated
 #' features.sd: Returns standard deviations of features, if given or calculated.
 #' @export
-#' @seealso See Also \code{\link[bigSurvSGD]{bigSurvSGDbigSurvSGD}}
+#' @seealso See Also \code{\link[bigSurvSGD]{bigSurvSGDbigSurvSGD}},
+#' \code{\link{bigscale}} for constructing normalised design matrices and 
+#' \code{\link{partialbigSurvSGDv0}} for partial fitting pipelines.
 #'
 #' @examples
-#' #' set.seed(314)
-#' library(sim_data)
+#' fit <- bigSurvSGD.na.omit(Surv(time, status) ~ ., data = my_training_data,
+#' norm.method = "standardize", opt.method = "adam", batch.size = 128, 
+#' num.epoch = 10)
 #' 
 bigSurvSGD.na.omit <- function (formula = Surv(time = time, status = status) ~ ., data, 
           norm.method = "standardize", features.mean = NULL, features.sd = NULL, 

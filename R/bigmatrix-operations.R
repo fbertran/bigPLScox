@@ -1,13 +1,18 @@
 #' Matrix and arithmetic operations for big.matrix objects
-#'
-#' These methods extend the base matrix multiplication operator (`%*%`) and the
-#' group generic `Arith` so that [bigmemory::big.matrix] instances can interact
-#' naturally with base R matrices and numeric scalars.  The implementations
-#' delegate to the optimised BLAS-backed helpers provided by the
-#' **bigalgebra** package.
-#'
+#' 
+#' These methods extend the base matrix multiplication operator
+#' (\code{\link[base]{%*%}}) and the group generic \code{\link[base]{Arith}} so
+#' that \code{\link[bigmemory]{big.matrix}} objects can interoperate with base
+#' R matrices and numeric scalars using the high-performance routines provided
+#' by \pkg{bigalgebra}.
+#' 
+#' Matrix multiplications dispatch to \code{bigalgebra::dgemm()}, mixed
+#' arithmetic on matrices relies on \code{bigalgebra::daxpy()}, and
+#' scalar/matrix combinations use \code{bigalgebra::dadd()} when appropriate.
+#' 
 #' @name bigmatrix-operations
-#' @docType methods
+#' 
+#' @aliases bigmatrix-operations 
 #' @aliases %*%,big.matrix,big.matrix-method
 #' @aliases %*%,matrix,big.matrix-method
 #' @aliases %*%,big.matrix,matrix-method
@@ -16,9 +21,23 @@
 #' @aliases Arith,matrix,big.matrix-method
 #' @aliases Arith,numeric,big.matrix-method
 #' @aliases Arith,big.matrix,numeric-method
+#' 
+#' 
+#' @docType methods
+#' 
+#' @param x,y Matrix operands supplied either as \code{big.matrix} instances or
+#' base R matrices, depending on the method signature.
+#' 
+#' @param e1,e2 Numeric operands, which may be \code{big.matrix} objects, base
+#' R matrices, or numeric scalars depending on the method signature.
+#' 
 #' @seealso [bigmemory::big.matrix], [bigalgebra::dgemm()],
 #'   [bigalgebra::daxpy()], [bigalgebra::dadd()]
-#' @examples
+#' 
+#' @keywords methods
+#' @export
+#' 
+#' @examples 
 #' if (requireNamespace("bigmemory", quietly = TRUE) &&
 #'     requireNamespace("bigalgebra", quietly = TRUE)) {
 #'   x <- bigmemory::big.matrix(2, 2, init = 1)
@@ -27,8 +46,7 @@
 #'   x + y
 #'   x * 3
 #' }
-#' @keywords methods
-#' @export
+#' 
 setMethod("%*%",signature(x="big.matrix", y="big.matrix"),
           function(x,y)
           {
