@@ -115,7 +115,7 @@
 #' rm(X_train_micro,Y_train_micro,C_train_micro,cox_spls_sgplsDR_fit)
 #' 
 #' @export coxspls_sgplsDR
-coxspls_sgplsDR <- function (Xplan, ...) UseMethod("coxspls_sgplsDR")
+coxspls_sgplsDR <- function (Xplan, ind.block.x = NULL, ...) UseMethod("coxspls_sgplsDR")
 
 #' @rdname coxspls_sgplsDR
 #' @export

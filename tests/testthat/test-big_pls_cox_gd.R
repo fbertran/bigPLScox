@@ -55,3 +55,27 @@ test_that("reordering columns leaves the gradient-descent fit unchanged", {
   expect_equal(fit_orig$center, fit_perm$center[inv_perm], tolerance = 1e-6)
   expect_equal(fit_orig$scale, fit_perm$scale[inv_perm], tolerance = 1e-6)
 })
+
+test_that("big_pls_cox approximates plsRcox", {
+  skip_if_not_installed("survival")
+  skip_if_not_installed("plsRcox")
+  skip_if_not_installed("bigmemory")
+  
+  set.seed(123)
+  n <- 30
+  p <- 5
+  X <- matrix(rnorm(n * p), n, p)
+  time <- rexp(n)
+  status <- rbinom(n, 1, 0.6)
+  
+  my <- big_pls_cox(X, time, status, ncomp = 2)
+  myother <- plsRcox::plsRcox(X, time, status, nt = 3, verbose = FALSE)
+  
+  expect_equal(ncol(my$scores), 2)
+  expect_equal(nrow(my$loadings), p)
+  
+  # Compare component spaces via correlations
+  cors <- cor(my$scores, myother$tt[, 1:2])
+  expect_true(all(abs(cors) <= 1 + 1e-8))
+  expect_true(mean(abs(diag(cors))) > 0.95)
+})

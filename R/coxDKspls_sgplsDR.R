@@ -140,6 +140,7 @@
 #' 
 #' @export coxDKspls_sgplsDR
 coxDKspls_sgplsDR <- function (Xplan, ...) UseMethod("coxDKspls_sgplsDR")
+coxDKspls_sgplsDR <- function (Xplan, ind.block.x = NULL, ...) UseMethod("coxDKspls_sgplsDR")
 
 #' @rdname coxDKspls_sgplsDR
 #' @export
