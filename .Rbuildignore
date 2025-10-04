@@ -1,5 +1,8 @@
 \.DS_Store$
 
+^ExampleCox.Rmd$
+^old_R$
+
 genlogo.R
 .gitignore
 ^codecov\.yml$
