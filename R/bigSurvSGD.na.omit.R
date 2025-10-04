@@ -89,7 +89,7 @@
 #' features.mean: Returns means of features, if given or calculated
 #' features.sd: Returns standard deviations of features, if given or calculated.
 #' @export
-#' @seealso See Also \code{\link[bigSurvSGD]{bigSurvSGDbigSurvSGD}},
+#' @seealso See Also \code{\link[bigSurvSGD]{bigSurvSGD}},
 #' \code{\link{bigscale}} for constructing normalised design matrices and 
 #' \code{\link{partialbigSurvSGDv0}} for partial fitting pipelines.
 #'
@@ -575,7 +575,7 @@ bigSurvSGD.na.omit <- function (formula = Surv(time = time, status = status) ~ .
 #'   the helper returns a matrix whose columns contain the requested summaries
 #'   for each penalisation level.
 #'
-#' @seealso See Also \code{\link[bigSurvSGD]{bigSurvSGDbigSurvSGD}}
+#' @seealso See Also \code{\link[bigSurvSGD]{bigSurvSGD}}
 #' @export
 #'
 #' @examples
