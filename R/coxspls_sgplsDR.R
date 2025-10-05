@@ -57,6 +57,11 @@
 #' number of variables in the X matrix.
 #' @param keepX	numeric vector of length ncomp, the number of variables to keep 
 #' in X-loadings. By default all variables are kept in the model.
+#' @param alpha.x numeric vector of length \code{ncomp} giving the sparsity level
+#' applied within each component. Required when \code{ind.block.x} is
+#' specified.
+#' @param upper.lambda numeric value giving the upper bound for the regularized
+#' regression penalty used in \code{\link[sgPLS]{sgPLS}}. Defaults to 10\eqn{^5}.
 #' @param modepls character string. What type of algorithm to use, (partially)
 #' matching one of "regression", "canonical". See
 #' \code{\link[sgPLS]{gPLS}} for details
@@ -124,7 +129,7 @@ coxspls_sgplsDR.formula <-
   function (Xplan, time, time2, event, type, origin, typeres = "deviance", 
             collapse, weighted, scaleX = TRUE, scaleY = TRUE, ncomp =
               min(7, ncol(Xplan)), ind.block.x = NULL, modepls = "regression", keepX,
-            plot = FALSE, allres = FALSE, dataXplan = NULL, subset, weights, 
+            alpha.x, upper.lambda = 10 ^ 5, plot = FALSE, allres = FALSE, dataXplan = NULL, subset, weights, 
             model_frame = FALSE, model_matrix = FALSE, 
             contrasts.arg=NULL, ...) 
   {
@@ -173,7 +178,8 @@ coxspls_sgplsDR.default <-
   function (Xplan, time, time2, event, type, origin, typeres = "deviance", 
             collapse, weighted, scaleX = TRUE, scaleY = TRUE, 
             ncomp = min(7,ncol(Xplan)), ind.block.x = NULL, modepls = "regression",
-            keepX, plot = FALSE, allres = FALSE, ...) 
+            keepX, alpha.x, upper.lambda = 10 ^ 5, plot = FALSE, 
+            allres = FALSE, ...) 
   {
     if (scaleX) {
       Xplan <- scale(Xplan)
@@ -216,21 +222,32 @@ coxspls_sgplsDR.default <-
     DR_coxph <- eval(mf1r, parent.frame())
     
     mf2 <- match.call(expand.dots = FALSE)
-    m2 <- match(c("ncomp", "ind.block.x"), names(mf2), 0L)
+    m2 <- match(c("ncomp", "ind.block.x", "keepX", "alpha.x", "upper.lambda"),
+                names(mf2), 0L)
     mf2 <- mf2[c(1L, m2)]
     mf2$ncomp <- eval.parent(mf2$ncomp)
     ind.block.eval <- if (missing(ind.block.x)) NULL else eval.parent(mf2$ind.block.x)
-    mf2$ind.block.x <- ind.block.eval
+    keepX.eval <- if (missing(keepX)) {rep(length(ind.block.eval) + 1, mf2$ncomp)}
+    else {eval.parent(mf2$keepX)}
     mf2$X <- eval.parent(Xplan)
     mf2$Y <- eval.parent(time)
     mf2$mode <- eval.parent(modepls)
-    mf2$keepX <- if (missing(keepX)) {rep(length(ind.block.eval)+1,mf2$ncomp)} else {eval.parent(keepX)}
+    mf2$keepX <- keepX.eval
+    mf2$scale <- FALSE
     if (is.null(ind.block.eval)) {
       mf2$ind.block.x <- NULL
-      mf2 <- mf2[names(mf2) != "ind.block.x"]
+      mf2 <- mf2[!names(mf2) %in% c("ind.block.x", "alpha.x", "upper.lambda")]
+      mf2[[1L]] <- as.name("sPLS")
     }
-    mf2$scale = FALSE
-    mf2[[1L]] <- as.name("sPLS")
+    else {
+      if (missing(alpha.x)) {
+        stop("alpha.x must be provided when 'ind.block.x' is specified", call. = FALSE)
+      }
+      mf2$ind.block.x <- ind.block.eval
+      mf2$alpha.x <- eval.parent(mf2$alpha.x)
+      mf2$upper.lambda <- eval.parent(mf2$upper.lambda)
+      mf2[[1L]] <- as.name("sgPLS")
+    }
     if (mf2$ncomp == 0) {
       spls_sgplsDR_mod <- NULL
     }

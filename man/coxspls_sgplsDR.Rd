@@ -24,6 +24,8 @@ coxspls_sgplsDR(Xplan, ...)
   ind.block.x = NULL,
   modepls = "regression",
   keepX,
+  alpha.x,
+  upper.lambda = 10^5,
   plot = FALSE,
   allres = FALSE,
   dataXplan = NULL,
@@ -51,6 +53,8 @@ coxspls_sgplsDR(Xplan, ...)
   ind.block.x = NULL,
   modepls = "regression",
   keepX,
+  alpha.x,
+  upper.lambda = 10^5,
   plot = FALSE,
   allres = FALSE,
   ...
@@ -122,6 +126,13 @@ matching one of "regression", "canonical". See
 
 \item{keepX}{numeric vector of length ncomp, the number of variables to keep
 in X-loadings. By default all variables are kept in the model.}
+
+\item{alpha.x}{numeric vector of length \code{ncomp} giving the sparsity level
+applied within each component. Required when \code{ind.block.x} is
+specified.}
+
+\item{upper.lambda}{numeric value giving the upper bound for the regularized
+regression penalty used in \code{\link[sgPLS]{sgPLS}}. Defaults to 10\eqn{^5}.}
 
 \item{plot}{Should the survival function be plotted ?)}
 
