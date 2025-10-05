@@ -65,45 +65,6 @@ NULL
 
 
 
-
-
-#' Simulated dataset
-#' 
-#' This dataset provides explantory variables simulations and censoring status.
-#' 
-#' 
-#' @name sim_data
-#' @docType data
-#' @format A data frame with 10000 observations on the following 5 variables.
-#' \describe{ 
-#' \item{id}{an integer vector} 
-#' \item{time}{a numeric vector} 
-#' \item{status}{a binary vector} 
-#' \item{x.1}{a binary vector} 
-#' \item{x.2}{a binary vector} 
-#' }
-#' @references TODO.\cr
-#' 
-#' @keywords datasets
-#' @examples
-#' 
-#' \donttest{
-#' data(sim_data)
-#' X_sim_data_train <- sim_data[1:800,2:11]
-#' Y_sim_data_train <- sim_data$status[1:800,1]
-#' C_sim_data_train <- sim_data$status[1:800,1]
-#' X_sim_data_test <- micro.censure$survyear[801:1000,2:11]
-#' Y_sim_data_test <- micro.censure$status[801:1000,1]
-#' C_sim_data_test <- micro.censure$status[801:1000,1]
-#' rm(X_sim_data_train,Y_sim_data_train,C_sim_data_train,X_sim_data_test,
-#' Y_sim_data_test,C_sim_data_test)
-#' }
-#' 
-NULL
-
-
-
-
 #' Microsat features and survival times
 #' 
 #' This dataset provides Microsat specifications and survival times.
@@ -188,8 +149,6 @@ NULL
 #' }
 #' 
 NULL
-
-
 
 
 

@@ -1,20 +1,26 @@
-citHeader("To cite the plsRcox package in publications use:")
+citHeader("To cite the bigPLScox package in publications use:")
 
 titl <- meta$Title
 year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date)
 vers <- paste("R package version", meta$Version)
+doi <- paste0("10.32614/CRAN.package.", meta$Package)
+urldoi <- paste0("https://doi.org/", doi)
 
-citEntry(entry="Manual",
+bibentry(bibtype="Manual",
          title = titl,
-         author = personList(as.person("F. Bertrand"), 
-                             as.person("M. Maumy-Bertrand")),
-	 publisher = "manual",
+         author = c(
+	person(given = "Frederic", family= "Bertrand"),
+	person(given = "Myriam", family= "Maumy-Bertrand")),
+   publisher = "manual",
          year         = year,
          note         = vers,
-         url          = "https://fbertran.github.io/homepage/",
+         url          = "https://fbertran.github.io/bigPLScox/",
+    #    doi          = doi,  
          textVersion = 
          paste("Frederic Bertrand and Myriam Maumy-Bertrand (",year ,"). ", 
-               titl, ", ", vers, ".", sep=""
+               titl, ", ", vers, 
+               # ". doi:", doi, 
+               ".", sep=""
                )
 )
 

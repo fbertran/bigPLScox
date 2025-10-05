@@ -158,7 +158,8 @@
 #' 
 #' #Should be run with a higher value of nt (at least 10)
 #' (cv.coxspls_sgplsDR.res=cv.coxspls_sgplsDR(list(x=X_train_micro,
-#' time=Y_train_micro,status=C_train_micro),ind.block.x=c(3,10,15),nt=3))
+#' time=Y_train_micro,status=C_train_micro),ind.block.x=c(3,10,15),
+#' alpha.x = rep(0.95, 6),nt=3))
 #' 
 #' @export cv.coxspls_sgplsDR
 cv.coxspls_sgplsDR =

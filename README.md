@@ -895,19 +895,19 @@ set.seed(123456)
 
 ``` r
 cox_spls_sgplsDR_fit=coxspls_sgplsDR(X_train_micro,Y_train_micro,C_train_micro,ncomp=6,ind.block.x=c(3,10,15))
-#> Error in sPLS(ncomp = 6, ind.block.x = c(3, 10, 15), X = structure(list(: unused argument (ind.block.x = c(3, 10, 15))
+#> Error: alpha.x must be provided when 'ind.block.x' is specified
 ```
 
 
 ``` r
 cox_spls_sgplsDR_fit2=coxspls_sgplsDR(~X_train_micro,Y_train_micro,C_train_micro,ncomp=6,ind.block.x=c(3,10,15))
-#> Error in sPLS(ncomp = 6, ind.block.x = c(3, 10, 15), X = structure(list(: unused argument (ind.block.x = c(3, 10, 15))
+#> Error: alpha.x must be provided when 'ind.block.x' is specified
 ```
 
 
 ``` r
 cox_spls_sgplsDR_fit3=coxspls_sgplsDR(~.,Y_train_micro,C_train_micro,ncomp=6,dataXplan=X_train_micro_df,ind.block.x=c(3,10,15))
-#> Error in sPLS(ncomp = 6, ind.block.x = c(3, 10, 15), X = structure(list(: unused argument (ind.block.x = c(3, 10, 15))
+#> Error: alpha.x must be provided when 'ind.block.x' is specified
 ```
 
 
@@ -929,7 +929,7 @@ rm(cox_spls_sgplsDR_fit,cox_spls_sgplsDR_fit2,cox_spls_sgplsDR_fit3)
 set.seed(123456)
 
 cv.coxspls_sgplsDR.res=cv.coxspls_sgplsDR(list(x=X_train_micro,time=Y_train_micro, status=C_train_micro),nt=10,ind.block.x=c(3,10,15))
-#> Error in sPLS(ncomp = 10, ind.block.x = c(3, 10, 15), X = structure(list(: unused argument (ind.block.x = c(3, 10, 15))
+#> Error: alpha.x must be provided when 'ind.block.x' is specified
 ```
 
 
@@ -940,19 +940,19 @@ cv.coxspls_sgplsDR.res=cv.coxspls_sgplsDR(list(x=X_train_micro,time=Y_train_micr
 cox_DKspls_sgplsDR_fit=coxDKspls_sgplsDR(X_train_micro,Y_train_micro,C_train_micro,ncomp=6, validation="CV",ind.block.x=c(3,10,15),verbose=TRUE)
 #> Kernel :  rbfdot 
 #> Estimated_sigma  0.0122308
-#> Error in sPLS(ncomp = 6, ind.block.x = c(3, 10, 15), X = new("kernelMatrix", : unused argument (ind.block.x = c(3, 10, 15))
+#> Error: alpha.x must be provided when 'ind.block.x' is specified
 ```
 
 
 ``` r
 cox_DKspls_sgplsDR_fit=coxDKspls_sgplsDR(~X_train_micro,Y_train_micro,C_train_micro,ncomp=6, validation="CV",ind.block.x=c(3,10,15))
-#> Error in sPLS(ncomp = 6, ind.block.x = c(3, 10, 15), X = new("kernelMatrix", : unused argument (ind.block.x = c(3, 10, 15))
+#> Error: alpha.x must be provided when 'ind.block.x' is specified
 ```
 
 
 ``` r
 cox_DKspls_sgplsDR_fit=coxDKspls_sgplsDR(~.,Y_train_micro,C_train_micro,ncomp=6, validation="CV",dataXplan=data.frame(X_train_micro),ind.block.x=c(3,10,15))
-#> Error in sPLS(ncomp = 6, ind.block.x = c(3, 10, 15), X = new("kernelMatrix", : unused argument (ind.block.x = c(3, 10, 15))
+#> Error: alpha.x must be provided when 'ind.block.x' is specified
 ```
 
 
@@ -975,7 +975,7 @@ set.seed(123456)
 cv.coxDKspls_sgplsDR.res=cv.coxDKspls_sgplsDR(list(x=X_train_micro,time=Y_train_micro, status=C_train_micro),nt=10,ind.block.x=c(3,10,15))
 #> Kernel :  rbfdot 
 #> Estimated_sigma  0.01257168
-#> Error in sPLS(ncomp = 10, ind.block.x = c(3, 10, 15), X = new("kernelMatrix", : unused argument (ind.block.x = c(3, 10, 15))
+#> Error: alpha.x must be provided when 'ind.block.x' is specified
 ```
 
 

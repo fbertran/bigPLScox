@@ -200,7 +200,8 @@ matching one of "regression", "canonical". See
 X-variables. <code>ind.block.x &lt;- c(3,10,15)</code> means that <code>X</code> is
 structured into 4 groups: <code>X1</code> to <code>X3</code>; <code>X4</code> to <code>X10</code>,
 <code>X11</code> to <code>X15</code> and <code>X16</code> to <code>Xp</code> where <code>p</code> is the
-number of variables in the X matrix.</p></dd>
+number of variables in the X matrix. When missing, every predictor is placed
+in its own group.</p></dd>
 
 
 <dt id="arg-keepx">keepX<a class="anchor" aria-label="anchor" href="#arg-keepx"></a></dt>
@@ -305,13 +306,49 @@ doi:10.1093/bioinformatics/btu660.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="op">(</span><span class="va">coxgpls_fit</span><span class="op">=</span><span class="fu">coxgpls</span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,</span></span>
 <span class="r-in"><span>ncomp<span class="op">=</span><span class="fl">6</span>,keepX<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">4</span>,<span class="fl">6</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in coxgpls.default(X_train_micro, Y_train_micro, C_train_micro,     ncomp = 6, keepX = rep(4, 6)):</span> argument "ind.block.x" is missing, with no default</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> coxph(formula = YCsurv ~ ., data = tt_gpls)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            coef exp(coef)  se(coef)      z      p</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.1 -0.696933  0.498111  0.307358 -2.267 0.0234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.2 -0.101947  0.903078  0.250931 -0.406 0.6845</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.3 -0.601144  0.548184  0.269089 -2.234 0.0255</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.4  0.001834  1.001836  0.458089  0.004 0.9968</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.5 -0.276795  0.758210  0.287096 -0.964 0.3350</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.6 -0.785772  0.455768  0.321865 -2.441 0.0146</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=19.33  on 6 df, p=0.003642</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> n= 80, number of events= 17 </span>
 <span class="r-in"><span><span class="op">(</span><span class="va">coxgpls_fit</span><span class="op">=</span><span class="fu">coxgpls</span><span class="op">(</span><span class="op">~</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,</span></span>
 <span class="r-in"><span>ncomp<span class="op">=</span><span class="fl">6</span>,keepX<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">4</span>,<span class="fl">6</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in coxgpls.default(~X_train_micro, Y_train_micro, C_train_micro,     ncomp = 6, keepX = rep(4, 6)):</span> argument "ind.block.x" is missing, with no default</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> coxph(formula = YCsurv ~ ., data = tt_gpls)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            coef exp(coef)  se(coef)      z      p</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.1 -0.696933  0.498111  0.307358 -2.267 0.0234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.2 -0.101947  0.903078  0.250931 -0.406 0.6845</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.3 -0.601144  0.548184  0.269089 -2.234 0.0255</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.4  0.001834  1.001836  0.458089  0.004 0.9968</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.5 -0.276795  0.758210  0.287096 -0.964 0.3350</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.6 -0.785772  0.455768  0.321865 -2.441 0.0146</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=19.33  on 6 df, p=0.003642</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> n= 80, number of events= 17 </span>
 <span class="r-in"><span><span class="op">(</span><span class="va">ccoxgpls_fit</span><span class="op">=</span><span class="fu">coxgpls</span><span class="op">(</span><span class="op">~</span><span class="va">.</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,</span></span>
 <span class="r-in"><span>dataXplan<span class="op">=</span><span class="va">X_train_micro_df</span>,keepX<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">4</span>,<span class="fl">6</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in coxgpls.default(~., Y_train_micro, C_train_micro, ncomp = 6,     dataXplan = X_train_micro_df, keepX = rep(4, 6)):</span> argument "ind.block.x" is missing, with no default</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> coxph(formula = YCsurv ~ ., data = tt_gpls)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            coef exp(coef)  se(coef)      z      p</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.1 -0.696933  0.498111  0.307358 -2.267 0.0234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.2 -0.101947  0.903078  0.250931 -0.406 0.6845</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.3 -0.601144  0.548184  0.269089 -2.234 0.0255</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.4  0.001834  1.001836  0.458089  0.004 0.9968</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.5 -0.276795  0.758210  0.287096 -0.964 0.3350</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.6 -0.785772  0.455768  0.321865 -2.441 0.0146</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=19.33  on 6 df, p=0.003642</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> n= 80, number of events= 17 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,<span class="va">cox_spls_sgpls_fit</span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>object 'cox_spls_sgpls_fit' not found</span>

@@ -19,19 +19,8 @@ A data frame with 1000 observations on the following 11 variables.
 \item{X9}{a numeric vector}
 \item{X10}{a numeric vector}
 }
-
-A data frame with 10000 observations on the following 5 variables.
-\describe{
-\item{id}{an integer vector}
-\item{time}{a numeric vector}
-\item{status}{a binary vector}
-\item{x.1}{a binary vector}
-\item{x.2}{a binary vector}
-}
 }
 \description{
-This dataset provides explantory variables simulations and censoring status.
-
 This dataset provides explantory variables simulations and censoring status.
 }
 \examples{
@@ -45,23 +34,8 @@ C_sim_data_test <- sim_data$status[801:1000]
 rm(X_sim_data_train,C_sim_data_train,X_sim_data_test,C_sim_data_test)
 }
 
-
-\donttest{
-data(sim_data)
-X_sim_data_train <- sim_data[1:800,2:11]
-Y_sim_data_train <- sim_data$status[1:800,1]
-C_sim_data_train <- sim_data$status[1:800,1]
-X_sim_data_test <- micro.censure$survyear[801:1000,2:11]
-Y_sim_data_test <- micro.censure$status[801:1000,1]
-C_sim_data_test <- micro.censure$status[801:1000,1]
-rm(X_sim_data_train,Y_sim_data_train,C_sim_data_train,X_sim_data_test,
-Y_sim_data_test,C_sim_data_test)
-}
-
 }
 \references{
-TODO.\cr
-
 TODO.\cr
 }
 \keyword{datasets}

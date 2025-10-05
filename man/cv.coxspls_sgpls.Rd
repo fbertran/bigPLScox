@@ -182,7 +182,8 @@ C_train_micro <- micro.censure$DC[1:80]
 
 #Should be run with a higher value of nt (at least 10)
 (cv.coxspls_sgpls.res=cv.coxspls_sgpls(list(x=X_train_micro,
-time=Y_train_micro,status=C_train_micro),ind.block.x=c(3,10,15),nt=3))
+time=Y_train_micro,status=C_train_micro),ind.block.x=c(3,10,15),
+alpha.x = rep(0.95, 6),nt=3))
 
 }
 \references{
