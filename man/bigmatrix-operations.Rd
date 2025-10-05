@@ -14,6 +14,20 @@
 \title{Matrix and arithmetic operations for big.matrix objects}
 \usage{
 \S4method{\%*\%}{big.matrix,big.matrix}(x, y)
+
+\S4method{\%*\%}{matrix,big.matrix}(x, y)
+
+\S4method{\%*\%}{big.matrix,matrix}(x, y)
+
+\S4method{Arith}{big.matrix,big.matrix}(e1, e2)
+
+\S4method{Arith}{big.matrix,matrix}(e1, e2)
+
+\S4method{Arith}{matrix,big.matrix}(e1, e2)
+
+\S4method{Arith}{numeric,big.matrix}(e1, e2)
+
+\S4method{Arith}{big.matrix,numeric}(e1, e2)
 }
 \arguments{
 \item{x, y}{Matrix operands supplied either as \code{big.matrix} instances or
@@ -24,7 +38,7 @@ R matrices, or numeric scalars depending on the method signature.}
 }
 \description{
 These methods extend the base matrix multiplication operator
-(\code{\link[base]{\%*\%}}) and the group generic \code{\link[base]{Arith}} so
+(\code{\link[base]{\%*\%}}) and the group generic \code{\link[base]{Arithmetic}} so
 that \code{\link[bigmemory]{big.matrix}} objects can interoperate with base
 R matrices and numeric scalars using the high-performance routines provided
 by \pkg{bigalgebra}.
@@ -46,7 +60,7 @@ if (requireNamespace("bigmemory", quietly = TRUE) &&
 
 }
 \seealso{
-\link[bigmemory:big.matrix]{bigmemory::big.matrix}, \code{\link[bigalgebra:dgemm]{bigalgebra::dgemm()}},
+\code{\link[bigmemory:big.matrix]{bigmemory::big.matrix()}}, \code{\link[bigalgebra:dgemm]{bigalgebra::dgemm()}},
 \code{\link[bigalgebra:daxpy]{bigalgebra::daxpy()}}, \code{\link[bigalgebra:dadd]{bigalgebra::dadd()}}
 }
 \keyword{methods}

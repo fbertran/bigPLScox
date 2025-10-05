@@ -4,7 +4,7 @@
 #' descent byapplying optional normalisation, stratified sampling, 
 #' and batching rules.
 #' 
-#' @param Model formula used to extract the outcome and predictors that
+#' @param formula formula used to extract the outcome and predictors that
 #' should be included in the scaled design matrix.
 #' @param data Input data source containing the variables referenced in
 #' \code{formula}.
@@ -51,10 +51,10 @@
 #' @export
 #'
 #' @examples
-#' scaled <- bigscale(Surv(time, status) ~ ., data = my_training_data,
+#' scaled <- bigscale(survival::Surv(time, status) ~ ., data = my_training_data,
 #' norm.method = "standardize", batch.size = 128)
 #' 
-bigscale <- function (formula = Surv(time = time, status = status) ~ ., data, 
+bigscale <- function (formula = survival::Surv(time = time, status = status) ~ ., data, 
           norm.method = "standardize", strata.size = 20,
           batch.size = 1, features.mean = NULL, features.sd = NULL, 
           parallel.flag = FALSE, num.cores = NULL, bigmemory.flag = FALSE, 

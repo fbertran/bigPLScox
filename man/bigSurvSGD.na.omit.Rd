@@ -5,7 +5,7 @@
 \title{Fit Survival Models with Stochastic Gradient Descent}
 \usage{
 bigSurvSGD.na.omit(
-  formula = Surv(time = time, status = status) ~ .,
+  formula = survival::Surv(time = time, status = status) ~ .,
   data,
   norm.method = "standardize",
   features.mean = NULL,
@@ -171,13 +171,13 @@ Performs stochastic gradient descent optimisation for large-scale survival
 models after removing observations with missing values.
 }
 \examples{
-fit <- bigSurvSGD.na.omit(Surv(time, status) ~ ., data = my_training_data,
+fit <- bigSurvSGD.na.omit(survival::Surv(time, status) ~ ., data = my_training_data,
 norm.method = "standardize", opt.method = "adam", batch.size = 128, 
 num.epoch = 10)
 
 }
 \seealso{
-See Also \code{\link[bigSurvSGD]{bigSurvSGDbigSurvSGD}},
+See Also \code{\link[bigSurvSGD]{bigSurvSGD}},
 \code{\link{bigscale}} for constructing normalised design matrices and
 \code{\link{partialbigSurvSGDv0}} for partial fitting pipelines.
 }

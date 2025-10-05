@@ -147,7 +147,7 @@ bigplsRcoxmodel <- bigplsRcox
 #' @rdname bigplsRcox
 #' @export
 
-bigplsRcoxmodel.default <- function(formula = Surv(time = time, status = status) ~ ., data, deepcopy_data=TRUE, scale.X=TRUE, scale.Y=TRUE, nt=2, type="double", allres=TRUE, verbose=TRUE, backingfile=NULL, backingpath=NULL, descriptorfile=NULL,...) {
+bigplsRcoxmodel.default <- function(formula = survival::Surv(time = time, status = status) ~ ., data, deepcopy_data=TRUE, scale.X=TRUE, scale.Y=TRUE, nt=2, type="double", allres=TRUE, verbose=TRUE, backingfile=NULL, backingpath=NULL, descriptorfile=NULL,...) {
   
   ##################################################
   #                                                #
@@ -250,11 +250,11 @@ bigplsRcoxmodel.default <- function(formula = Surv(time = time, status = status)
   
   cat("Compute scaler\n")  
   if(scale.X || scale.Y){
-    resultsBigscale <- bigPLS::bigscale(formula=Surv(time, status)~., data=big.data0, 
+    resultsBigscale <- bigPLS::bigscale(formula=survival::Surv(time, status)~., data=big.data0, 
                                 bigmemory.flag=TRUE, parallel.flag=TRUE, 
                                 num.cores=2, norm.method = "standardize")
   } else {
-    resultsBigscale <- bigPLS::bigscale(formula=Surv(time, status)~., data=big.data0, 
+    resultsBigscale <- bigPLS::bigscale(formula=survival::Surv(time, status)~., data=big.data0, 
                                 bigmemory.flag=TRUE, parallel.flag=TRUE, 
                                 num.cores=2, norm.method = "none")
   }
@@ -395,7 +395,7 @@ bigplsRcoxmodel.default <- function(formula = Surv(time = time, status = status)
     if (modele %in% c("bigpls-cox")) {
       if (kk==1) {
         mf2b <- match.call(expand.dots = TRUE)
-        m2b <- match(c(head(names(as.list(args(coxph))),-2),head(names(as.list(args((coxph.control)))),-1)), names(mf2b), 0L)
+        m2b <- match(c(head(names(as.list(args(survival::coxph))),-2),head(names(as.list(args(survival::coxph.control))),-1)), names(mf2b), 0L)
         mf2b <- mf2b[c(1L, m2b)]
         mf2b$formula <- as.formula(YCsurv~1)
         mf2b[[1L]] <- as.name("coxph")
@@ -405,7 +405,7 @@ bigplsRcoxmodel.default <- function(formula = Surv(time = time, status = status)
         res$Coeffsmodel_vals <- rbind(rep(NA,5),matrix(rep(NA,5*nt),ncol=5))
         rm(tempconstcox)
         mf2b <- match.call(expand.dots = TRUE)
-        m2b <- match(c(head(names(as.list(args(coxph))),-2),head(names(as.list(args((coxph.control)))),-1)), names(mf2b), 0L)
+        m2b <- match(c(head(names(as.list(args(survival::coxph))),-2),head(names(as.list(args(survival::coxph.control))),-1)), names(mf2b), 0L)
         mf2b <- mf2b[c(1L, m2b)]
         mf2b$formula <- as.formula(YwotNA~.)
         #tt<-data.frame(res$tt); colnames(tt) <- paste("Comp_",1:length(tt),sep="")
@@ -424,7 +424,7 @@ bigplsRcoxmodel.default <- function(formula = Surv(time = time, status = status)
       } else {
         if (!(na.miss.X | na.miss.Y)) {
           mf2b <- match.call(expand.dots = TRUE)
-          m2b <- match(c(head(names(as.list(args(coxph))),-2),head(names(as.list(args((coxph.control)))),-1)), names(mf2b), 0L)
+          m2b <- match(c(head(names(as.list(args(survival::coxph))),-2),head(names(as.list(args(survival::coxph.control))),-1)), names(mf2b), 0L)
           mf2b <- mf2b[c(1L, m2b)]
           mf2b$formula <- as.formula(YwotNA~.)
           #tt<-data.frame(res$tt); colnames(tt) <- paste("Comp_",1:length(tt),sep="")
@@ -444,7 +444,7 @@ bigplsRcoxmodel.default <- function(formula = Surv(time = time, status = status)
         else
         {
           mf2b <- match.call(expand.dots = TRUE)
-          m2b <- match(c(head(names(as.list(args(coxph))),-2),head(names(as.list(args((coxph.control)))),-1)), names(mf2b), 0L)
+          m2b <- match(c(head(names(as.list(args(survival::coxph))),-2),head(names(as.list(args(survival::coxph.control))),-1)), names(mf2b), 0L)
           mf2b <- mf2b[c(1L, m2b)]
           mf2b$formula <- as.formula(YwotNA~.)
           #tt<-data.frame(res$tt); colnames(tt) <- paste("Comp_",1:length(tt),sep="")

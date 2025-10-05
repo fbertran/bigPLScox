@@ -47,11 +47,11 @@ getIndic = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),tim
   object$train.fit <- train.fit
   object$train.fit.cph <- train.fit.cph
   
-  object$nulltrain.fit <- coxph(object$Surv.rsp~1)
+  object$nulltrain.fit <- survival::coxph(object$Surv.rsp~1)
   object$lp0 <- predict(object$nulltrain.fit)
-  object$nulltest.fit <- coxph(object$Surv.rsp.new~1)
+  object$nulltest.fit <- survival::coxph(object$Surv.rsp.new~1)
   object$lp0new <- predict(object$nulltest.fit)
-  object$test.fit <- coxph(object$Surv.rsp.new~object$lpnew, iter.max=0, init=1)
+  object$test.fit <- survival::coxph(object$Surv.rsp.new~object$lpnew, iter.max=0, init=1)
   
   object$Erestrain <- predict(train.fit, type='expected')
   object$Erestest <- predict(train.fit, newdata=TE, type='expected')
@@ -83,10 +83,10 @@ getIndic = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),tim
   
 #  library(survAUC)
   # iAUC
-  object$AUC_CD <- AUC.cd(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.auc)  #CoxModel
-  object$AUC_hc <- AUC.hc(object$Surv.rsp, object$Surv.rsp.new, object$lpnew, object$times.auc)      #No model
-  object$AUC_sh <- AUC.sh(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.auc)  #CoxModel
-  object$AUC_Uno <- AUC.uno(object$Surv.rsp, object$Surv.rsp.new, object$lpnew, object$times.auc)    #No model
+  object$AUC_CD <- survAUC::AUC.cd(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.auc)  #CoxModel
+  object$AUC_hc <- survAUC::AUC.hc(object$Surv.rsp, object$Surv.rsp.new, object$lpnew, object$times.auc)      #No model
+  object$AUC_sh <- survAUC::AUC.sh(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.auc)  #CoxModel
+  object$AUC_Uno <- survAUC::AUC.uno(object$Surv.rsp, object$Surv.rsp.new, object$lpnew, object$times.auc)    #No model
   
   #AUC_CD$iauc
   #AUC_hc$iauc
@@ -120,12 +120,12 @@ getIndic = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),tim
   object$AUC_hz.train$auc <- rep( NA, length(object$utimes.train) )
   for( j in 1:length(object$utimes.train) )
   {
-    object$out.train <- CoxWeights(object$eta.train, object$Surv.rsp[,"time"], object$Surv.rsp[,"status"], object$utimes.train[j])
+    object$out.train <- risksetROC::CoxWeights(object$eta.train, object$Surv.rsp[,"time"], object$Surv.rsp[,"status"], object$utimes.train[j])
     object$AUC_hz.train$auc[j] <- object$out.train$AUC
   }
   ## integrated AUC to get concordance measure
   object$AUC_hz.train$times <- object$utimes.train
-  object$AUC_hz.train$iauc <- IntegrateAUC( object$AUC_hz.train$auc, object$utimes.train, object$surv.prob.train, tmax=object$tmax.train)
+  object$AUC_hz.train$iauc <- risksetROC::IntegrateAUC( object$AUC_hz.train$auc, object$utimes.train, object$surv.prob.train, tmax=object$tmax.train)
   class(object$AUC_hz.train) <- "survAUC"
   if(plot.it){
     layout(matrix(1:4,nrow=2,byrow=TRUE))
@@ -148,14 +148,14 @@ getIndic = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),tim
   object$AUC_hz.test$auc <- rep( NA, length(object$utimes.test) )
   for( j in 1:length(object$utimes.test) )
   {
-    object$out.test <- CoxWeights( object$eta.test, object$Surv.rsp.new[,"time"], object$Surv.rsp.new[,"status"], object$utimes.test[j])
+    object$out.test <- risksetROC::CoxWeights( object$eta.test, object$Surv.rsp.new[,"time"], object$Surv.rsp.new[,"status"], object$utimes.test[j])
     object$AUC_hz.test$auc[j] <- object$out.test$AUC
   }
   ## integrated AUC to get concordance measure
   object$AUC_hz.test$times <- object$utimes.test
   object$AUC_hz.test$iauc <- NA
   if(length(object$utimes.test)>1){
-    object$AUC_hz.test$iauc <- IntegrateAUC( object$AUC_hz.test$auc, object$utimes.test, object$surv.prob.test, tmax=object$tmax.test )
+    object$AUC_hz.test$iauc <- risksetROC::IntegrateAUC( object$AUC_hz.test$auc, object$utimes.test, object$surv.prob.test, tmax=object$tmax.test )
   } else {if(length(object$utimes.test)==1){object$AUC_hz.test$iauc<-object$AUC_hz.test$auc}}
   class(object$AUC_hz.test) <- "survAUC"
   if(plot.it){
@@ -179,7 +179,7 @@ getIndic = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),tim
   train.surv.event.cc.ix <- object$Surv.rsp.new[,"status"][train.cc.ix]
   if (all(sort(unique(train.surv.event.cc.ix)) == c(0, 1))) {
     for(i in 1:length(object$utimes.train)) {
-      rr.train <- tdrocc(x=object$lp, surv.time=object$Surv.rsp[,"time"], surv.event=object$Surv.rsp[,"status"], time=object$utimes.train[i], na.rm=TRUE, verbose=FALSE)
+      rr.train <- survcomp::tdrocc(x=object$lp, surv.time=object$Surv.rsp[,"time"], surv.event=object$Surv.rsp[,"status"], time=object$utimes.train[i], na.rm=TRUE, verbose=FALSE)
       mytdroc.train <- c(mytdroc.train, list(rr.train))
     }
     object$AUC_survivalROC.train$auc <- unlist(lapply(mytdroc.train, function(x) { return(x$AUC) }))
@@ -209,7 +209,7 @@ getIndic = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),tim
   test.surv.event.cc.ix <- object$Surv.rsp.new[,"status"][test.cc.ix]
   if (all(sort(unique(test.surv.event.cc.ix)) == c(0, 1))) {
     for(i in 1:length(object$utimes.test)) {
-      rr.test <- tdrocc(x=object$lpnew, surv.time=object$Surv.rsp.new[,"time"], surv.event=object$Surv.rsp.new[,"status"], time=object$utimes.test[i], na.rm=TRUE, verbose=FALSE)
+      rr.test <- survcomp::tdrocc(x=object$lpnew, surv.time=object$Surv.rsp.new[,"time"], surv.event=object$Surv.rsp.new[,"status"], time=object$utimes.test[i], na.rm=TRUE, verbose=FALSE)
       mytdroc.test <- c(mytdroc.test, list(rr.test))
     }
     object$AUC_survivalROC.test$auc <- unlist(lapply(mytdroc.test, function(x) { return(x$AUC) }))
@@ -227,32 +227,32 @@ getIndic = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),tim
   }
   
   
-  object$HarrelC <- BeggC(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew)  #CoxModel C-statistic by Begg et al.
-  object$GonenHellerCI <- GHCI(object$lpnew)  #CoxModel Gonen and Heller?s Concordance Index for Cox models
+  object$HarrelC <- survAUC::BeggC(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew)  #CoxModel C-statistic by Begg et al.
+  object$GonenHellerCI <- survAUC::GHCI(object$lpnew)  #CoxModel Gonen and Heller?s Concordance Index for Cox models
   
-  object$rval$train$rsq.OXS <- OXS(object$Surv.rsp, object$lp, object$lp0)
-  object$rval$train$rsq.Nagelk <- Nagelk(object$Surv.rsp, object$lp, object$lp0)
-  object$rval$train$rsq.XO <- XO(object$Surv.rsp, object$lp, object$lp0)
+  object$rval$train$rsq.OXS <- survAUC::OXS(object$Surv.rsp, object$lp, object$lp0)
+  object$rval$train$rsq.Nagelk <- survAUC::Nagelk(object$Surv.rsp, object$lp, object$lp0)
+  object$rval$train$rsq.XO <- survAUC::XO(object$Surv.rsp, object$lp, object$lp0)
   
-  object$rval$test$rsq.OXS <- OXS(object$Surv.rsp.new, object$lpnew, object$lp0new)
-  object$rval$test$rsq.Nagelk <- Nagelk(object$Surv.rsp.new, object$lpnew, object$lp0new)
-  object$rval$test$rsq.XO <- XO(object$Surv.rsp.new, object$lpnew, object$lp0new)
+  object$rval$test$rsq.OXS <- survAUC::OXS(object$Surv.rsp.new, object$lpnew, object$lp0new)
+  object$rval$test$rsq.Nagelk <- survAUC::Nagelk(object$Surv.rsp.new, object$lpnew, object$lp0new)
+  object$rval$test$rsq.XO <- survAUC::XO(object$Surv.rsp.new, object$lpnew, object$lp0new)
   
-  #Surv.rsp A Surv(.,.) object containing to the outcome of the test data.
+  #Surv.rsp A survival::Surv(.,.) object containing to the outcome of the test data.
   #lp The vector of predictors.
   #lp0 The vector of predictors obtained from the covariate-free null model.
   
   #prederr #ierror for iBrier
   object$prederr <- NULL
   object$times.prederr <- times.prederr
-  object$prederr$brier.unw <- predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "brier", int.type = "unweighted")
-  object$prederr$robust.unw <- predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "robust", int.type = "unweighted")
-  object$prederr$brier.w <- predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "brier", int.type = "weighted")
-  object$prederr$robust.w <- predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "robust", int.type = "weighted")
-  object$prederr$brier0.unw <- predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp0, object$lp0new, object$times.prederr, type = "brier", int.type = "unweighted")
-  object$prederr$robust0.unw <- predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp0, object$lp0new, object$times.prederr, type = "robust", int.type = "unweighted")
-  object$prederr$brier0.w <- predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp0, object$lp0new, object$times.prederr, type = "brier", int.type = "weighted")
-  object$prederr$robust0.w <- predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp0, object$lp0new, object$times.prederr, type = "robust", int.type = "weighted")
+  object$prederr$brier.unw <- survAUC::predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "brier", int.type = "unweighted")
+  object$prederr$robust.unw <- survAUC::predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "robust", int.type = "unweighted")
+  object$prederr$brier.w <- survAUC::predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "brier", int.type = "weighted")
+  object$prederr$robust.w <- survAUC::predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "robust", int.type = "weighted")
+  object$prederr$brier0.unw <- survAUC::predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp0, object$lp0new, object$times.prederr, type = "brier", int.type = "unweighted")
+  object$prederr$robust0.unw <- survAUC::predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp0, object$lp0new, object$times.prederr, type = "robust", int.type = "unweighted")
+  object$prederr$brier0.w <- survAUC::predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp0, object$lp0new, object$times.prederr, type = "brier", int.type = "weighted")
+  object$prederr$robust0.w <- survAUC::predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp0, object$lp0new, object$times.prederr, type = "robust", int.type = "weighted")
   
   if(plot.it){
     layout(matrix(1:4,nrow=2))
@@ -289,12 +289,12 @@ getIndic = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),tim
   object$rval$test$iRrs.w <- sum(object$rval$test$R2.rs.w[-1]*diff(object$prederr$robust.w$time))/max(object$prederr$robust.w$time)
   
   #UnoC C-statistic by Uno et al.
-  object$Cstat <- UnoC(object$Surv.rsp, object$Surv.rsp.new, object$lpnew) #no model
+  object$Cstat <- survAUC::UnoC(object$Surv.rsp, object$Surv.rsp.new, object$lpnew) #no model
   
   #schemper Distance-based estimator of survival predictive accuracy proposed by Schemper and Henderson
   #Schemper and Henderson's estimator of the absolute deviation between survival functions
 #  library(rms)
-  object$Schemper <- schemper(object$train.fit.cph, object$TR, object$TE)
+  object$Schemper <- survAUC::schemper(object$train.fit.cph, object$TR, object$TE)
   return(invisible(object))
 }
 
@@ -315,24 +315,24 @@ getIndicCV = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),t
   object$Surv.rsp.new <- Surv.rsp.new
   object$times.auc <- times.auc
   object$train.fit <- train.fit
-  object$test.fit <- coxph(object$Surv.rsp.new~object$lpnew, iter.max=0, init=1)
+  object$test.fit <- survival::coxph(object$Surv.rsp.new~object$lpnew, iter.max=0, init=1)
   
-  object$nulltrain.fit <- coxph(object$Surv.rsp~1)
+  object$nulltrain.fit <- survival::coxph(object$Surv.rsp~1)
   object$lp0 <- predict(object$nulltrain.fit)
-  object$nulltest.fit <- coxph(object$Surv.rsp.new~1)
+  object$nulltest.fit <- survival::coxph(object$Surv.rsp.new~1)
   object$lp0new <- predict(object$nulltest.fit)
   
   object$tmax.train <- tmax.train
   object$tmax.test <- tmax.test
   
   # iAUC
-  object$AUC_CD <- AUC.cd(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.auc)  #CoxModel
-  object$AUC_hc <- AUC.hc(object$Surv.rsp, object$Surv.rsp.new, object$lpnew, object$times.auc)      #No model
-  object$AUC_sh <- AUC.sh(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.auc)  #CoxModel
+  object$AUC_CD <- survAUC::AUC.cd(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.auc)  #CoxModel
+  object$AUC_hc <- survAUC::AUC.hc(object$Surv.rsp, object$Surv.rsp.new, object$lpnew, object$times.auc)      #No model
+  object$AUC_sh <- survAUC::AUC.sh(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.auc)  #CoxModel
   object$AUC_Uno <- list(auc=rep(0,length(object$times.auc)),times=times.auc,iauc=0)
   #class(object$AUC_Uno) <- "survAUC"
   #if(var(object$lpnew)>1e-8){try(
-  object$AUC_Uno <- AUC.uno(object$Surv.rsp, object$Surv.rsp.new, object$lpnew, object$times.auc)#  )}   #No model
+  object$AUC_Uno <- survAUC::AUC.uno(object$Surv.rsp, object$Surv.rsp.new, object$lpnew, object$times.auc)#  )}   #No model
   
   #AUC_CD$iauc
   #AUC_hc$iauc
@@ -366,12 +366,12 @@ getIndicCV = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),t
   object$AUC_hz.train$auc <- rep( NA, length(object$utimes.train) )
   for( j in 1:length(object$utimes.train) )
   {
-    object$out.train <- CoxWeights(object$eta.train, object$Surv.rsp[,"time"], object$Surv.rsp[,"status"], object$utimes.train[j])
+    object$out.train <- risksetROC::CoxWeights(object$eta.train, object$Surv.rsp[,"time"], object$Surv.rsp[,"status"], object$utimes.train[j])
     object$AUC_hz.train$auc[j] <- object$out.train$AUC
   }
   ## integrated AUC to get concordance measure
   object$AUC_hz.train$times <- object$utimes.train
-  object$AUC_hz.train$iauc <- IntegrateAUC( object$AUC_hz.train$auc, object$utimes.train, object$surv.prob.train, tmax=object$tmax.train)
+  object$AUC_hz.train$iauc <- risksetROC::IntegrateAUC( object$AUC_hz.train$auc, object$utimes.train, object$surv.prob.train, tmax=object$tmax.train)
   class(object$AUC_hz.train) <- "survAUC"
   if(plot.it){
     layout(matrix(1:4,nrow=2))
@@ -394,14 +394,14 @@ getIndicCV = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),t
   object$AUC_hz.test$auc <- rep( NA, length(object$utimes.test) )
   for( j in 1:length(object$utimes.test) )
   {
-    object$out.test <- CoxWeights( object$eta.test, object$Surv.rsp.new[,"time"], object$Surv.rsp.new[,"status"], object$utimes.test[j])
+    object$out.test <- risksetROC::CoxWeights( object$eta.test, object$Surv.rsp.new[,"time"], object$Surv.rsp.new[,"status"], object$utimes.test[j])
     object$AUC_hz.test$auc[j] <- object$out.test$AUC
   }
   ## integrated AUC to get concordance measure
   object$AUC_hz.test$times <- object$utimes.test
   object$AUC_hz.test$iauc <- NA
   if(length(object$utimes.test)>1){
-    object$AUC_hz.test$iauc <- IntegrateAUC( object$AUC_hz.test$auc, object$utimes.test, object$surv.prob.test, tmax=object$tmax.test )
+    object$AUC_hz.test$iauc <- risksetROC::IntegrateAUC( object$AUC_hz.test$auc, object$utimes.test, object$surv.prob.test, tmax=object$tmax.test )
   } else {if(length(object$utimes.test)==1){object$AUC_hz.test$iauc<-object$AUC_hz.test$auc}}
   class(object$AUC_hz.test) <- "survAUC"
   if(plot.it){
@@ -423,7 +423,7 @@ getIndicCV = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),t
   train.surv.event.cc.ix <- object$Surv.rsp.new[,"status"][train.cc.ix]
   if (all(sort(unique(train.surv.event.cc.ix)) == c(0, 1))) {
     for(i in 1:length(object$utimes.train)) {
-      rr.train <- tdrocc(x=object$lp, surv.time=object$Surv.rsp[,"time"], surv.event=object$Surv.rsp[,"status"], time=object$utimes.train[i], na.rm=TRUE, verbose=FALSE)
+      rr.train <- survcomp::tdrocc(x=object$lp, surv.time=object$Surv.rsp[,"time"], surv.event=object$Surv.rsp[,"status"], time=object$utimes.train[i], na.rm=TRUE, verbose=FALSE)
       mytdroc.train <- c(mytdroc.train, list(rr.train))
     }
     object$AUC_survivalROC.train$auc <- unlist(lapply(mytdroc.train, function(x) { return(x$AUC) }))
@@ -453,7 +453,7 @@ getIndicCV = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),t
   test.surv.event.cc.ix <- object$Surv.rsp.new[,"status"][test.cc.ix]
   if (all(sort(unique(test.surv.event.cc.ix)) == c(0, 1))) {
     for(i in 1:length(object$utimes.test)) {
-      rr.test <- tdrocc(x=object$lpnew, surv.time=object$Surv.rsp.new[,"time"], surv.event=object$Surv.rsp.new[,"status"], time=object$utimes.test[i], na.rm=TRUE, verbose=FALSE)
+      rr.test <- survcomp::tdrocc(x=object$lpnew, surv.time=object$Surv.rsp.new[,"time"], surv.event=object$Surv.rsp.new[,"status"], time=object$utimes.test[i], na.rm=TRUE, verbose=FALSE)
       mytdroc.test <- c(mytdroc.test, list(rr.test))
     }
     object$AUC_survivalROC.test$auc <- unlist(lapply(mytdroc.test, function(x) { return(x$AUC) }))
@@ -469,17 +469,17 @@ getIndicCV = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000,10),t
       }
     }
   }
-  #Surv.rsp A Surv(.,.) object containing to the outcome of the test data.
+  #Surv.rsp A survival::Surv(.,.) object containing to the outcome of the test data.
   #lp The vector of predictors.
   #lp0 The vector of predictors obtained from the covariate-free null model.
   
   #prederr #ierror for iBrier
   object$prederr <- NULL
   object$times.prederr <- times.prederr[times.prederr>1]
-  object$prederr$brier.unw <- predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "brier", int.type = "unweighted")
-  object$prederr$robust.unw <- predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "robust", int.type = "unweighted")
-  object$prederr$brier.w <- predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "brier", int.type = "weighted")
-  object$prederr$robust.w <- predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "robust", int.type = "weighted")
+  object$prederr$brier.unw <- survAUC::predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "brier", int.type = "unweighted")
+  object$prederr$robust.unw <- survAUC::predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "robust", int.type = "unweighted")
+  object$prederr$brier.w <- survAUC::predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "brier", int.type = "weighted")
+  object$prederr$robust.w <- survAUC::predErr(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.prederr, type = "robust", int.type = "weighted")
   
   if(plot.it){
     layout(matrix(1:4,nrow=2))
@@ -513,18 +513,18 @@ getIndicCViAUCSH = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=seq(10,1000
   object$Surv.rsp.new <- Surv.rsp.new
   object$times.auc <- times.auc
   object$train.fit <- train.fit
-  object$test.fit <- coxph(object$Surv.rsp.new~object$lpnew, iter.max=0, init=1)
+  object$test.fit <- survival::coxph(object$Surv.rsp.new~object$lpnew, iter.max=0, init=1)
   
-  object$nulltrain.fit <- coxph(object$Surv.rsp~1)
+  object$nulltrain.fit <- survival::coxph(object$Surv.rsp~1)
   object$lp0 <- predict(object$nulltrain.fit)
-  object$nulltest.fit <- coxph(object$Surv.rsp.new~1)
+  object$nulltest.fit <- survival::coxph(object$Surv.rsp.new~1)
   object$lp0new <- predict(object$nulltest.fit)
   
   object$tmax.train <- tmax.train
   object$tmax.test <- tmax.test
   
   # iAUC
-  object$AUC_sh <- AUC.sh(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.auc)  #CoxModel
+  object$AUC_sh <- survAUC::AUC.sh(object$Surv.rsp, object$Surv.rsp.new, object$lp, object$lpnew, object$times.auc)  #CoxModel
   
   if(plot.it){
     plot(object$AUC_sh)
@@ -548,11 +548,11 @@ getIndicCViAUCSurvROCTest = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=se
   object$Surv.rsp.new <- Surv.rsp.new
   object$times.auc <- times.auc
   object$train.fit <- train.fit
-  object$test.fit <- coxph(object$Surv.rsp.new~object$lpnew, iter.max=0, init=1)
+  object$test.fit <- survival::coxph(object$Surv.rsp.new~object$lpnew, iter.max=0, init=1)
   
-  object$nulltrain.fit <- coxph(object$Surv.rsp~1)
+  object$nulltrain.fit <- survival::coxph(object$Surv.rsp~1)
   object$lp0 <- predict(object$nulltrain.fit)
-  object$nulltest.fit <- coxph(object$Surv.rsp.new~1)
+  object$nulltest.fit <- survival::coxph(object$Surv.rsp.new~1)
   object$lp0new <- predict(object$nulltest.fit)
   
   object$tmax.train <- tmax.train
@@ -574,7 +574,7 @@ getIndicCViAUCSurvROCTest = function(lp,lpnew,Surv.rsp,Surv.rsp.new,times.auc=se
   test.surv.event.cc.ix <- object$Surv.rsp.new[,"status"][test.cc.ix]
   if (all(sort(unique(test.surv.event.cc.ix)) == c(0, 1))) {
     for(i in 1:length(object$utimes.test)) {
-      rr.test <- tdrocc(x=object$lpnew, surv.time=object$Surv.rsp.new[,"time"], surv.event=object$Surv.rsp.new[,"status"], time=object$utimes.test[i], na.rm=TRUE, verbose=FALSE)
+      rr.test <- survcomp::tdrocc(x=object$lpnew, surv.time=object$Surv.rsp.new[,"time"], surv.event=object$Surv.rsp.new[,"status"], time=object$utimes.test[i], na.rm=TRUE, verbose=FALSE)
       mytdroc.test <- c(mytdroc.test, list(rr.test))
     }
     object$AUC_survivalROC.test$auc <- unlist(lapply(mytdroc.test, function(x) { return(x$AUC) }))
@@ -902,7 +902,7 @@ pls.cox=function(X, Y, ncomp = 2, mode = c("regression", "canonical", "invariant
     stop("unequal number of rows in 'X' and 'Y'.")
   if (is.null(ncomp) || !is.numeric(ncomp) || ncomp <= 0) 
     stop("invalid number of variates, 'ncomp'.")
-  nzv = mixOmics::nearZeroVar(X, ...)
+  nzv = caret::nearZeroVar(X, ...)
   if (length(nzv$Position > 0)) {
     warning("Zero- or near-zero variance predictors. \n  Reset predictors matrix to not near-zero variance predictors.\n  See $nzv for problematic predictors.")
     X = X[, -nzv$Position]

@@ -313,12 +313,11 @@ cv.coxsplsDR.res
 #> [1] 10
 #> 
 #> $cv.error10
-#>  [1] 0.5000000 0.6786893 0.6913293 0.6485690 0.6656184 0.6591497 0.6733976
-#>  [8] 0.6252317 0.6388320 0.6592004 0.6589521
+#>  [1] 0.5000000 0.6786893 0.6913293 0.6485690 0.6656184 0.6591497 0.6733976 0.6252317 0.6388320 0.6592004 0.6589521
 #> 
 #> $cv.se10
-#>  [1] 0.00000000 0.04017423 0.02726346 0.03897730 0.03874068 0.04042522
-#>  [7] 0.03952962 0.04645295 0.04782038 0.05168926 0.05259748
+#>  [1] 0.00000000 0.04017423 0.02726346 0.03897730 0.03874068 0.04042522 0.03952962 0.04645295 0.04782038 0.05168926
+#> [11] 0.05259748
 #> 
 #> $folds
 #> $folds$`1`
@@ -447,12 +446,11 @@ cv.coxDKgplsDR.res
 #> [1] 10
 #> 
 #> $cv.error10
-#>  [1] 0.5000000 0.6381540 0.6963262 0.6537039 0.6204813 0.6886401 0.6632860
-#>  [8] 0.6349883 0.6762113 0.6261072 0.6087014
+#>  [1] 0.5000000 0.6381540 0.6963262 0.6537039 0.6204813 0.6886401 0.6632860 0.6349883 0.6762113 0.6261072 0.6087014
 #> 
 #> $cv.se10
-#>  [1] 0.00000000 0.03036225 0.02912723 0.04020941 0.03577022 0.03542745
-#>  [7] 0.03283778 0.04532447 0.03390654 0.02968504 0.03306444
+#>  [1] 0.00000000 0.03036225 0.02912723 0.04020941 0.03577022 0.03542745 0.03283778 0.04532447 0.03390654 0.02968504
+#> [11] 0.03306444
 #> 
 #> $folds
 #> $folds$`1`
@@ -565,12 +563,11 @@ cv.coxsgpls.res
 #> [1] 10
 #> 
 #> $cv.error10
-#>  [1] 0.5000000 0.4217599 0.5382923 0.5519544 0.5656905 0.6314850 0.5693082
-#>  [8] 0.5326229 0.5315857 0.5420410 0.5542452
+#>  [1] 0.5000000 0.4217599 0.5382923 0.5519544 0.5656905 0.6314850 0.5693082 0.5326229 0.5315857 0.5420410 0.5542452
 #> 
 #> $cv.se10
-#>  [1] 0.00000000 0.03195833 0.02746499 0.03490158 0.02550641 0.04067144
-#>  [7] 0.03223606 0.03644131 0.03369888 0.03727618 0.03369400
+#>  [1] 0.00000000 0.03195833 0.02746499 0.03490158 0.02550641 0.04067144 0.03223606 0.03644131 0.03369888 0.03727618
+#> [11] 0.03369400
 #> 
 #> $folds
 #> $folds$`1`
@@ -862,12 +859,11 @@ set.seed(123456)
 #> [1] 10
 #> 
 #> $cv.error10
-#>  [1] 0.5000000 0.4832648 0.3002967 0.2839353 0.3828152 0.4222179 0.4471778
-#>  [8] 0.4902294 0.5282298 0.5060990 0.4823500
+#>  [1] 0.5000000 0.4832648 0.3002967 0.2839353 0.3828152 0.4222179 0.4471778 0.4902294 0.5282298 0.5060990 0.4823500
 #> 
 #> $cv.se10
-#>  [1] 0.000000000 0.044268528 0.009191356 0.008710989 0.020220150 0.030221867
-#>  [7] 0.037941448 0.029609116 0.020393025 0.023001067 0.011534037
+#>  [1] 0.000000000 0.044268528 0.009191356 0.008710989 0.020220150 0.030221867 0.037941448 0.029609116 0.020393025
+#> [10] 0.023001067 0.011534037
 #> 
 #> $folds
 #> $folds$`1`
@@ -899,22 +895,31 @@ set.seed(123456)
 
 ``` r
 cox_spls_sgplsDR_fit=coxspls_sgplsDR(X_train_micro,Y_train_micro,C_train_micro,ncomp=6,ind.block.x=c(3,10,15))
+#> Error in sPLS(ncomp = 6, ind.block.x = c(3, 10, 15), X = structure(list(: unused argument (ind.block.x = c(3, 10, 15))
 ```
 
 
 ``` r
 cox_spls_sgplsDR_fit2=coxspls_sgplsDR(~X_train_micro,Y_train_micro,C_train_micro,ncomp=6,ind.block.x=c(3,10,15))
+#> Error in sPLS(ncomp = 6, ind.block.x = c(3, 10, 15), X = structure(list(: unused argument (ind.block.x = c(3, 10, 15))
 ```
 
 
 ``` r
 cox_spls_sgplsDR_fit3=coxspls_sgplsDR(~.,Y_train_micro,C_train_micro,ncomp=6,dataXplan=X_train_micro_df,ind.block.x=c(3,10,15))
+#> Error in sPLS(ncomp = 6, ind.block.x = c(3, 10, 15), X = structure(list(: unused argument (ind.block.x = c(3, 10, 15))
 ```
 
 
 
 ``` r
 rm(cox_spls_sgplsDR_fit,cox_spls_sgplsDR_fit2,cox_spls_sgplsDR_fit3)
+#> Warning in rm(cox_spls_sgplsDR_fit, cox_spls_sgplsDR_fit2, cox_spls_sgplsDR_fit3): object 'cox_spls_sgplsDR_fit'
+#> not found
+#> Warning in rm(cox_spls_sgplsDR_fit, cox_spls_sgplsDR_fit2, cox_spls_sgplsDR_fit3): object 'cox_spls_sgplsDR_fit2'
+#> not found
+#> Warning in rm(cox_spls_sgplsDR_fit, cox_spls_sgplsDR_fit2, cox_spls_sgplsDR_fit3): object 'cox_spls_sgplsDR_fit3'
+#> not found
 ```
 
 ### cv.coxspls_sgplsDR
@@ -924,17 +929,8 @@ rm(cox_spls_sgplsDR_fit,cox_spls_sgplsDR_fit2,cox_spls_sgplsDR_fit3)
 set.seed(123456)
 
 cv.coxspls_sgplsDR.res=cv.coxspls_sgplsDR(list(x=X_train_micro,time=Y_train_micro, status=C_train_micro),nt=10,ind.block.x=c(3,10,15))
-#> CV Fold 1
-#> CV Fold 2
-#> CV Fold 3
-#> CV Fold 4
-#> CV Fold 5
+#> Error in sPLS(ncomp = 10, ind.block.x = c(3, 10, 15), X = structure(list(: unused argument (ind.block.x = c(3, 10, 15))
 ```
-
-<div class="figure">
-<img src="man/figures/README-cvcoxspls_sgplsDR-1.png" alt="plot of chunk cvcoxspls_sgplsDR" width="100%" />
-<p class="caption">plot of chunk cvcoxspls_sgplsDR</p>
-</div>
 
 
 ### coxDKspls_sgplsDR
@@ -944,25 +940,30 @@ cv.coxspls_sgplsDR.res=cv.coxspls_sgplsDR(list(x=X_train_micro,time=Y_train_micr
 cox_DKspls_sgplsDR_fit=coxDKspls_sgplsDR(X_train_micro,Y_train_micro,C_train_micro,ncomp=6, validation="CV",ind.block.x=c(3,10,15),verbose=TRUE)
 #> Kernel :  rbfdot 
 #> Estimated_sigma  0.0122308
+#> Error in sPLS(ncomp = 6, ind.block.x = c(3, 10, 15), X = new("kernelMatrix", : unused argument (ind.block.x = c(3, 10, 15))
 ```
 
 
 ``` r
 cox_DKspls_sgplsDR_fit=coxDKspls_sgplsDR(~X_train_micro,Y_train_micro,C_train_micro,ncomp=6, validation="CV",ind.block.x=c(3,10,15))
+#> Error in sPLS(ncomp = 6, ind.block.x = c(3, 10, 15), X = new("kernelMatrix", : unused argument (ind.block.x = c(3, 10, 15))
 ```
 
 
 ``` r
 cox_DKspls_sgplsDR_fit=coxDKspls_sgplsDR(~.,Y_train_micro,C_train_micro,ncomp=6, validation="CV",dataXplan=data.frame(X_train_micro),ind.block.x=c(3,10,15))
+#> Error in sPLS(ncomp = 6, ind.block.x = c(3, 10, 15), X = new("kernelMatrix", : unused argument (ind.block.x = c(3, 10, 15))
 ```
 
 
 ``` r
 rm(cox_DKspls_sgplsDR_fit, cox_DKspls_sgplsDR_fit2, cox_DKspls_sgplsDR_fit3)
-#> Warning in rm(cox_DKspls_sgplsDR_fit, cox_DKspls_sgplsDR_fit2,
-#> cox_DKspls_sgplsDR_fit3): object 'cox_DKspls_sgplsDR_fit2' not found
-#> Warning in rm(cox_DKspls_sgplsDR_fit, cox_DKspls_sgplsDR_fit2,
-#> cox_DKspls_sgplsDR_fit3): object 'cox_DKspls_sgplsDR_fit3' not found
+#> Warning in rm(cox_DKspls_sgplsDR_fit, cox_DKspls_sgplsDR_fit2, cox_DKspls_sgplsDR_fit3): object
+#> 'cox_DKspls_sgplsDR_fit' not found
+#> Warning in rm(cox_DKspls_sgplsDR_fit, cox_DKspls_sgplsDR_fit2, cox_DKspls_sgplsDR_fit3): object
+#> 'cox_DKspls_sgplsDR_fit2' not found
+#> Warning in rm(cox_DKspls_sgplsDR_fit, cox_DKspls_sgplsDR_fit2, cox_DKspls_sgplsDR_fit3): object
+#> 'cox_DKspls_sgplsDR_fit3' not found
 ```
 
 ### cv.coxDKspls_sgplsDR
@@ -974,24 +975,7 @@ set.seed(123456)
 cv.coxDKspls_sgplsDR.res=cv.coxDKspls_sgplsDR(list(x=X_train_micro,time=Y_train_micro, status=C_train_micro),nt=10,ind.block.x=c(3,10,15))
 #> Kernel :  rbfdot 
 #> Estimated_sigma  0.01257168
-#> CV Fold 1 
-#> Kernel :  rbfdot 
-#> Estimated_sigma  0.01198263
-#> CV Fold 2 
-#> Kernel :  rbfdot 
-#> Estimated_sigma  0.01156809
-#> CV Fold 3 
-#> Kernel :  rbfdot 
-#> Estimated_sigma  0.01287851
-#> CV Fold 4 
-#> Kernel :  rbfdot 
-#> Estimated_sigma  0.01127231
-#> CV Fold 5
+#> Error in sPLS(ncomp = 10, ind.block.x = c(3, 10, 15), X = new("kernelMatrix", : unused argument (ind.block.x = c(3, 10, 15))
 ```
-
-<div class="figure">
-<img src="man/figures/README-cvcoxDKspls_sgplsDR-1.png" alt="plot of chunk cvcoxDKspls_sgplsDR" width="100%" />
-<p class="caption">plot of chunk cvcoxDKspls_sgplsDR</p>
-</div>
 
 

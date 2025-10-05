@@ -94,11 +94,11 @@
 #' \code{\link{partialbigSurvSGDv0}} for partial fitting pipelines.
 #'
 #' @examples
-#' fit <- bigSurvSGD.na.omit(Surv(time, status) ~ ., data = my_training_data,
+#' fit <- bigSurvSGD.na.omit(survival::Surv(time, status) ~ ., data = my_training_data,
 #' norm.method = "standardize", opt.method = "adam", batch.size = 128, 
 #' num.epoch = 10)
 #' 
-bigSurvSGD.na.omit <- function (formula = Surv(time = time, status = status) ~ ., data, 
+bigSurvSGD.na.omit <- function (formula = survival::Surv(time = time, status = status) ~ ., data, 
           norm.method = "standardize", features.mean = NULL, features.sd = NULL, 
           opt.method = "AMSGrad", beta.init = NULL, beta.type = "averaged", 
           lr.const = 0.12, lr.tau = 0.5, strata.size = 20, batch.size = 1, 
@@ -454,10 +454,10 @@ bigSurvSGD.na.omit <- function (formula = Surv(time = time, status = status) ~ .
       }
       else {
         if (is.null(num.cores)) {
-          num.cores <- detectCores()
+          num.cores <- parallel::detectCores()
         }
-        registerDoParallel(cores = num.cores)
-        beta.boot <- foreach(i = 1:num.boot, .combine = cbind) %dopar% 
+        doParallel::registerDoParallel(cores = num.cores)
+        beta.boot <- foreach::foreach(i = 1:num.boot, .combine = cbind) %dopar%
           {
             do.one(big.data = big.data, num.rows.chunk, 
                    num.rows.big, norm.method, opt.method = boot.method, 
@@ -498,10 +498,10 @@ bigSurvSGD.na.omit <- function (formula = Surv(time = time, status = status) ~ .
       }
       else {
         if (is.null(num.cores)) {
-          num.cores <- detectCores()
+          num.cores <- parallel::detectCores()
         }
-        registerDoParallel(cores = num.cores)
-        grad.hes <- foreach(k = 1:num.rows.big) %dopar% 
+        doParallel::registerDoParallel(cores = num.cores)
+        grad.hes <- foreach::foreach(k = 1:num.rows.big) %dopar% 
           {
             do.plugin(k, big.data = big.data, num.rows.chunk, 
                       num.rows.big, norm.method, beta.hat, strata.size, 
@@ -554,45 +554,62 @@ bigSurvSGD.na.omit <- function (formula = Surv(time = time, status = status) ~ .
   out
 }
 
-#' Title
-#'
-#' @param name.col 
-#' @param datapath 
-#' @param ncores Number of worker processes used for the partial refit. Defaults
-#'   to \code{1} for serial execution.
-#' @param resBigscale A scaling summary typically created by
-#'   \code{\link{bigscale}} that supplies column-wise means and standard
-#'   deviations.
-#' @param bigmemory.flag Logical flag indicating whether the design matrix is
-#'   backed by a \pkg{bigmemory} file on disk.
-#' @param parallel.flag Logical flag specifying whether stochastic gradient
-#'   updates should run in parallel across multiple cores.
-#' @param inf.mth Character string identifying the inference method to use,
-#'   such as \code{"none"}, \code{"asymptotic"}, or bootstrap routines.
-#'
-#' @return
-#'   A numeric vector of log hazard-ratio estimates. When inference is enabled,
-#'   the helper returns a matrix whose columns contain the requested summaries
-#'   for each penalisation level.
-#'
-#' @seealso See Also \code{\link[bigSurvSGD]{bigSurvSGD}}
+
+#' Incremental Survival Model Fitting with Pre-Scaled Data 
+#' 
+#' Loads a previously scaled design matrix and continues the stochastic
+#' gradient optimisation for a subset of variables.
+#' 
+#' @param name.col Character vector containing the column names that should be 
+#' included in the partial fit. 
+#' @param datapath File system path or connection where the big-memory backing 
+#' file for the scaled design matrix is stored.
+#' @param ncores Number of processor cores allocated to the partial fitting
+#' procedure. Defaults to \code{1}.
+#' @param resBigscale Result object returned by \code{\link{bigscale}}
+#' containing scaling statistics to be reused. By default the helper reuses the
+#' globally cached \code{resultsBigscale} object created by
+#' \code{\link{bigscale}}.
+#' @param bigmemory.flag Logical flag determining whether big-memory backed
+#' matrices are used when loading and updating the design matrix. Defaults to
+#' \code{FALSE}.
+#' @param parallel.flag Logical flag toggling the use of parallelised
+#' stochastic gradient updates. Defaults to \code{FALSE}.
+#' @param inf.mth Inference method requested for the partial fit, such as
+#' \code{"none"}, \code{"asymptotic"}, or bootstrap summaries. Defaults to
+#' \code{"none"}.
+#' 
+#' @return Either a numeric vector of log hazard-ratio coefficients or, when
+#' inference is requested, a matrix whose columns correspond to the inferred
+#' coefficient summaries for each penalisation setting.
+#' 
 #' @export
-#'
+#' @seealso [bigscale()], [bigSurvSGD.na.omit()] and \link[bigSurvSGD]{bigSurvSGD}.
+#' 
 #' @examples
-#' 
-#' 1+1
-#' 
+#' \dontrun{
+#' continued <- partialbigSurvSGDv0(
+#'   name.col = c("age", "sex"),
+#'   datapath = tempfile(),
+#'   ncores = 2,
+#'   resBigscale = scaled,
+#'   bigmemory.flag = TRUE,
+#'   parallel.flag = TRUE,
+#'   inf.mth = "bootstrap"
+#' )
+#' }
+# 
 #' 
 partialbigSurvSGDv0 <-
   function(name.col,
            datapath,
            ncores = 1,
-           resBigscale = resultsBigscale,
+           resBigscale,
            bigmemory.flag = FALSE,
            parallel.flag = FALSE,
            inf.mth = "none") {
     form.name.col <-
-      as.formula(paste("Surv(time, status)~", paste(name.col, collapse = "+"), sep =
+      as.formula(paste("survival::Surv(time, status)~", paste(name.col, collapse = "+"), sep =
                          ""))
     coefres <-
       bigSurvSGD.na.omit(

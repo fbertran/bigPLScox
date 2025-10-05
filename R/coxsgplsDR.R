@@ -65,7 +65,7 @@
 #' of variables.
 #' @param modepls character string. What type of algorithm to use, (partially)
 #' matching one of "regression", "canonical". See
-#' \code{\link[sgplsDR]{gPLS}} for details
+#' \code{\link[sgPLS]{gPLS}} for details
 #' @param plot Should the survival function be plotted ?)
 #' @param allres FALSE to return only the Cox model and TRUE for additionnal
 #' results. See details. Defaults to FALSE.
@@ -91,7 +91,7 @@
 #' @author Frédéric Bertrand\cr
 #' \email{frederic.bertrand@@lecnam.net}\cr
 #' \url{https://fbertran.github.io/homepage/}
-#' @seealso \code{\link[survival]{coxph}}, \code{\link[sgplsDR]{gPLS}}
+#' @seealso \code{\link[survival]{coxph}}, \code{\link[sgPLS]{gPLS}}
 #' @references A group and Sparse Group Partial Least Square approach applied 
 #' in Genomics context, Liquet Benoit, Lafaye de Micheaux, Boris Hejblum, 
 #' Rodolphe Thiebaut (2016). Bioinformatics.\cr
@@ -207,7 +207,7 @@ coxsgplsDR.default <-
     YCsurv <- eval(mf, parent.frame())
     
     mf1 <- match.call(expand.dots = TRUE)
-    m1 <- match(c(head(names(as.list(args(coxph))),-2),head(names(as.list(args((coxph.control)))),-1)), names(mf1), 0L)
+    m1 <- match(c(head(names(as.list(args(survival::coxph))),-2),head(names(as.list(args(survival::coxph.control))),-1)), names(mf1), 0L)
     mf1 <- mf1[c(1L, m1)]
     mf1$formula <- as.formula(YCsurv~1)
     mf1[[1L]] <- as.name("coxph")
@@ -246,8 +246,8 @@ coxsgplsDR.default <-
     }
     if (mf2$ncomp == 0) {
       mf2b <- match.call(expand.dots = TRUE)
-      m2b <- match(c(head(names(as.list(args(coxph))), -2), 
-                     head(names(as.list(args((coxph.control)))), -1)), 
+      m2b <- match(c(head(names(as.list(args(survival::coxph))), -2), 
+                     head(names(as.list(args(survival::coxph.control))), -1)), 
                    names(mf2b), 0L)
       mf2b <- mf2b[c(1L, m2b)]
       mf2b$formula <- as.formula(YCsurv ~ 1)
@@ -258,8 +258,8 @@ coxsgplsDR.default <-
     }
     else {
       mf2b <- match.call(expand.dots = TRUE)
-      m2b <- match(c(head(names(as.list(args(coxph))), -2), 
-                     head(names(as.list(args((coxph.control)))), -1)), 
+      m2b <- match(c(head(names(as.list(args(survival::coxph))), -2), 
+                     head(names(as.list(args(survival::coxph.control))), -1)), 
                    names(mf2b), 0L)
       mf2b <- mf2b[c(1L, m2b)]
       mf2b$formula <- as.formula(YCsurv ~ .)
@@ -276,8 +276,8 @@ coxsgplsDR.default <-
       if (mf2$ncomp > 0) {
         for (iii in 1:ncomp) {
           mf2b <- match.call(expand.dots = TRUE)
-          m2b <- match(c(head(names(as.list(args(coxph))), 
-                              -2), head(names(as.list(args((coxph.control)))), 
+          m2b <- match(c(head(names(as.list(args(survival::coxph))), 
+                              -2), head(names(as.list(args(survival::coxph.control))), 
                                         -1)), names(mf2b), 0L)
           mf2b <- mf2b[c(1L, m2b)]
           mf2b$formula <- as.formula(YCsurv ~ .)

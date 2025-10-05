@@ -48,8 +48,14 @@
 #' @importFrom stats uniroot
 #' @importFrom stats var
 #' @importFrom utils read.csv
-#' @import bigmemory
+#' @importFrom foreach foreach
+#' @importFrom foreach %dopar%
+#' @importFrom survival coxph
+#' @importFrom survival coxph.control
+NULL
+
 #' @useDynLib bigPLScox, .registration = TRUE
 #' @importFrom Rcpp evalCpp
+#' @import bigmemory
 #' @import bigalgebra
 NULL

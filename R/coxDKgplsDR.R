@@ -226,7 +226,7 @@ coxDKgplsDR.default <-
     YCsurv <- eval(mf, parent.frame())
 
     mf1 <- match.call(expand.dots = TRUE)
-    m1 <- match(c(head(names(as.list(args(coxph))),-2),head(names(as.list(args((coxph.control)))),-1)), names(mf1), 0L)
+    m1 <- match(c(head(names(as.list(args(survival::coxph))),-2),head(names(as.list(args(survival::coxph.control))),-1)), names(mf1), 0L)
     mf1 <- mf1[c(1L, m1)]
     mf1$formula <- as.formula(YCsurv~1)
     mf1[[1L]] <- as.name("coxph")
@@ -270,8 +270,7 @@ coxDKgplsDR.default <-
       if(verbose){if(kernel=="laplacedot"){cat("Used_sigma ",hyperkernel$sigma,"\n")}}}
     kernDKgplsDR_mod <- eval(call(as.character(quote(kernel1rc))))
     Xplan_kernDKgplsDR_mod <- kernlab::kernelMatrix(kernDKgplsDR_mod, as.matrix(Xplan))
-    
-    
+    try(sgPLS::gPLS(),silent = TRUE)
     mf2 <- match.call(expand.dots = FALSE)
     m2 <- match(c("ncomp"), names(mf2), 0L)
     mf2 <- mf2[c(1L, m2)]
@@ -295,8 +294,8 @@ coxDKgplsDR.default <-
     }
     if (mf2$ncomp == 0) {
       mf2b <- match.call(expand.dots = TRUE)
-      m2b <- match(c(head(names(as.list(args(coxph))), -2), 
-                     head(names(as.list(args((coxph.control)))), -1)), 
+      m2b <- match(c(head(names(as.list(args(survival::coxph))), -2), 
+                     head(names(as.list(args(survival::coxph.control))), -1)), 
                    names(mf2b), 0L)
       mf2b <- mf2b[c(1L, m2b)]
       mf2b$formula <- as.formula(YCsurv ~ 1)
@@ -307,8 +306,8 @@ coxDKgplsDR.default <-
     }
     else {
       mf2b <- match.call(expand.dots = TRUE)
-      m2b <- match(c(head(names(as.list(args(coxph))), -2), 
-                     head(names(as.list(args((coxph.control)))), -1)), 
+      m2b <- match(c(head(names(as.list(args(survival::coxph))), -2), 
+                     head(names(as.list(args(survival::coxph.control))), -1)), 
                    names(mf2b), 0L)
       mf2b <- mf2b[c(1L, m2b)]
       mf2b$formula <- as.formula(YCsurv ~ .)
@@ -325,8 +324,8 @@ coxDKgplsDR.default <-
       if (mf2$ncomp > 0) {
         for (iii in 1:ncomp) {
           mf2b <- match.call(expand.dots = TRUE)
-          m2b <- match(c(head(names(as.list(args(coxph))), 
-                              -2), head(names(as.list(args((coxph.control)))), 
+          m2b <- match(c(head(names(as.list(args(survival::coxph))), 
+                              -2), head(names(as.list(args(survival::coxph.control))), 
                                         -1)), names(mf2b), 0L)
           mf2b <- mf2b[c(1L, m2b)]
           mf2b$formula <- as.formula(YCsurv ~ .)

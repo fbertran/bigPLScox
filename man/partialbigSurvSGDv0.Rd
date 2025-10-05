@@ -2,53 +2,67 @@
 % Please edit documentation in R/bigSurvSGD.na.omit.R
 \name{partialbigSurvSGDv0}
 \alias{partialbigSurvSGDv0}
-\title{Title}
+\title{Incremental Survival Model Fitting with Pre-Scaled Data}
 \usage{
 partialbigSurvSGDv0(
   name.col,
   datapath,
   ncores = 1,
-  resBigscale = resultsBigscale,
+  resBigscale,
   bigmemory.flag = FALSE,
   parallel.flag = FALSE,
   inf.mth = "none"
 )
 }
 \arguments{
-\item{name.col}{}
+\item{name.col}{Character vector containing the column names that should be
+included in the partial fit.}
 
-\item{datapath}{}
+\item{datapath}{File system path or connection where the big-memory backing
+file for the scaled design matrix is stored.}
 
-\item{ncores}{Number of worker processes used for the partial refit. Defaults
-to \code{1} for serial execution.}
+\item{ncores}{Number of processor cores allocated to the partial fitting
+procedure. Defaults to \code{1}.}
 
-\item{resBigscale}{A scaling summary typically created by
-\code{\link{bigscale}} that supplies column-wise means and standard
-deviations.}
+\item{resBigscale}{Result object returned by \code{\link{bigscale}}
+containing scaling statistics to be reused. By default the helper reuses the
+globally cached \code{resultsBigscale} object created by
+\code{\link{bigscale}}.}
 
-\item{bigmemory.flag}{Logical flag indicating whether the design matrix is
-backed by a \pkg{bigmemory} file on disk.}
+\item{bigmemory.flag}{Logical flag determining whether big-memory backed
+matrices are used when loading and updating the design matrix. Defaults to
+\code{FALSE}.}
 
-\item{parallel.flag}{Logical flag specifying whether stochastic gradient
-updates should run in parallel across multiple cores.}
+\item{parallel.flag}{Logical flag toggling the use of parallelised
+stochastic gradient updates. Defaults to \code{FALSE}.}
 
-\item{inf.mth}{Character string identifying the inference method to use,
-such as \code{"none"}, \code{"asymptotic"}, or bootstrap routines.}
+\item{inf.mth}{Inference method requested for the partial fit, such as
+\code{"none"}, \code{"asymptotic"}, or bootstrap summaries. Defaults to
+\code{"none"}.}
 }
 \value{
-A numeric vector of log hazard-ratio estimates. When inference is enabled,
-the helper returns a matrix whose columns contain the requested summaries
-for each penalisation level.
+Either a numeric vector of log hazard-ratio coefficients or, when
+inference is requested, a matrix whose columns correspond to the inferred
+coefficient summaries for each penalisation setting.
 }
 \description{
-Title
+Loads a previously scaled design matrix and continues the stochastic
+gradient optimisation for a subset of variables.
 }
 \examples{
-
-1+1
-
+\dontrun{
+continued <- partialbigSurvSGDv0(
+  name.col = c("age", "sex"),
+  datapath = tempfile(),
+  ncores = 2,
+  resBigscale = scaled,
+  bigmemory.flag = TRUE,
+  parallel.flag = TRUE,
+  inf.mth = "bootstrap"
+)
+}
 
 }
 \seealso{
-See Also \code{\link[bigSurvSGD]{bigSurvSGDbigSurvSGD}}
+\code{\link[=bigscale]{bigscale()}}, \code{\link[=bigSurvSGD.na.omit]{bigSurvSGD.na.omit()}} and \link[bigSurvSGD]{bigSurvSGD}.
 }

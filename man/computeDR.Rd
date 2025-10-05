@@ -68,7 +68,7 @@ Residuals from a null model fit.
 }
 \description{
 This function computes the residuals from a null model fit using the
-\code{coxph} function of the \code{mixOmics}'s package.
+\code{coxph} function of the \code{survival} package.
 Since this computation does not use the explanatory variables, it is
 likely to be doable even on big dat without dedicated framework.
 }

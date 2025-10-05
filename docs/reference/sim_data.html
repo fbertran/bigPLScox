@@ -102,7 +102,36 @@ This dataset provides explantory variables simulations and censoring status."></
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">X_sim_data_train</span> <span class="op">&lt;-</span> <span class="va">sim_data</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">800</span>,<span class="fl">2</span><span class="op">:</span><span class="fl">11</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">C_sim_data_train</span> <span class="op">&lt;-</span> <span class="va">sim_data</span><span class="op">$</span><span class="va">status</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">800</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">X_sim_data_test</span> <span class="op">&lt;-</span> <span class="va">sim_data</span><span class="op">[</span><span class="fl">801</span><span class="op">:</span><span class="fl">1000</span>,<span class="fl">2</span><span class="op">:</span><span class="fl">11</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">C_sim_data_test</span> <span class="op">&lt;-</span> <span class="va">sim_data</span><span class="op">$</span><span class="va">status</span><span class="op">[</span><span class="fl">801</span><span class="op">:</span><span class="fl">1000</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">X_sim_data_train</span>,<span class="va">C_sim_data_train</span>,<span class="va">X_sim_data_test</span>,<span class="va">C_sim_data_test</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">X_sim_data_train</span> <span class="op">&lt;-</span> <span class="va">sim_data</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">800</span>,<span class="fl">2</span><span class="op">:</span><span class="fl">11</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">Y_sim_data_train</span> <span class="op">&lt;-</span> <span class="va">sim_data</span><span class="op">$</span><span class="va">status</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">800</span>,<span class="fl">1</span><span class="op">]</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in sim_data$status[1:800, 1]:</span> incorrect number of dimensions</span>
+<span class="r-in"><span><span class="va">C_sim_data_train</span> <span class="op">&lt;-</span> <span class="va">sim_data</span><span class="op">$</span><span class="va">status</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">800</span>,<span class="fl">1</span><span class="op">]</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in sim_data$status[1:800, 1]:</span> incorrect number of dimensions</span>
+<span class="r-in"><span><span class="va">X_sim_data_test</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">survyear</span><span class="op">[</span><span class="fl">801</span><span class="op">:</span><span class="fl">1000</span>,<span class="fl">2</span><span class="op">:</span><span class="fl">11</span><span class="op">]</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in micro.censure$survyear[801:1000, 2:11]:</span> incorrect number of dimensions</span>
+<span class="r-in"><span><span class="va">Y_sim_data_test</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">status</span><span class="op">[</span><span class="fl">801</span><span class="op">:</span><span class="fl">1000</span>,<span class="fl">1</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">C_sim_data_test</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">status</span><span class="op">[</span><span class="fl">801</span><span class="op">:</span><span class="fl">1000</span>,<span class="fl">1</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">X_sim_data_train</span>,<span class="va">Y_sim_data_train</span>,<span class="va">C_sim_data_train</span>,<span class="va">X_sim_data_test</span>,</span></span>
+<span class="r-in"><span><span class="va">Y_sim_data_test</span>,<span class="va">C_sim_data_test</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>object 'Y_sim_data_train' not found</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>object 'C_sim_data_train' not found</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>object 'X_sim_data_test' not found</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

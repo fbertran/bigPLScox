@@ -6,7 +6,7 @@
 \alias{coxDKspls_sgplsDR.formula}
 \title{Fitting a Cox-Model on sparse PLSR components using the (Deviance) Residuals}
 \usage{
-coxDKspls_sgplsDR(Xplan, ind.block.x = NULL, ...)
+coxDKspls_sgplsDR(Xplan, ...)
 
 \method{coxDKspls_sgplsDR}{formula}(
   Xplan,
@@ -66,12 +66,6 @@ coxDKspls_sgplsDR(Xplan, ind.block.x = NULL, ...)
 \item{Xplan}{a formula or a matrix with the eXplanatory variables (training)
 dataset}
 
-\item{ind.block.x}{a vector of integers describing the grouping of the
-X-variables. \code{ind.block.x <- c(3,10,15)} means that \code{X} is
-structured into 4 groups: \code{X1} to \code{X3}; \code{X4} to \code{X10},
-\code{X11} to \code{X15} and \code{X16} to \code{Xp} where \code{p} is the
-number of variables in the X matrix.}
-
 \item{\dots}{Arguments to be passed on to \code{survival::coxph}.}
 
 \item{time}{for right censored data, this is the follow up time. For
@@ -121,6 +115,12 @@ the weighted residuals are returned.}
 
 \item{ncomp}{The number of components to include in the model. It this is
 not supplied, min(7,maximal number) components is used.}
+
+\item{ind.block.x}{a vector of integers describing the grouping of the
+X-variables. \code{ind.block.x <- c(3,10,15)} means that \code{X} is
+structured into 4 groups: \code{X1} to \code{X3}; \code{X4} to \code{X10},
+\code{X11} to \code{X15} and \code{X16} to \code{Xp} where \code{p} is the
+number of variables in the X matrix.}
 
 \item{modepls}{character string. What type of algorithm to use, (partially)
 matching one of "regression", "canonical". See

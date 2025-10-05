@@ -253,12 +253,12 @@ cv.coxspls_sgplsDR =
           te.survival.status <- tsdata$status
           
           #require(survival)
-          Surv.rsp <- Surv(tr.survival.time, tr.survival.status)
-          Surv.rsp.new <- Surv(te.survival.time, te.survival.status)
+          Surv.rsp <- survival::Surv(tr.survival.time, tr.survival.status)
+          Surv.rsp.new <- survival::Surv(te.survival.time, te.survival.status)
           
-          train.fit <- coxph(Surv(time,status) ~ Xlp, x=TRUE, y=TRUE, method=method, data=TR, iter.max=0, init=1)
+          train.fit <- survival::coxph(survival::Surv(time,status) ~ Xlp, x=TRUE, y=TRUE, method=method, data=TR, iter.max=0, init=1)
           #library(rms)
-          train.fit.cph <- cph(Surv(time,status) ~ Xlp, x=TRUE, y=TRUE, method=method, data=TR, iter.max=0, init=1)
+          train.fit.cph <- rms::cph(survival::Surv(time,status) ~ Xlp, x=TRUE, y=TRUE, method=method, data=TR, iter.max=0, init=1)
           lp <- predict(train.fit)
           lpnew <- predict(train.fit, newdata=TE)
           
@@ -317,12 +317,12 @@ cv.coxspls_sgplsDR =
         te.survival.status <- tsdata$status
         
         #require(survival)
-        Surv.rsp <- Surv(tr.survival.time, tr.survival.status)
-        Surv.rsp.new <- Surv(te.survival.time, te.survival.status)
+        Surv.rsp <- survival::Surv(tr.survival.time, tr.survival.status)
+        Surv.rsp.new <- survival::Surv(te.survival.time, te.survival.status)
         
-        train.fit <- coxph(Surv(time,status) ~ Xlp, x=TRUE, y=TRUE, method=method, data=TR, iter.max=0, init=1) #offset
+        train.fit <- survival::coxph(survival::Surv(time,status) ~ Xlp, x=TRUE, y=TRUE, method=method, data=TR, iter.max=0, init=1) #offset
         #library(rms)
-        train.fit.cph <- cph(Surv(time,status) ~ Xlp, x=TRUE, y=TRUE, method=method, data=TR, iter.max=0, init=1) #offset
+        train.fit.cph <- rms::cph(survival::Surv(time,status) ~ Xlp, x=TRUE, y=TRUE, method=method, data=TR, iter.max=0, init=1) #offset
         lp <- predict(train.fit)
         lpnew <- predict(train.fit, newdata=TE)
         

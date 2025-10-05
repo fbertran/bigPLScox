@@ -1,7 +1,7 @@
 #' Compute deviance residuals
 #'
 #' This function computes the residuals from a null model fit using the 
-#' \code{coxph} function of the \code{mixOmics}'s package. 
+#' \code{coxph} function of the \code{survival} package. 
 #' Since this computation does not use the explanatory variables, it is 
 #' likely to be doable even on big dat without dedicated framework.
 #' 
@@ -78,7 +78,7 @@ computeDR <- function (time, time2, event, type, origin, typeres = "deviance",
     plot(survival::survfit(YCsurv ~ 1))
   }
   mf1 <- match.call(expand.dots = TRUE)
-  m1 <- match(c(head(names(as.list(args(coxph))), -2), head(names(as.list(args((coxph.control)))), 
+  m1 <- match(c(head(names(as.list(args(survival::coxph))), -2), head(names(as.list(args(survival::coxph.control))), 
                                                             -1)), names(mf1), 0L)
   mf1 <- mf1[c(1L, m1)]
   mf1$formula <- as.formula(YCsurv ~ 1)

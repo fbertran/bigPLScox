@@ -8,18 +8,26 @@ Imports:
     bigmemory, 
     bigalgebra, 
     bigSurvSGD,
-    plsRcox, 
+    caret,
+    doParallel,
+    foreach,
+    kernlab,
     methods,
     Rcpp,
+    risksetROC,
     rms, 
     sgPLS, 
+    survAUC,
+    survcomp,
     survival
 LinkingTo:
     BH,
     Rcpp,
     RcppArmadillo,
     bigmemory
-Suggests: testthat (>= 3.0.0)
+Suggests:
+    plsRcox, 
+    testthat (>= 3.0.0)
 Title: Partial Least Squares for Cox Models with Big Matrices 
 Authors@R: c(
 	person(given = "Frederic", family= "Bertrand", role = c("cre", "aut"), email = "frederic.bertrand@lecnam.net", comment = c(ORCID = "0000-0002-0837-8281")),

@@ -116,7 +116,7 @@ not supplied, min(7,maximal number) components is used.}
 
 \item{modepls}{character string. What type of algorithm to use, (partially)
 matching one of "regression", "canonical". See
-\code{\link[sgplsDR]{gPLS}} for details}
+\code{\link[sgPLS]{gPLS}} for details}
 
 \item{ind.block.x}{a vector of integers describing the grouping of the
 X-variables. \code{ind.block.x <- c(3,10,15)} means that \code{X} is
@@ -209,7 +209,7 @@ Maumy-Bertrand (2015), Bioinformatics, 31(3):397-404,
 doi:10.1093/bioinformatics/btu660.
 }
 \seealso{
-\code{\link[survival]{coxph}}, \code{\link[sgplsDR]{gPLS}}
+\code{\link[survival]{coxph}}, \code{\link[sgPLS]{gPLS}}
 }
 \author{
 Frédéric Bertrand\cr

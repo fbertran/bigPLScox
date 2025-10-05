@@ -5,7 +5,7 @@
 \title{Construct Scaled Design Matrices for Big Survival Models}
 \usage{
 bigscale(
-  formula = Surv(time = time, status = status) ~ .,
+  formula = survival::Surv(time = time, status = status) ~ .,
   data,
   norm.method = "standardize",
   strata.size = 20,
@@ -21,6 +21,9 @@ bigscale(
 )
 }
 \arguments{
+\item{formula}{formula used to extract the outcome and predictors that
+should be included in the scaled design matrix.}
+
 \item{data}{Input data source containing the variables referenced in
 \code{formula}.}
 
@@ -56,9 +59,6 @@ generated design matrix.}
 
 \item{type}{Type of model or preprocessing target being prepared, such as
 survival or regression.}
-
-\item{Model}{formula used to extract the outcome and predictors that
-should be included in the scaled design matrix.}
 }
 \value{
 A scaled design matrix of the scaler class along with metadata describing
@@ -80,7 +80,7 @@ descent byapplying optional normalisation, stratified sampling,
 and batching rules.
 }
 \examples{
-scaled <- bigscale(Surv(time, status) ~ ., data = my_training_data,
+scaled <- bigscale(survival::Surv(time, status) ~ ., data = my_training_data,
 norm.method = "standardize", batch.size = 128)
 
 }

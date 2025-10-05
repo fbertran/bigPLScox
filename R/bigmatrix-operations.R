@@ -1,7 +1,7 @@
 #' Matrix and arithmetic operations for big.matrix objects
 #' 
 #' These methods extend the base matrix multiplication operator
-#' (\code{\link[base]{%*%}}) and the group generic \code{\link[base]{Arith}} so
+#' (\code{\link[base]{%*%}}) and the group generic \code{\link[base]{Arithmetic}} so
 #' that \code{\link[bigmemory]{big.matrix}} objects can interoperate with base
 #' R matrices and numeric scalars using the high-performance routines provided
 #' by \pkg{bigalgebra}.
@@ -11,6 +11,7 @@
 #' scalar/matrix combinations use \code{bigalgebra::dadd()} when appropriate.
 #' 
 #' @name bigmatrix-operations
+#' @rdname bigmatrix-operations
 #' 
 #' @aliases bigmatrix-operations 
 #' @aliases %*%,big.matrix,big.matrix-method
@@ -31,7 +32,7 @@
 #' @param e1,e2 Numeric operands, which may be \code{big.matrix} objects, base
 #' R matrices, or numeric scalars depending on the method signature.
 #' 
-#' @seealso [bigmemory::big.matrix], [bigalgebra::dgemm()],
+#' @seealso [bigmemory::big.matrix()], [bigalgebra::dgemm()],
 #'   [bigalgebra::daxpy()], [bigalgebra::dadd()]
 #' 
 #' @keywords methods
@@ -55,6 +56,7 @@ setMethod("%*%",signature(x="big.matrix", y="big.matrix"),
           valueClass="big.matrix"
 )
 
+#' @rdname bigmatrix-operations
 #' @export
 setMethod("%*%",signature(x="matrix", y="big.matrix"),
           function(x,y)
@@ -67,6 +69,7 @@ setMethod("%*%",signature(x="matrix", y="big.matrix"),
           valueClass="matrix"
 )
 
+#' @rdname bigmatrix-operations
 #' @export
 setMethod("%*%",signature(x="big.matrix", y="matrix"),
           function(x,y)
@@ -79,6 +82,7 @@ setMethod("%*%",signature(x="big.matrix", y="matrix"),
           valueClass="matrix"
 )
 
+#' @rdname bigmatrix-operations
 #' @export
 setMethod("Arith",c(e1="big.matrix", e2="big.matrix"),
           function(e1,e2)
@@ -92,6 +96,7 @@ setMethod("Arith",c(e1="big.matrix", e2="big.matrix"),
           }
 )
 
+#' @rdname bigmatrix-operations
 #' @export
 setMethod("Arith",c(e1="big.matrix", e2="matrix"),
           function(e1,e2)
@@ -105,6 +110,7 @@ setMethod("Arith",c(e1="big.matrix", e2="matrix"),
           }
 )
 
+#' @rdname bigmatrix-operations
 #' @export
 setMethod("Arith",c(e1="matrix", e2="big.matrix"),
           function(e1,e2)
@@ -118,6 +124,7 @@ setMethod("Arith",c(e1="matrix", e2="big.matrix"),
           }
 )
 
+#' @rdname bigmatrix-operations
 #' @export
 setMethod("Arith",c(e1="numeric", e2="big.matrix"),
           function(e1,e2)
@@ -136,6 +143,7 @@ setMethod("Arith",c(e1="numeric", e2="big.matrix"),
           }
 )
 
+#' @rdname bigmatrix-operations
 #' @export
 setMethod("Arith",c(e1="big.matrix", e2="numeric"),
           function(e1,e2)

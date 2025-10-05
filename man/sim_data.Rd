@@ -54,7 +54,7 @@ C_sim_data_train <- sim_data$status[1:800,1]
 X_sim_data_test <- micro.censure$survyear[801:1000,2:11]
 Y_sim_data_test <- micro.censure$status[801:1000,1]
 C_sim_data_test <- micro.censure$status[801:1000,1]
-rm(X_sim_data_train,Y_sim_data_train,C_sim_data_train,X_sim_data_test
+rm(X_sim_data_train,Y_sim_data_train,C_sim_data_train,X_sim_data_test,
 Y_sim_data_test,C_sim_data_test)
 }
 
