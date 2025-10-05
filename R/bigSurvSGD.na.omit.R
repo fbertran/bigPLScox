@@ -94,9 +94,16 @@
 #' \code{\link{partialbigSurvSGDv0}} for partial fitting pipelines.
 #'
 #' @examples
-#' fit <- bigSurvSGD.na.omit(survival::Surv(time, status) ~ ., data = my_training_data,
-#' norm.method = "standardize", opt.method = "adam", batch.size = 128, 
-#' num.epoch = 10)
+#' data(micro.censure, package = "bigPLScox")
+#' surv_data <- stats::na.omit(micro.censure[, c("survyear", "DC", "sexe", "Agediag")])
+#' fit <- bigSurvSGD.na.omit(
+#'   survival::Surv(survyear, DC) ~ .,
+#'   data = surv_data,
+#'   norm.method = "standardize",
+#'   opt.method = "adam",
+#'   batch.size = 16,
+#'   num.epoch = 2
+#' )
 #' 
 bigSurvSGD.na.omit <- function (formula = survival::Surv(time = time, status = status) ~ ., data, 
           norm.method = "standardize", features.mean = NULL, features.sd = NULL, 

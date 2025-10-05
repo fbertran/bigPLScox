@@ -80,9 +80,17 @@ descent byapplying optional normalisation, stratified sampling,
 and batching rules.
 }
 \examples{
-scaled <- bigscale(survival::Surv(time, status) ~ ., data = my_training_data,
-norm.method = "standardize", batch.size = 128)
-
+data(micro.censure, package = "bigPLScox")
+surv_data <- stats::na.omit(
+  micro.censure[, c("survyear", "DC", "sexe", "Agediag")]
+)
+scaled <- bigscale(
+  survival::Surv(survyear, DC) ~ .,
+  data = surv_data,
+  norm.method = "standardize",
+  batch.size = 16
+)
+ 
 }
 \seealso{
 \code{\link[=bigSurvSGD.na.omit]{bigSurvSGD.na.omit()}} for fitting models that use the scaled

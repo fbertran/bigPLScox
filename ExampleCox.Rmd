@@ -14,14 +14,14 @@ install.packages("Epi")
 
 ```{r}
 library(sgPLS)
-library(plsRcox)
+library(bigPLScox)
 ```
 
 ## Deviance residuals
 
 ```{r}
 ## Simulation of datasets X and Y with group variables
-library(plsRcox)
+library(bigPLScox)
 data(micro.censure)
 Y_train_micro <- micro.censure$survyear[1:80]
 C_train_micro <- micro.censure$DC[1:80]
@@ -52,7 +52,7 @@ if (model.gPLS$ncomp > 0) {
 
 ```{r}
 library(sgPLS)
-library(plsRcox)
+library(bigPLScox)
 data(micro.censure)
 data(Xmicro.censure_compl_imp)
 
@@ -81,7 +81,7 @@ result.sgPLS$group.size.Y
 ## bigPLScox
 
 ```{r}
-library(plsRcox)
+library(bigPLScox)
 data(micro.censure)
 data(Xmicro.censure_compl_imp)
 
@@ -107,7 +107,7 @@ round(pred.fit$Beta,3)
 ## bigsPLS
 
 ```{r}
-library(plsRcox)
+library(bigPLScox)
 data(micro.censure)
 data(Xmicro.censure_compl_imp)
 
@@ -133,7 +133,7 @@ round(pred.fit$Beta,3)
 ## biggPLS
 
 ```{r}
-library(plsRcox)
+library(bigPLScox)
 data(micro.censure)
 data(Xmicro.censure_compl_imp)
 
@@ -159,7 +159,7 @@ round(pred.fit$Beta,3)
 ## bigsgPLS
 
 ```{r}
-library(plsRcox)
+library(bigPLScox)
 data(micro.censure)
 data(Xmicro.censure_compl_imp)
 

@@ -171,9 +171,16 @@ Performs stochastic gradient descent optimisation for large-scale survival
 models after removing observations with missing values.
 }
 \examples{
-fit <- bigSurvSGD.na.omit(survival::Surv(time, status) ~ ., data = my_training_data,
-norm.method = "standardize", opt.method = "adam", batch.size = 128, 
-num.epoch = 10)
+data(micro.censure, package = "bigPLScox")
+surv_data <- stats::na.omit(micro.censure[, c("survyear", "DC", "sexe", "Agediag")])
+fit <- bigSurvSGD.na.omit(
+  survival::Surv(survyear, DC) ~ .,
+  data = surv_data,
+  norm.method = "standardize",
+  opt.method = "adam",
+  batch.size = 16,
+  num.epoch = 2
+)
 
 }
 \seealso{

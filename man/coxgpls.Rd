@@ -118,7 +118,8 @@ matching one of "regression", "canonical". See
 X-variables. \code{ind.block.x <- c(3,10,15)} means that \code{X} is
 structured into 4 groups: \code{X1} to \code{X3}; \code{X4} to \code{X10},
 \code{X11} to \code{X15} and \code{X16} to \code{Xp} where \code{p} is the
-number of variables in the X matrix.}
+number of variables in the X matrix. When missing, every predictor is placed
+in its own group.}
 
 \item{keepX}{numeric vector of length ncomp, the number of variables to keep
 in X-loadings. By default all variables are kept in the model.}

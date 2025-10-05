@@ -54,6 +54,8 @@ coxDKspls_sgplsDR(Xplan, ...)
   ind.block.x = NULL,
   modepls = "regression",
   keepX,
+  alpha.x,
+  upper.lambda = 10^5,
   plot = FALSE,
   allres = FALSE,
   kernel = "rbfdot",
@@ -181,6 +183,10 @@ Laplacian kernel, if \code{hyperkernel} is missing, the heuristics in sigest
 are used to calculate a good sigma value from the data.}
 
 \item{verbose}{Should some details be displayed ?}
+
+\item{alpha.x}{numeric vector of length \code{ncomp} giving the sparsity level applied within each component. Required when \code{ind.block.x} is specified.}
+
+\item{upper.lambda}{numeric value controlling the maximal penalty considered by \code{sgPLS} when estimating sparse group loadings. Defaults to \code{10^5}.}
 }
 \value{
 If \code{allres=FALSE} : \item{cox_DKspls_sgplsDR}{Final Cox-model.} If

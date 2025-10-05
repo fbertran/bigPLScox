@@ -1,7 +1,7 @@
 Package: bigPLScox
 Type: Package
 Version: 0.5.0
-Date: 2025-10-01
+Date: 2025-10-05
 Depends: R (>= 3.5.0)
 biocViews:
 Imports: 
@@ -26,7 +26,9 @@ LinkingTo:
     RcppArmadillo,
     bigmemory
 Suggests:
-    plsRcox, 
+    knitr,
+    plsRcox,
+    rmarkdown,
     testthat (>= 3.0.0)
 Title: Partial Least Squares for Cox Models with Big Matrices 
 Authors@R: c(
@@ -42,5 +44,6 @@ BugReports: https://github.com/fbertran/bigPLScox/issues/
 Classification/MSC: 62N01, 62N02, 62N03, 62N99
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 SystemRequirements: C++11

@@ -51,8 +51,7 @@
 #' @keywords models regression
 #' @examples
 #' 
-#' library(plsRcox)
-#' data(micro.censure)
+#' data(micro.censure, package = "bigPLScox")
 #' 
 #' Y_train_micro <- micro.censure$survyear[1:80]
 #' C_train_micro <- micro.censure$DC[1:80]

@@ -50,11 +50,12 @@
 #' @param scaleY Should the \code{time} values be standardized ?
 #' @param ncomp The number of components to include in the model. It this is
 #' not supplied, min(7,maximal number) components is used.
-#' @param ind.block.x a vector of integers describing the grouping of the 
-#' X-variables. \code{ind.block.x <- c(3,10,15)} means that \code{X} is 
-#' structured into 4 groups: \code{X1} to \code{X3}; \code{X4} to \code{X10}, 
-#' \code{X11} to \code{X15} and \code{X16} to \code{Xp} where \code{p} is the 
-#' number of variables in the X matrix.
+#' @param ind.block.x a vector of integers describing the grouping of the
+#' X-variables. \code{ind.block.x <- c(3,10,15)} means that \code{X} is
+#' structured into 4 groups: \code{X1} to \code{X3}; \code{X4} to \code{X10},
+#' \code{X11} to \code{X15} and \code{X16} to \code{Xp} where \code{p} is the
+#' number of variables in the X matrix. When missing, every predictor is placed
+#' in its own group.
 #' @param keepX	numeric vector of length ncomp, the number of variables to keep 
 #' in X-loadings. By default all variables are kept in the model.
 #' @param modepls character string. What type of algorithm to use, (partially)
@@ -121,11 +122,11 @@ coxgpls <- function (Xplan, ...) UseMethod("coxgpls")
 #' @export
 coxgpls.formula <-
   function (Xplan, time, time2, event, type, origin, typeres = "deviance", 
-            collapse, weighted, scaleX = TRUE, scaleY = TRUE, ncomp = 
-              min(7, ncol(Xplan)), modepls = "regression", ind.block.x, keepX, 
-            plot = FALSE, allres = FALSE, dataXplan = NULL, subset, weights, 
-            model_frame = FALSE, model_matrix = FALSE, 
-            contrasts.arg=NULL, ...) 
+            collapse, weighted, scaleX = TRUE, scaleY = TRUE, ncomp =
+              min(7, ncol(Xplan)), modepls = "regression", ind.block.x, keepX,
+            plot = FALSE, allres = FALSE, dataXplan = NULL, subset, weights,
+            model_frame = FALSE, model_matrix = FALSE,
+            contrasts.arg=NULL, ...)
   {
     if (missing(dataXplan)) 
       dataXplan <- environment(Xplan)
@@ -147,18 +148,26 @@ coxgpls.formula <-
       if (!is.null(nm)) 
         names(Y) <- nm
     }
-    Xplan <- if (!is.empty.model(mt0)) 
-      model.matrix(mt0, mf0, 
+    Xplan <- if (!is.empty.model(mt0))
+      model.matrix(mt0, mf0,
                    contrasts.arg=
                      contrasts.arg)
     else matrix(, NROW(Y), 0L)
-    if (model_matrix) 
-      return(model.matrix(mt0, mf0, 
+    if (model_matrix)
+      return(model.matrix(mt0, mf0,
                           contrasts.arg=
                             contrasts.arg))
+    if (missing(ind.block.x)) {
+      nb_pred <- ncol(Xplan)
+      ind.block.x <- if (nb_pred <= 1) {
+        integer(0)
+      } else {
+        seq_len(nb_pred - 1)
+      }
+    }
 #    ind.block.x <- sapply(ind.block.x, function(x) {sum(attr(bbb,"assign") <= x)})
     weights <- as.vector(model.weights(mf0))
-    if (!is.null(weights) && !is.numeric(weights)) 
+    if (!is.null(weights) && !is.numeric(weights))
       stop("'weights' must be a numeric vector")
     if (!is.null(weights) && any(weights < 0)) 
       stop("negative weights not allowed")
@@ -170,10 +179,18 @@ coxgpls.formula <-
 #' @export
 coxgpls.default <- 
   function (Xplan, time, time2, event, type, origin, typeres = "deviance", 
-            collapse, weighted, scaleX = TRUE, scaleY = TRUE, 
-            ncomp = min(7,ncol(Xplan)), modepls = "regression", ind.block.x, 
-            keepX, plot = FALSE, allres = FALSE, ...) 
+            collapse, weighted, scaleX = TRUE, scaleY = TRUE,
+            ncomp = min(7,ncol(Xplan)), modepls = "regression", ind.block.x,
+            keepX, plot = FALSE, allres = FALSE, ...)
   {
+    if (missing(ind.block.x)) {
+      nb_pred <- ncol(as.matrix(Xplan))
+      ind.block.x <- if (nb_pred <= 1) {
+        integer(0)
+      } else {
+        seq_len(nb_pred - 1)
+      }
+    }
     if (scaleX) {
       Xplan <- scale(Xplan)
       XplanScal <- attr(Xplan, "scaled:scale")

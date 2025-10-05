@@ -51,9 +51,17 @@
 #' @export
 #'
 #' @examples
-#' scaled <- bigscale(survival::Surv(time, status) ~ ., data = my_training_data,
-#' norm.method = "standardize", batch.size = 128)
-#' 
+#' data(micro.censure, package = "bigPLScox")
+#' surv_data <- stats::na.omit(
+#'   micro.censure[, c("survyear", "DC", "sexe", "Agediag")]
+#' )
+#' scaled <- bigscale(
+#'   survival::Surv(survyear, DC) ~ .,
+#'   data = surv_data,
+#'   norm.method = "standardize",
+#'   batch.size = 16
+#' )
+#'  
 bigscale <- function (formula = survival::Surv(time = time, status = status) ~ ., data, 
           norm.method = "standardize", strata.size = 20,
           batch.size = 1, features.mean = NULL, features.sd = NULL, 

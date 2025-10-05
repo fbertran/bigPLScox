@@ -51,6 +51,8 @@ coxspls_sgpls(Xplan, ...)
   ind.block.x = NULL,
   modepls = "regression",
   keepX,
+  alpha.x,
+  upper.lambda = 10^5,
   plot = FALSE,
   allres = FALSE,
   ...
@@ -148,6 +150,10 @@ fitting process. Should be \code{NULL} or a numeric vector.}
 functions or character strings naming functions) to be used as replacement
 values for the contrasts replacement function and whose names are the names
 of columns of data containing factors.}
+
+\item{alpha.x}{numeric vector of length \code{ncomp} giving the sparsity level applied within each component. Required when \code{ind.block.x} is specified.}
+
+\item{upper.lambda}{numeric value controlling the maximal penalty considered by \code{sgPLS} when estimating sparse group loadings. Defaults to \code{10^5}.}
 }
 \value{
 If \code{allres=FALSE} : \item{cox_spls_sgpls}{Final Cox-model.} If
