@@ -3,6 +3,8 @@
 ^ExampleCox.Rmd$
 ^old_R$
 
+^TODO_LIST$
+
 genlogo.R
 .gitignore
 ^codecov\.yml$

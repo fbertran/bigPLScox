@@ -5,6 +5,8 @@ src/*.o
 src/*.so
 src/*.dll
 
+^TODO_LIST$
+
 # History files
 .Rhistory
 .Rapp.history
