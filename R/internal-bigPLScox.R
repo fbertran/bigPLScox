@@ -4,7 +4,8 @@
 #' 
 #' @description These are not to be called by the user.
 #' 
-#' @aliases ust spls.dv correctp.cox
+#' @aliases ust spls.dv correctp.cox NULL
+#' 
 #' @author Frédéric Bertrand\cr
 #' \email{frederic.bertrand@@lecnam.net}\cr
 #' \url{https://fbertran.github.io/homepage/}

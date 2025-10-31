@@ -90,7 +90,7 @@
 #' Y_qcpp <- computeDR(
 #'   Y_train_micro,
 #'   C_train_micro,
-#'   engine = "qcpp")
+#'   engine = "qcpp"
 #' )
 #' 
 #' @export computeDR
@@ -118,11 +118,11 @@ computeDR <- function (time, time2, event, type, origin, typeres = "deviance",
     return(cox_deviance_residuals(time_use, as.numeric(simple_status)))
   }
   
-  if (simple_case && engine == "survival") {
-    warning("'engine' is set to '", engine, "' so the fast qC++ backend is not used.",
+  if (simple_case && !(engine == "cpp" && !is.null(eta))) {
+    warning("'engine' is set to '", engine, "' so the fast C++ backend is not used.",
             call. = FALSE)
   }
-  
+
   if ((scaleY & missing(time2))) {
     time <- scale(time)
   }
@@ -141,7 +141,20 @@ computeDR <- function (time, time2, event, type, origin, typeres = "deviance",
     time_vec <- surv_mat[, 1]
     status_vec <- surv_mat[, ncol(surv_mat)]
     if (!is.null(eta)) {
-      res <- deviance_residuals_cpp(time_vec, status_vec, as.numeric(eta), method)
+      eta_vec <- as.numeric(eta)
+      if (length(eta_vec) != length(time_vec)) {
+        stop("`eta` must have the same length as `time`", call. = FALSE)
+      }
+      if (simple_case) {
+        details <- cox_deviance_details(time_vec, status_vec)
+        dev <- details$deviance
+        attr(dev, "martingale") <- details$martingale
+        attr(dev, "cumhaz") <- details$cumulative_hazard
+        attr(dev, "linear_predictor") <- eta_vec
+        attr(dev, "names") <- 1:length(YCsurv)
+        return(dev)
+      }
+      res <- deviance_residuals_cpp(time_vec, status_vec, eta_vec, method)
     } else {
       if (is.null(X) || is.null(coef)) {
         stop("`X` and `coef` must be supplied when `eta` is not provided and engine = 'cpp'")

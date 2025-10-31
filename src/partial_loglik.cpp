@@ -21,6 +21,22 @@ inline bool almost_equal(double a, double b) {
   return diff <= eps * (1.0 + scale);
 }
 
+inline double regularise_positive(double value, double reference,
+                                  const char* message) {
+  if (value > 0.0 && std::isfinite(value)) {
+    return value;
+  }
+  if (std::isfinite(reference) && reference > 0.0) {
+    const double tol = std::max(1e-12, reference * 1e-12);
+    if (std::isfinite(value) && value >= -tol) {
+      return std::max(tol, std::numeric_limits<double>::min());
+    }
+  } else if (std::isfinite(value) && value >= -1e-12) {
+    return std::max(1e-12, std::numeric_limits<double>::min());
+  }
+  stop(message);
+}
+
 } // anonymous namespace
 
 // [[Rcpp::export(name = "cox_partial_loglik_cpp")]]
@@ -200,10 +216,9 @@ SEXP cox_partial_loglik_cpp(NumericMatrix X,
         const int row = group_events[idx_ev];
         const double di = static_cast<double>(event_count);
         const double adjust = method_is_efron ? (di - rept[row]) / di : 0.0;
-        const double denom = risk_sum_base - adjust * event_sum_exp;
-        if (!(denom > 0.0) || !std::isfinite(denom)) {
-          stop("Non-positive risk set sum encountered while computing partial log-likelihood.");
-        }
+        double denom = risk_sum_base - adjust * event_sum_exp;
+        denom = regularise_positive(denom, risk_sum_base,
+                                    "Non-positive risk set sum encountered while computing partial log-likelihood.");
         loglik_col -= std::log(denom);
         if (return_all && col == k - 1) {
           const int event_col_idx = event_col_for_row[row];
@@ -233,10 +248,9 @@ SEXP cox_partial_loglik_cpp(NumericMatrix X,
   }
   
   for (int col_idx = 0; col_idx < m; ++col_idx) {
-    const double wsum = wsum_last[col_idx];
-    if (!(wsum > 0.0) || !std::isfinite(wsum)) {
-      stop("Non-positive risk set sum encountered while scaling weights.");
-    }
+    const double wsum_raw = wsum_last[col_idx];
+    const double wsum = regularise_positive(wsum_raw, wsum_raw,
+                                            "Non-positive risk set sum encountered while scaling weights.");
     for (int i = 0; i < n; ++i) {
       w_last(i, col_idx) /= wsum;
     }

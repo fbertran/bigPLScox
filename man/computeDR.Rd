@@ -120,7 +120,7 @@ Y_cpp <- computeDR(
 Y_qcpp <- computeDR(
   Y_train_micro,
   C_train_micro,
-  engine = "qcpp")
+  engine = "qcpp"
 )
 
 }

@@ -25,7 +25,7 @@ expect_length(link_stream, n)
 expect_length(link_gd, n)
 
 # Deviance residuals from C++ engine match survival::coxph
-res_surv <- computeDR(time, status, engine = "survival")
+res_surv <- suppressWarnings(computeDR(time, status, engine = "survival"))
 res_cpp <- computeDR(time, status, engine = "cpp", eta = link_stream)
 expect_equal(as.numeric(res_cpp), as.numeric(res_surv), tolerance = 1e-7)
 

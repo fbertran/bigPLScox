@@ -96,7 +96,9 @@ together with <strong>survival</strong>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fbertran.github.io/bigPLScox/">bigPLScox</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival" class="external-link">survival</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bench.r-lib.org/" class="external-link">bench</a></span><span class="op">)</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bench.r-lib.org/" class="external-link">bench</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaneplusplus/bigmemory" class="external-link">bigmemory</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fbertran.github.io/plsRcox/" class="external-link">plsRcox</a></span><span class="op">)</span></span></code></pre></div>
 <p>The helper <code><a href="../reference/dataCox.html">dataCox()</a></code> simulates survival outcomes with
 right censoring. We work with a moderately sized problem here, but
 larger values for <code>n</code> and <code>p</code> can be used to
@@ -116,38 +118,55 @@ stress test performance.</p>
 <span>  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">sim_design</span><span class="op">[</span>, <span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  time <span class="op">=</span> <span class="va">sim_design</span><span class="op">$</span><span class="va">time</span>,</span>
 <span>  status <span class="op">=</span> <span class="va">sim_design</span><span class="op">$</span><span class="va">status</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">)</span></span>
+<span><span class="va">X_big</span> <span class="op">&lt;-</span> <span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">cox_data</span><span class="op">$</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="running-the-benchmark">Running the benchmark<a class="anchor" aria-label="anchor" href="#running-the-benchmark"></a>
 </h2>
 <p>We compare the classical Cox proportional hazards model with
-<code><a href="../reference/coxgpls.html">coxgpls()</a></code>. The <code><a href="https://bench.r-lib.org/reference/mark.html" class="external-link">bench::mark()</a></code> helper executes
-the estimators multiple times and records timing statistics alongside
-memory usage information.</p>
+<code><a href="../reference/coxgpls.html">coxgpls()</a></code> and the two <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> solvers.
+The <code><a href="https://bench.r-lib.org/reference/mark.html" class="external-link">bench::mark()</a></code> helper executes the estimators multiple
+times and records timing statistics alongside memory usage
+information.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bench_res</span> <span class="op">&lt;-</span> <span class="fu">bench</span><span class="fu">::</span><span class="fu"><a href="https://bench.r-lib.org/reference/mark.html" class="external-link">mark</a></span><span class="op">(</span></span>
-<span>  bigPLScox <span class="op">=</span> <span class="fu"><a href="../reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
+<span>  coxgpls <span class="op">=</span> <span class="fu"><a href="../reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
 <span>    <span class="va">cox_data</span><span class="op">$</span><span class="va">x</span>,</span>
 <span>    <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>,</span>
 <span>    <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>,</span>
 <span>    ncomp <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span><span class="op">)</span></span>
 <span>  <span class="op">)</span>,</span>
+<span>  big_pls <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox.html">big_pls_cox</a></span><span class="op">(</span><span class="va">X_big</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  big_pls_gd <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span><span class="va">X_big</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span>, max_iter <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>,</span>
 <span>  survival <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">cox_data</span><span class="op">$</span><span class="va">x</span>, ties <span class="op">=</span> <span class="st">"breslow"</span><span class="op">)</span>,</span>
 <span>  iterations <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  check <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">bench_res</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 6</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 6</span></span></span>
 <span><span class="co">#&gt;   expression      min   median `itr/sec` mem_alloc `gc/sec`</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;bch:expr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:byt&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> bigPLScox    19.3ms   19.9ms      50.2    67.3MB   <span style="text-decoration: underline;">1</span>318. </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> survival     27.4ms   28.2ms      35.4    13.4MB     25.7</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> coxgpls     19.14ms  19.75ms      50.7   30.97MB   190.  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls      7.77ms   7.92ms     124.     3.54MB     9.35</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_gd  11.81ms  12.01ms      82.8    2.75MB     4.36</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> survival    27.31ms  27.72ms      35.8   13.39MB    14.6</span></span>
+<span></span>
+<span><span class="va">bench_summary</span> <span class="op">&lt;-</span> <span class="va">bench_res</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"expression"</span>, <span class="st">"median"</span>, <span class="st">"itr/sec"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">bench_summary</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 3</span></span></span>
+<span><span class="co">#&gt;   expression   median `itr/sec`</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;bch:expr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> coxgpls     19.75ms      50.7</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls      7.92ms     124. </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_gd  12.01ms      82.8</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> survival    27.72ms      35.8</span></span></code></pre></div>
 <p>The resulting tibble reports elapsed time, memory allocations, and
 garbage collection statistics for each estimator. The
 <code>itr/sec</code> column is often the most useful indicator when
-comparing multiple implementations.</p>
+comparing multiple implementations. The <code>bench_summary</code>
+object summarises the median runtime and iterations per second.</p>
 </div>
 <div class="section level2">
 <h2 id="visualising-the-results">Visualising the results<a class="anchor" aria-label="anchor" href="#visualising-the-results"></a>
@@ -161,17 +180,62 @@ distributions of elapsed and memory usage.</p>
 <code>autoplot(bench_res, type = "ridge")</code>.</p>
 </div>
 <div class="section level2">
+<h2 id="accuracy-on-a-shared-test-set">Accuracy on a shared test set<a class="anchor" aria-label="anchor" href="#accuracy-on-a-shared-test-set"></a>
+</h2>
+<p>We use a common train/test split across four estimators and compare
+predictive performance using the survival concordance index. The test
+set is identical for each method to ensure a fair comparison.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4242</span><span class="op">)</span></span>
+<span><span class="va">split_id</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"train"</span>, <span class="st">"test"</span><span class="op">)</span>, size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cox_data</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>, replace <span class="op">=</span> <span class="cn">TRUE</span>, prob <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.7</span>, <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">train_idx</span> <span class="op">&lt;-</span> <span class="va">split_id</span> <span class="op">==</span> <span class="st">"train"</span></span>
+<span><span class="va">test_idx</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="va">train_idx</span></span>
+<span></span>
+<span><span class="va">train_x</span> <span class="op">&lt;-</span> <span class="va">cox_data</span><span class="op">$</span><span class="va">x</span><span class="op">[</span><span class="va">train_idx</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span><span class="va">test_x</span> <span class="op">&lt;-</span> <span class="va">cox_data</span><span class="op">$</span><span class="va">x</span><span class="op">[</span><span class="va">test_idx</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span><span class="va">train_time</span> <span class="op">&lt;-</span> <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span><span class="op">[</span><span class="va">train_idx</span><span class="op">]</span></span>
+<span><span class="va">test_time</span> <span class="op">&lt;-</span> <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span><span class="op">[</span><span class="va">test_idx</span><span class="op">]</span></span>
+<span><span class="va">train_status</span> <span class="op">&lt;-</span> <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span><span class="op">[</span><span class="va">train_idx</span><span class="op">]</span></span>
+<span><span class="va">test_status</span> <span class="op">&lt;-</span> <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span><span class="op">[</span><span class="va">test_idx</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">big_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox.html">big_pls_cox</a></span><span class="op">(</span><span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">train_x</span><span class="op">)</span>, <span class="va">train_time</span>, <span class="va">train_status</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="va">gd_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span><span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">train_x</span><span class="op">)</span>, <span class="va">train_time</span>, <span class="va">train_status</span>, ncomp <span class="op">=</span> <span class="fl">5</span>, max_iter <span class="op">=</span> <span class="fl">120</span><span class="op">)</span></span>
+<span><span class="va">pls_fit</span> <span class="op">&lt;-</span> <span class="fu">plsRcox</span><span class="fu">::</span><span class="fu"><a href="https://fbertran.github.io/plsRcox/reference/plsRcox.html" class="external-link">plsRcox</a></span><span class="op">(</span><span class="va">train_x</span>, <span class="va">train_time</span>, <span class="va">train_status</span>, nt <span class="op">=</span> <span class="fl">5</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">lp_big</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">big_fit</span>, newdata <span class="op">=</span> <span class="va">test_x</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span></span>
+<span><span class="va">lp_gd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">gd_fit</span>, newdata <span class="op">=</span> <span class="va">test_x</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span></span>
+<span><span class="va">lp_pls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">pls_fit</span>, newdata <span class="op">=</span> <span class="va">test_x</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">surv_test</span> <span class="op">&lt;-</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">test_time</span>, <span class="va">test_status</span><span class="op">)</span></span>
+<span><span class="va">acc_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"big_pls_cox"</span>, <span class="st">"big_pls_cox_gd"</span>, <span class="st">"plsRcox"</span><span class="op">)</span>,</span>
+<span>  c_index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/concordance.html" class="external-link">concordance</a></span><span class="op">(</span><span class="va">surv_test</span> <span class="op">~</span> <span class="va">lp_big</span><span class="op">)</span><span class="op">$</span><span class="va">concordance</span>,</span>
+<span>    <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/concordance.html" class="external-link">concordance</a></span><span class="op">(</span><span class="va">surv_test</span> <span class="op">~</span> <span class="va">lp_gd</span><span class="op">)</span><span class="op">$</span><span class="va">concordance</span>,</span>
+<span>    <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/concordance.html" class="external-link">concordance</a></span><span class="op">(</span><span class="va">surv_test</span> <span class="op">~</span> <span class="va">lp_pls</span><span class="op">)</span><span class="op">$</span><span class="va">concordance</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">acc_results</span></span>
+<span><span class="co">#&gt;           method    c_index</span></span>
+<span><span class="co">#&gt; 1    big_pls_cox 0.06829377</span></span>
+<span><span class="co">#&gt; 2 big_pls_cox_gd 0.57433234</span></span>
+<span><span class="co">#&gt; 3        plsRcox 0.06821958</span></span></code></pre></div>
+<p>All methods operate on the same train/test split and the concordance
+index facilitates direct comparison with the reference implementation
+from .</p>
+</div>
+<div class="section level2">
 <h2 id="exporting-benchmark-results">Exporting benchmark results<a class="anchor" aria-label="anchor" href="#exporting-benchmark-results"></a>
 </h2>
 <p>Use the function <code><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv()</a></code> to store the benchmarking
 table as part of a reproducible pipeline. For larger studies consider
 varying the number of latent components, sparsity constraints, or the
 dataset dimensions.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.exists</a></span><span class="op">(</span><span class="st">"inst/benchmarks/results"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="st">"inst/benchmarks/results"</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">bench_res</span>, file <span class="op">=</span> <span class="st">"inst/benchmarks/results/benchmarking-demo.csv"</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">bench_res</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">9</span><span class="op">]</span>, file <span class="op">=</span> <span class="st">"inst/benchmarks/results/benchmarking-demo.csv"</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="reusing-the-benchmarking-scripts">Reusing the benchmarking scripts<a class="anchor" aria-label="anchor" href="#reusing-the-benchmarking-scripts"></a>
@@ -180,9 +244,9 @@ dataset dimensions.</p>
 <code>inst/benchmarks/</code> that mirror this vignette while exposing
 additional configuration points. Run them from the repository root
 as:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox-benchmark.R</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/benchmark_bigPLScox.R</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox_pls_benchmark.R</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox-benchmark.R</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/benchmark_bigPLScox.R</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox_pls_benchmark.R</span></code></pre></div>
 <p>Each script accepts environment variables to adjust the problem size
 and stores results under <code>inst/benchmarks/results/</code> with
 time-stamped filenames.</p>

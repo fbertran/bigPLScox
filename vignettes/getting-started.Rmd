@@ -183,7 +183,7 @@ cox_DKsplsDR_fit
 Cross-validation is available for the DK-splines estimator as well.
 
 ```{r cv-dk-splines}
-set.seed(123456)
+set.seed(2468)
 cv_coxDKgplsDR_res <- suppressWarnings(cv.coxDKgplsDR(
   list(x = X_train, time = Y_train, status = status_train),
   nt = 6,
