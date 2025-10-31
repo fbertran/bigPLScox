@@ -13,7 +13,7 @@ materialising large design matrices in memory."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,8 @@ materialising large design matrices in memory.</p>
 <span>  ncomp <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  max_iter <span class="op">=</span> <span class="fl">500L</span>,</span>
 <span>  tol <span class="op">=</span> <span class="fl">1e-06</span>,</span>
-<span>  learning_rate <span class="op">=</span> <span class="fl">0.01</span></span>
+<span>  learning_rate <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  keepX <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -101,6 +102,12 @@ coefficient vectors.</p></dd>
 
 <dt id="arg-learning-rate">learning_rate<a class="anchor" aria-label="anchor" href="#arg-learning-rate"></a></dt>
 <dd><p>Step size used for the gradient-descent updates.</p></dd>
+
+
+<dt id="arg-keepx">keepX<a class="anchor" aria-label="anchor" href="#arg-keepx"></a></dt>
+<dd><p>Optional integer vector describing the number of predictors to
+retain per component (naive sparsity). A value of zero keeps all
+predictors.</p></dd>
 
 </dl></div>
     <div class="section level2">

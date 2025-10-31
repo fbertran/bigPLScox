@@ -4,7 +4,14 @@
 \alias{big_pls_cox}
 \title{Partial Least Squares Components for Cox Models with Big Matrices}
 \usage{
-big_pls_cox(X, time, status, ncomp = 2L, control = survival::coxph.control())
+big_pls_cox(
+  X,
+  time,
+  status,
+  ncomp = 2L,
+  control = survival::coxph.control(),
+  keepX = NULL
+)
 }
 \arguments{
 \item{X}{A numeric matrix or a \code{\link[bigmemory:big.matrix]{bigmemory::big.matrix}} object containing the predictors.}
@@ -16,6 +23,11 @@ big_pls_cox(X, time, status, ncomp = 2L, control = survival::coxph.control())
 \item{ncomp}{Number of latent components to compute.}
 
 \item{control}{Optional list passed to \code{\link[survival:coxph.control]{survival::coxph.control}}.}
+
+\item{keepX}{Optional integer vector specifying the number of variables to
+retain (naive sparsity) in each component. A value of zero keeps all
+predictors. If a single integer is supplied it is recycled across
+components.}
 }
 \value{
 A list with the computed scores, loadings, weights, scaling information and the

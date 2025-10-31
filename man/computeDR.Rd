@@ -14,7 +14,14 @@ computeDR(
   collapse,
   weighted,
   scaleY = TRUE,
-  plot = FALSE
+  plot = FALSE,
+  engine = c("survival", "cpp", "qcpp"),
+  method = c("efron", "breslow"),
+  X = NULL,
+  coef = NULL,
+  eta = NULL,
+  center = NULL,
+  scale = NULL
 )
 }
 \arguments{
@@ -62,15 +69,36 @@ the weighted residuals are returned.}
 \item{scaleY}{Should the \code{time} values be standardized ?}
 
 \item{plot}{Should the survival function be plotted ?}
+
+\item{engine}{Either \code{"survival"} (default) to call
+\code{\link[survival:coxph]{survival::coxph()}} or \code{"cpp"} to use the C++ implementation.}
+
+\item{method}{Tie handling to use with \code{engine = "cpp"}: either
+\code{"efron"} (default) or \code{"breslow"}.}
+
+\item{X}{Optional design matrix used to compute the linear predictor when
+\code{engine = "cpp"}. Supports base matrices, data frames, and
+\code{\link[bigmemory:big.matrix]{bigmemory::big.matrix}} objects.}
+
+\item{coef}{Optional coefficient vector associated with \code{X} when
+\code{engine = "cpp"}.}
+
+\item{eta}{Optional precomputed linear predictor passed directly to the C++
+engine.}
+
+\item{center, scale}{Optional centring and scaling vectors applied to \code{X}
+before computing the linear predictor with the C++ engine.}
 }
 \value{
-Residuals from a null model fit.
+Residuals from a null model fit. When \code{engine = "cpp"}, the returned
+vector has attributes \code{"martingale"}, \code{"cumhaz"}, and
+\code{"linear_predictor"}.
 }
 \description{
-This function computes the residuals from a null model fit using the
-\code{coxph} function of the \code{survival} package.
-Since this computation does not use the explanatory variables, it is
-likely to be doable even on big dat without dedicated framework.
+This function computes deviance residuals from a null Cox model. By default
+it delegates to \code{\link[survival:coxph]{survival::coxph()}}, but a high-performance C++ engine is
+also available for large in-memory or \code{\link[bigmemory:big.matrix]{bigmemory::big.matrix}} design
+matrices.
 }
 \examples{
 
@@ -81,6 +109,19 @@ C_train_micro <- micro.censure$DC[1:80]
 
 Y_DR <- computeDR(Y_train_micro,C_train_micro)
 Y_DR <- computeDR(Y_train_micro,C_train_micro,plot=TRUE)
+
+Y_cpp <- computeDR(
+  Y_train_micro,
+  C_train_micro,
+  engine = "cpp",
+  eta = rep(0, length(Y_train_micro))
+)
+
+Y_qcpp <- computeDR(
+  Y_train_micro,
+  C_train_micro,
+  engine = "qcpp")
+)
 
 }
 \references{

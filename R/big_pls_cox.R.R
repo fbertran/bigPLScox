@@ -14,6 +14,10 @@
 #' @param status Integer (0/1) vector of event indicators.
 #' @param ncomp Number of latent components to compute.
 #' @param control Optional list passed to [`survival::coxph.control`].
+#' @param keepX Optional integer vector specifying the number of variables to
+#'   retain (naive sparsity) in each component. A value of zero keeps all
+#'   predictors. If a single integer is supplied it is recycled across
+#'   components.
 #' @return A list with the computed scores, loadings, weights, scaling information and the
 #'   fitted Cox model returned by [`survival::coxph.fit`].
 #' @export
@@ -27,7 +31,8 @@
 #'   str(fit)
 #' }
 #'
-big_pls_cox <- function(X, time, status, ncomp = 2L, control = survival::coxph.control()) {
+big_pls_cox <- function(X, time, status, ncomp = 2L, control = survival::coxph.control(),
+                        keepX = NULL) {
   if (!requireNamespace("bigmemory", quietly = TRUE)) {
     stop("Package 'bigmemory' is required")
   }
@@ -58,6 +63,21 @@ big_pls_cox <- function(X, time, status, ncomp = 2L, control = survival::coxph.c
   p <- ncol(X)
   if (ncomp > min(n, p)) {
     stop("ncomp must be <= min(nrow(X), ncol(X))")
+  }
+  
+  if (is.null(keepX)) {
+    keepX <- rep.int(0L, ncomp)
+  } else {
+    keepX <- as.integer(keepX)
+    if (length(keepX) == 1L) {
+      keepX <- rep.int(keepX, ncomp)
+    }
+    if (length(keepX) != ncomp) {
+      stop("keepX must be either NULL, a single integer or a vector of length ncomp")
+    }
+    if (any(is.na(keepX)) || any(keepX < 0L) || any(keepX > p)) {
+      stop("keepX entries must lie between 0 and ncol(X)")
+    }
   }
   
   if (!inherits(control, "coxph.control")) {
@@ -98,7 +118,8 @@ big_pls_cox <- function(X, time, status, ncomp = 2L, control = survival::coxph.c
     }
     residuals <- cox_fit$residuals
     component <- big_pls_cox_component_cpp(address, residuals, current_scores,
-                                           current_loadings, means, sds)
+                                           current_loadings, means, sds,
+                                           keepX[h])
     weights[, h] <- component$weights
     scores[, h] <- component$scores
     loadings[, h] <- component$loadings
@@ -118,7 +139,10 @@ big_pls_cox <- function(X, time, status, ncomp = 2L, control = survival::coxph.c
     weights = weights,
     center = means,
     scale = sds,
-    cox_fit = final_fit
+    cox_fit = final_fit,
+    keepX = keepX,
+    time = as.numeric(time),
+    status = as.numeric(status)
   ), class = "big_pls_cox")
 }
 

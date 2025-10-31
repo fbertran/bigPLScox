@@ -68,6 +68,21 @@ str(fit_big)
 # )
 # cv_big$opt_nt
 
+## ----big-timing---------------------------------------------------------------
+if (requireNamespace("bench", quietly = TRUE)) {
+  bench::mark(
+    streaming = big_pls_cox(X_big, time, status, ncomp = 5, keepX = 0),
+    gd = big_pls_cox_gd(X_big, time, status, ncomp = 5, max_iter = 150),
+    iterations = 5,
+    check = FALSE
+  )
+}
+
+## ----big-deviance-------------------------------------------------------------
+eta_big <- predict(fit_big, type = "link")
+dr_cpp <- computeDR(time, status, engine = "cpp", eta = eta_big)
+max(abs(dr_cpp - computeDR(time, status)))
+
 ## ----cleanup------------------------------------------------------------------
 rm(X_big)
 file.remove(file.path(big_dir, "X.bin"))

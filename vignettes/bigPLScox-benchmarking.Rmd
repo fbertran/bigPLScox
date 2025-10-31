@@ -50,6 +50,8 @@ The examples below require a recent version of **bench** together with
 library(bigPLScox)
 library(survival)
 library(bench)
+library(bigmemory)
+library(plsRcox)
 ```
 
 The helper `dataCox()` simulates survival outcomes with right censoring. We work
@@ -72,33 +74,41 @@ cox_data <- list(
   time = sim_design$time,
   status = sim_design$status
 )
+X_big <- bigmemory::as.big.matrix(cox_data$x)
 ```
 
 # Running the benchmark
 
-We compare the classical Cox proportional hazards model with `coxgpls()`. The
-`bench::mark()` helper executes the estimators multiple times and records timing
-statistics alongside memory usage information.
+We compare the classical Cox proportional hazards model with `coxgpls()` and
+the two `big_pls_cox()` solvers. The `bench::mark()` helper executes the
+estimators multiple times and records timing statistics alongside memory usage
+information.
 
 ```{r run-benchmarks}
 bench_res <- bench::mark(
-  bigPLScox = coxgpls(
+  coxgpls = coxgpls(
     cox_data$x,
     cox_data$time,
     cox_data$status,
     ncomp = 5,
     ind.block.x = c(3, 10)
   ),
+  big_pls = big_pls_cox(X_big, cox_data$time, cox_data$status, ncomp = 5),
+  big_pls_gd = big_pls_cox_gd(X_big, cox_data$time, cox_data$status, ncomp = 5, max_iter = 100),
   survival = coxph(Surv(cox_data$time, cox_data$status) ~ cox_data$x, ties = "breslow"),
   iterations = 100,
   check = FALSE
 )
 bench_res
+
+bench_summary <- bench_res[, c("expression", "median", "itr/sec")]
+bench_summary
 ```
 
 The resulting tibble reports elapsed time, memory allocations, and garbage
 collection statistics for each estimator. The `itr/sec` column is often the most
-useful indicator when comparing multiple implementations.
+useful indicator when comparing multiple implementations. The `bench_summary`
+object summarises the median runtime and iterations per second.
 
 # Visualising the results
 
@@ -111,6 +121,52 @@ plot(bench_res, type = "jitter")
 
 Additional geometries, such as ridge plots, are available via
 `autoplot(bench_res, type = "ridge")`.
+
+# Accuracy on a shared test set
+
+We use a common train/test split across four estimators and compare predictive
+performance using the survival concordance index. The test set is identical for
+each method to ensure a fair comparison.
+
+```{r accuracy-shared}
+set.seed(4242)
+split_id <- sample(c("train", "test"), size = nrow(cox_data$x), replace = TRUE, prob = c(0.7, 0.3))
+train_idx <- split_id == "train"
+test_idx <- !train_idx
+
+train_x <- cox_data$x[train_idx, , drop = FALSE]
+test_x <- cox_data$x[test_idx, , drop = FALSE]
+train_time <- cox_data$time[train_idx]
+test_time <- cox_data$time[test_idx]
+train_status <- cox_data$status[train_idx]
+test_status <- cox_data$status[test_idx]
+
+gpls_fit <- coxgpls(train_x, train_time, train_status, ncomp = 5, ind.block.x = c(3, 10))
+big_fit <- big_pls_cox(bigmemory::as.big.matrix(train_x), train_time, train_status, ncomp = 5)
+gd_fit <- big_pls_cox_gd(bigmemory::as.big.matrix(train_x), train_time, train_status, ncomp = 5, max_iter = 120)
+pls_fit <- plsRcox::plsRcox(train_x, train_time, train_status, nt = 5, verbose = FALSE)
+
+lp_gpls <- predict(gpls_fit, newdata = test_x, type = "lp")
+lp_big <- predict(big_fit, newdata = test_x, type = "link")
+lp_gd <- predict(gd_fit, newdata = test_x, type = "link")
+lp_pls <- as.numeric(test_x %*% pls_fit$CoeffC[, 1:5])
+
+surv_test <- survival::Surv(test_time, test_status)
+acc_results <- data.frame(
+  method = c("coxgpls", "big_pls_cox", "big_pls_cox_gd", "plsRcox"),
+  c_index = c(
+    survival::survConcordance(surv_test ~ lp_gpls)$concordance,
+    survival::survConcordance(surv_test ~ lp_big)$concordance,
+    survival::survConcordance(surv_test ~ lp_gd)$concordance,
+    survival::survConcordance(surv_test ~ lp_pls)$concordance
+  )
+)
+acc_results
+```
+
+All methods operate on the same train/test split and the concordance index
+facilitates direct comparison with the reference implementation from
+\pkg{plsRcox}.
 
 # Exporting benchmark results
 

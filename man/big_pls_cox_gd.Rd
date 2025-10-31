@@ -11,7 +11,8 @@ big_pls_cox_gd(
   ncomp = NULL,
   max_iter = 500L,
   tol = 1e-06,
-  learning_rate = 0.01
+  learning_rate = 0.01,
+  keepX = NULL
 )
 }
 \arguments{
@@ -33,6 +34,10 @@ containing the event indicators (1 for an event, 0 for censoring).}
 coefficient vectors.}
 
 \item{learning_rate}{Step size used for the gradient-descent updates.}
+
+\item{keepX}{Optional integer vector describing the number of predictors to
+retain per component (naive sparsity). A value of zero keeps all
+predictors.}
 }
 \value{
 A list with components:

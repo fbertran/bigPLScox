@@ -1,5 +1,14 @@
 # bigPLScox 0.6.0
 
+* Added C++ implementations for Cox deviance residuals with streaming support
+  for \pkg{bigmemory} matrices together with benchmarking utilities.
+* Introduced prediction wrappers and component selection helpers (AIC/BIC) for
+  `big_pls_cox()` and `big_pls_cox_gd()`.
+* Enabled naive sparsity control in `big_pls_cox()` and exposed survival model
+  objects for downstream predictions.
+* Extended unit test coverage for the new deviance and prediction features.
+* Fixed `cv.coxgpls()` to accept `big.matrix` predictors without coercion
+  errors.
 
 # bigPLScox 0.5.0
 

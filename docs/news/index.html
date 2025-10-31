@@ -41,7 +41,12 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.0" id="bigplscox-060">bigPLScox 0.6.0<a class="anchor" aria-label="anchor" href="#bigplscox-060"></a></h2>
-</div>
+<ul><li>Added C++ implementations for Cox deviance residuals with streaming support for  matrices together with benchmarking utilities.</li>
+<li>Introduced prediction wrappers and component selection helpers (AIC/BIC) for <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> and <code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code>.</li>
+<li>Enabled naive sparsity control in <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> and exposed survival model objects for downstream predictions.</li>
+<li>Extended unit test coverage for the new deviance and prediction features.</li>
+<li>Fixed <code><a href="../reference/cv.coxgpls.html">cv.coxgpls()</a></code> to accept <code>big.matrix</code> predictors without coercion errors.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.0" id="bigplscox-050">bigPLScox 0.5.0<a class="anchor" aria-label="anchor" href="#bigplscox-050"></a></h2>
 <ul><li>Added reproducible benchmarking utilities under <code>inst/benchmarks</code> comparing <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> against <code><a href="https://fbertran.github.io/plsRcox/reference/plsRcox.html" class="external-link">plsRcox::plsRcox()</a></code> on in-memory and file-backed matrices.</li>

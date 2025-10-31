@@ -79,3 +79,21 @@ test_that("big_pls_cox approximates plsRcox", {
   expect_true(all(abs(cors) <= 1 + 1e-8))
   expect_true(mean(abs(diag(cors))) > 0.95)
 })
+
+
+test_that("prediction helpers work for gradient descent fits", {
+  skip_if_not_installed("survival")
+  skip_if_not_installed("bigmemory")
+  set.seed(404)
+  n <- 30
+  p <- 5
+  X <- bigmemory::as.big.matrix(matrix(rnorm(n * p), nrow = n))
+  time <- rexp(n)
+  status <- rbinom(n, 1, 0.5)
+  fit <- big_pls_cox_gd(X, time, status, ncomp = 2, max_iter = 50)
+  lp <- predict(fit, type = "link")
+  expect_length(lp, n)
+  comps <- predict(fit, type = "components")
+  expect_equal(dim(comps), c(n, 2))
+})
+

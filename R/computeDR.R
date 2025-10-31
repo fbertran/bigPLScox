@@ -1,9 +1,9 @@
 #' Compute deviance residuals
 #'
-#' This function computes the residuals from a null model fit using the 
-#' \code{coxph} function of the \code{survival} package. 
-#' Since this computation does not use the explanatory variables, it is 
-#' likely to be doable even on big dat without dedicated framework.
+#' This function computes deviance residuals from a null Cox model. By default
+#' it delegates to [`survival::coxph()`], but a high-performance C++ engine is
+#' also available for large in-memory or [`bigmemory::big.matrix`] design
+#' matrices.
 #' 
 #' @param time for right censored data, this is the follow up time. For
 #' interval data, the first argument is the starting time for the interval.
@@ -40,8 +40,23 @@
 #' the weighted residuals are returned.
 #' @param scaleY Should the \code{time} values be standardized ?
 #' @param plot Should the survival function be plotted ?
-#'
-#' @return Residuals from a null model fit.
+#' @param engine Either `"survival"` (default) to call
+#'   [`survival::coxph()`] or `"cpp"` to use the C++ implementation.
+#' @param method Tie handling to use with `engine = "cpp"`: either
+#'   `"efron"` (default) or `"breslow"`.
+#' @param X Optional design matrix used to compute the linear predictor when
+#'   `engine = "cpp"`. Supports base matrices, data frames, and
+#'   [`bigmemory::big.matrix`] objects.
+#' @param coef Optional coefficient vector associated with `X` when
+#'   `engine = "cpp"`.
+#' @param eta Optional precomputed linear predictor passed directly to the C++
+#'   engine.
+#' @param center,scale Optional centring and scaling vectors applied to `X`
+#'   before computing the linear predictor with the C++ engine.
+#'   
+#' @return Residuals from a null model fit. When `engine = "cpp"`, the returned
+#'   vector has attributes `"martingale"`, `"cumhaz"`, and
+#'   `"linear_predictor"`.
 #' @author Frédéric Bertrand\cr
 #' \email{frederic.bertrand@@lecnam.net}\cr
 #' \url{https://fbertran.github.io/homepage/}
@@ -65,16 +80,48 @@
 #' Y_DR <- computeDR(Y_train_micro,C_train_micro)
 #' Y_DR <- computeDR(Y_train_micro,C_train_micro,plot=TRUE)
 #' 
+#' Y_cpp <- computeDR(
+#'   Y_train_micro,
+#'   C_train_micro,
+#'   engine = "cpp",
+#'   eta = rep(0, length(Y_train_micro))
+#' )
+#' 
+#' Y_qcpp <- computeDR(
+#'   Y_train_micro,
+#'   C_train_micro,
+#'   engine = "qcpp")
+#' )
+#' 
 #' @export computeDR
-computeDR <- function (time, time2, event, type, origin, typeres = "deviance", 
-                       collapse, weighted, scaleY = TRUE, plot=FALSE) 
+computeDR <- function (time, time2, event, type, origin, typeres = "deviance",
+                       collapse, weighted, scaleY = TRUE, plot=FALSE,
+                       engine = c("survival", "cpp", "qcpp"),
+                       method = c("efron", "breslow"),
+                       X = NULL, coef = NULL, eta = NULL,
+                       center = NULL, scale = NULL)
 {
   try(attachNamespace("survival"), silent = TRUE)
+  engine <- match.arg(engine)
+  method <- match.arg(method)
+  
+  simple_status <- if (missing(time2)) rep(1, length(time)) else time2
+  simple_case <- missing(event) && missing(origin) && (missing(type) || type == "right") &&
+    missing(collapse) && missing(weighted) && identical(typeres, "deviance") && !plot && engine == "qcpp"
+  if (simple_case) {
+    time_use <- if (scaleY) {
+      as.numeric(scale(time))
+    } else {
+      as.numeric(time)
+    }
+    return(cox_deviance_residuals(time_use, as.numeric(simple_status)))
+  }
+  
   if ((scaleY & missing(time2))) {
     time <- scale(time)
   }
   mf <- match.call(expand.dots = FALSE)
-  m <- match(c("time", "time2", "event", "type", "origin"), 
+  m <- match(c("time", "time2", "event", "type", "origin"),
              names(mf), 0L)
   mf <- mf[c(1L, m)]
   mf[[1L]] <- as.name("Surv")
@@ -82,8 +129,47 @@ computeDR <- function (time, time2, event, type, origin, typeres = "deviance",
   if (plot) {
     plot(survival::survfit(YCsurv ~ 1))
   }
+  
+  if (engine == "cpp") {
+    surv_mat <- as.matrix(YCsurv)
+    time_vec <- surv_mat[, 1]
+    status_vec <- surv_mat[, ncol(surv_mat)]
+    if (!is.null(eta)) {
+      res <- deviance_residuals_cpp(time_vec, status_vec, as.numeric(eta), method)
+    } else {
+      if (is.null(X) || is.null(coef)) {
+        stop("`X` and `coef` must be supplied when `eta` is not provided and engine = 'cpp'")
+      }
+      if (inherits(X, "big.matrix")) {
+        res <- big_deviance_residuals_cpp(X@address, as.numeric(coef),
+                                          time_vec, status_vec,
+                                          if (!is.null(center)) as.numeric(center) else NULL,
+                                          if (!is.null(scale)) as.numeric(scale) else NULL,
+                                          method)
+      } else {
+        if (is.data.frame(X)) {
+          X <- as.matrix(X)
+        }
+        if (!is.matrix(X)) {
+          stop("`X` must be a matrix, data frame, or big.matrix")
+        }
+        storage.mode(X) <- "double"
+        res <- matrix_deviance_residuals_cpp(X, as.numeric(coef),
+                                             time_vec, status_vec,
+                                             if (!is.null(center)) as.numeric(center) else NULL,
+                                             if (!is.null(scale)) as.numeric(scale) else NULL,
+                                             method)
+      }
+    }
+    dev <- res$deviance
+    attr(dev, "martingale") <- res$martingale
+    attr(dev, "cumhaz") <- res$cumhaz
+    attr(dev, "linear_predictor") <- res$linear_predictor
+    attr(dev, "names") <- 1:length(YCsurv)
+    return(dev)
+  }
   mf1 <- match.call(expand.dots = TRUE)
-  m1 <- match(c(head(names(as.list(args(survival::coxph))), -2), head(names(as.list(args(survival::coxph.control))), 
+  m1 <- match(c(head(names(as.list(args(survival::coxph))), -2), head(names(as.list(args(survival::coxph.control))),
                                                             -1)), names(mf1), 0L)
   mf1 <- mf1[c(1L, m1)]
   mf1$formula <- as.formula(YCsurv ~ 1)

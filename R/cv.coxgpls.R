@@ -180,6 +180,14 @@ cv.coxgpls =
     x <- data$x
     time <- data$time
     status <- data$status
+    if (inherits(x, "big.matrix")) {
+      if (!requireNamespace("bigmemory", quietly = TRUE)) {
+        stop("Package 'bigmemory' is required to handle big.matrix inputs")
+      }
+      x <- bigmemory::as.matrix(x[, , drop = FALSE])
+    } else if (!is.matrix(x)) {
+      x <- as.matrix(x)
+    }
     n <- length(time)
     
     if(missing(givefold)){

@@ -5,11 +5,47 @@ big_pls_cox_col_stats_cpp <- function(xpMat) {
     .Call(`_bigPLScox_big_pls_cox_col_stats_cpp`, xpMat)
 }
 
-big_pls_cox_component_cpp <- function(xpMat, residuals, scores_prev, loadings_prev, means, sds) {
-    .Call(`_bigPLScox_big_pls_cox_component_cpp`, xpMat, residuals, scores_prev, loadings_prev, means, sds)
+big_pls_cox_component_cpp <- function(xpMat, residuals, scores_prev, loadings_prev, means, sds, keepX) {
+    .Call(`_bigPLScox_big_pls_cox_component_cpp`, xpMat, residuals, scores_prev, loadings_prev, means, sds, keepX)
 }
 
-big_pls_cox_gd_cpp <- function(X_ptr, time, status, ncomp, max_iter, tol, learning_rate) {
-    .Call(`_bigPLScox_big_pls_cox_gd_cpp`, X_ptr, time, status, ncomp, max_iter, tol, learning_rate)
+big_pls_cox_transform_cpp <- function(xpMat, means, sds, weights, loadings, comps) {
+    .Call(`_bigPLScox_big_pls_cox_transform_cpp`, xpMat, means, sds, weights, loadings, comps)
+}
+
+matrix_pls_cox_transform_cpp <- function(X, means, sds, weights, loadings, comps) {
+    .Call(`_bigPLScox_matrix_pls_cox_transform_cpp`, X, means, sds, weights, loadings, comps)
+}
+
+big_pls_cox_gd_cpp <- function(X_ptr, time, status, ncomp, max_iter, tol, learning_rate, keepX) {
+    .Call(`_bigPLScox_big_pls_cox_gd_cpp`, X_ptr, time, status, ncomp, max_iter, tol, learning_rate, keepX)
+}
+
+deviance_residuals_cpp <- function(time, status, eta, method = "efron") {
+    .Call(`_bigPLScox_deviance_residuals_cpp`, time, status, eta, method)
+}
+
+matrix_deviance_residuals_cpp <- function(X, coef, time, status, center = NULL, scale = NULL, method = "efron") {
+    .Call(`_bigPLScox_matrix_deviance_residuals_cpp`, X, coef, time, status, center, scale, method)
+}
+
+big_deviance_residuals_cpp <- function(xpMat, coef, time, status, center = NULL, scale = NULL, method = "efron") {
+    .Call(`_bigPLScox_big_deviance_residuals_cpp`, xpMat, coef, time, status, center, scale, method)
+}
+
+cox_deviance_residuals_cpp <- function(time, status, weights = NULL) {
+    .Call(`_bigPLScox_cox_deviance_residuals_cpp`, time, status, weights)
+}
+
+cox_deviance_details_cpp <- function(time, status, weights = NULL) {
+    .Call(`_bigPLScox_cox_deviance_details_cpp`, time, status, weights)
+}
+
+cox_deviance_residuals_big_cpp <- function(xpMat, time_col, status_col, weights = NULL) {
+    .Call(`_bigPLScox_cox_deviance_residuals_big_cpp`, xpMat, time_col, status_col, weights)
+}
+
+cox_partial_deviance_big_cpp <- function(xpMat, coef, time, status) {
+    .Call(`_bigPLScox_cox_partial_deviance_big_cpp`, xpMat, coef, time, status)
 }
 

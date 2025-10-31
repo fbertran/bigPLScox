@@ -38,6 +38,7 @@ contains accelerated variants, cross-validation helpers, and model diagnostics.
 - Deviance-residual estimators (`coxgplsDR()`, `coxsgplsDR()`) for robust fits.
 - Cross-validation helpers (`cv.coxgpls()`, `cv.coxsgpls()`, …) to select the number of latent components.
 - Dataset generators, and diagnostics such as `computeDR()` for quick residual exploration.
+- High-performance deviance residuals via `computeDR(engine = "cpp")` for both in-memory and big-memory workflows.
 - Sparse, group-sparse, and stochastic gradient variants able to consume
   file-backed `big.matrix` objects while leveraging `foreach` parallelism.
 - Interfaces for big-memory data through `big_pls_cox()` and `big_pls_cox_gd()`.
@@ -118,11 +119,6 @@ status_train <- micro.censure$DC[1:80]
 X_train <- Xmicro.censure_compl_imp[1:80, ]
 ```
 
-Visualise deviance residuals to assess the baseline model fit:
-```{r}
-residuals_overview <- computeDR(Y_train, status_train, plot = TRUE)
-head(residuals_overview)
-```
 
 Fit a Cox-PLS model with six components and inspect the fit summary:
 ```{r}
@@ -137,12 +133,28 @@ cox_pls_fit <- coxgpls(
 cox_pls_fit
 ```
 
+
+Visualise deviance residuals to assess the baseline model fit and verify the
+agreement between the R and C++ engines:
+```{r}
+residuals_overview <- computeDR(Y_train, status_train, plot = TRUE)
+head(residuals_overview)
+
+cpp_residuals <- computeDR(
+  Y_train,
+  status_train,
+  engine = "cpp",
+  eta = predict(cox_pls_fit, type = "lp")
+)
+stopifnot(all.equal(residuals_overview, cpp_residuals, tolerance = 1e-7))
+```
+
 Cross-validate the number of components and re-fit using the deviance residual
 solver for comparison:
 ```{r}
 set.seed(123)
 cv_results <- cv.coxgpls(
-  dataY = list(x = X_train, time = Y_train, status = status_train),
+  list(x = X_train, time = Y_train, status = status_train),
   nt = 6,
   ind.block.x = c(3, 10, 20)
 )

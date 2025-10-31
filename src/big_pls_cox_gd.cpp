@@ -60,7 +60,8 @@ arma::vec compute_column_sds(const arma::mat& X, const arma::vec& means) {
 PLSDecomposition compute_pls_components(const arma::mat& X,
                                         const Rcpp::NumericVector& time,
                                         const Rcpp::NumericVector& status,
-                                        int ncomp) {
+                                        int ncomp,
+                                        const Rcpp::IntegerVector& keepX) {
   const std::size_t n = X.n_rows;
   const std::size_t p = X.n_cols;
   if (n == 0 || p == 0) {
@@ -134,6 +135,17 @@ PLSDecomposition compute_pls_components(const arma::mat& X,
     arma::vec residuals = Rcpp::as<arma::vec>(residuals_r);
 
     arma::vec weight_vec = deflated.t() * residuals;
+    if (keepX.size() > 0) {
+      const int keep = (keepX.size() == 1) ? keepX[0] : keepX[h];
+      if (keep > 0 && keep < static_cast<int>(p)) {
+        arma::uvec order = arma::sort_index(arma::abs(weight_vec), "descend");
+        arma::vec mask(p, arma::fill::zeros);
+        for (int idx = 0; idx < keep; ++idx) {
+          mask[order[idx]] = 1.0;
+        }
+        weight_vec %= mask;
+      }
+    }
     const double weight_norm_sq = arma::dot(weight_vec, weight_vec);
     if (weight_norm_sq <= 0.0 || !std::isfinite(weight_norm_sq)) {
       Rcpp::stop("Unable to compute weight vector; residuals may be zero");
@@ -226,7 +238,8 @@ arma::vec compute_gradient(const arma::mat& X, const arma::vec& status,
 // [[Rcpp::export(name = "big_pls_cox_gd_cpp")]]
 Rcpp::List big_pls_cox_gd_cpp(SEXP X_ptr, Rcpp::NumericVector time,
                               Rcpp::NumericVector status, int ncomp,
-                              int max_iter, double tol, double learning_rate) {
+                              int max_iter, double tol, double learning_rate,
+                              Rcpp::IntegerVector keepX) {
   if (max_iter <= 0) {
     Rcpp::stop("`max_iter` must be positive");
   }
@@ -257,7 +270,7 @@ Rcpp::List big_pls_cox_gd_cpp(SEXP X_ptr, Rcpp::NumericVector time,
   arma::vec status_vec(status.begin(), status.size(), false);
   
   arma::uvec ord = order_desc(time_vec);
-  PLSDecomposition pls = compute_pls_components(Xfull, time, status, ncomp);
+  PLSDecomposition pls = compute_pls_components(Xfull, time, status, ncomp, keepX);
 
   arma::mat scores_ord = pls.scores.rows(ord);
   arma::vec status_ord = status_vec.elem(ord);

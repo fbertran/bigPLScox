@@ -14,6 +14,8 @@ knitr::opts_chunk$set(
 library(bigPLScox)
 library(survival)
 library(bench)
+library(bigmemory)
+library(plsRcox)
 
 ## ----simulate-data------------------------------------------------------------
 set.seed(2024)
@@ -31,28 +33,5 @@ cox_data <- list(
   time = sim_design$time,
   status = sim_design$status
 )
-
-## ----run-benchmarks-----------------------------------------------------------
-bench_res <- bench::mark(
-  bigPLScox = coxgpls(
-    cox_data$x,
-    cox_data$time,
-    cox_data$status,
-    ncomp = 5,
-    ind.block.x = c(3, 10)
-  ),
-  survival = coxph(Surv(cox_data$time, cox_data$status) ~ cox_data$x, ties = "breslow"),
-  iterations = 100,
-  check = FALSE
-)
-bench_res
-
-## ----bench-plot---------------------------------------------------------------
-plot(bench_res, type = "jitter")
-
-## ----export-benchmark, eval = FALSE-------------------------------------------
-# if (!dir.exists("inst/benchmarks/results")) {
-#   dir.create("inst/benchmarks/results", recursive = TRUE)
-# }
-# write.csv(bench_res, file = "inst/benchmarks/results/benchmarking-demo.csv", row.names = FALSE)
+X_big <- bigmemory::as.big.matrix(cox_data$x)
 

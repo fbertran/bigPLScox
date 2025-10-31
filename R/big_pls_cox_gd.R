@@ -17,6 +17,9 @@
 #' @param tol Convergence tolerance on the Euclidean distance between successive
 #'   coefficient vectors.
 #' @param learning_rate Step size used for the gradient-descent updates.
+#' @param keepX Optional integer vector describing the number of predictors to
+#'   retain per component (naive sparsity). A value of zero keeps all
+#'   predictors.
 #'
 #' @return A list with components:
 #' * `coefficients`: Estimated Cox regression coefficients on the latent scores.
@@ -42,7 +45,7 @@
 #' }
 #' @export
 big_pls_cox_gd <- function(X, time, status, ncomp = NULL, max_iter = 500L,
-                           tol = 1e-6, learning_rate = 0.01) {
+                           tol = 1e-6, learning_rate = 0.01, keepX = NULL) {
   if (!inherits(X, "big.matrix")) {
     stop("`X` must be a big.matrix object", call. = FALSE)
   }
@@ -82,13 +85,32 @@ big_pls_cox_gd <- function(X, time, status, ncomp = NULL, max_iter = 500L,
   if (length(learning_rate) != 1 || is.na(learning_rate) || learning_rate <= 0) {
     stop("`learning_rate` must be a strictly positive number", call. = FALSE)
   }
+  
+  if (is.null(keepX)) {
+    keep_vec <- rep.int(0L, ncomp)
+  } else {
+    keep_vec <- as.integer(keepX)
+    if (length(keep_vec) == 1L) {
+      keep_vec <- rep.int(keep_vec, ncomp)
+    }
+    if (length(keep_vec) != ncomp) {
+      stop("`keepX` must be NULL, a single integer or have length equal to ncomp", call. = FALSE)
+    }
+    if (any(is.na(keep_vec)) || any(keep_vec < 0L) || any(keep_vec > p)) {
+      stop("`keepX` entries must be between 0 and ncol(X)", call. = FALSE)
+    }
+  }
 
   result <- big_pls_cox_gd_cpp(X@address, as.numeric(time), as.numeric(status),
-                               ncomp, max_iter, tol, learning_rate)
+                               ncomp, max_iter, tol, learning_rate, keep_vec)
 
   result$coefficients <- as.numeric(result$coefficients)
   result$center <- as.numeric(result$center)
   result$scale <- as.numeric(result$scale)
-
+  result$keepX <- as.integer(keep_vec)
+  result$time <- as.numeric(time)
+  result$status <- as.numeric(status)
+  class(result) <- "big_pls_cox_gd"
+  
   result
 }

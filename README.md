@@ -25,6 +25,7 @@ contains accelerated variants, cross-validation helpers, and model diagnostics.
 - Deviance-residual estimators (`coxgplsDR()`, `coxsgplsDR()`) for robust fits.
 - Cross-validation helpers (`cv.coxgpls()`, `cv.coxsgpls()`, …) to select the number of latent components.
 - Dataset generators, and diagnostics such as `computeDR()` for quick residual exploration.
+- High-performance deviance residuals via `computeDR(engine = "cpp")` for both in-memory and big-memory workflows.
 - Sparse, group-sparse, and stochastic gradient variants able to consume
   file-backed `big.matrix` objects while leveraging `foreach` parallelism.
 - Interfaces for big-memory data through `big_pls_cox()` and `big_pls_cox_gd()`.
@@ -108,24 +109,6 @@ status_train <- micro.censure$DC[1:80]
 X_train <- Xmicro.censure_compl_imp[1:80, ]
 ```
 
-Visualise deviance residuals to assess the baseline model fit:
-
-``` r
-residuals_overview <- computeDR(Y_train, status_train, plot = TRUE)
-```
-
-<div class="figure">
-<img src="man/figures/README-unnamed-chunk-4-1.png" alt="plot of chunk unnamed-chunk-4" width="100%" />
-<p class="caption">plot of chunk unnamed-chunk-4</p>
-</div>
-
-``` r
-head(residuals_overview)
-#>          1          2          3          4          5 
-#> -1.4843296 -0.5469540 -0.2314550 -0.3400301 -0.9763372 
-#>          6 
-#> -0.3866766
-```
 
 Fit a Cox-PLS model with six components and inspect the fit summary:
 
@@ -140,19 +123,36 @@ cox_pls_fit <- coxgpls(
 )
 #> Error in colMeans(x, na.rm = TRUE): 'x' must be numeric
 cox_pls_fit
-#> Call:
-#> coxph(formula = YCsurv ~ ., data = tt_gpls)
-#> 
-#>           coef exp(coef) se(coef)      z        p
-#> dim.1 -0.53932   0.58314  0.08723 -6.183  6.3e-10
-#> dim.2 -0.39532   0.67347  0.10387 -3.806 0.000141
-#> dim.3 -0.29623   0.74362  0.10763 -2.752 0.005918
-#> dim.4 -0.29523   0.74436  0.11762 -2.510 0.012074
-#> dim.5 -0.11801   0.88869  0.09157 -1.289 0.197498
-#> dim.6 -0.09332   0.91091  0.10717 -0.871 0.383910
-#> 
-#> Likelihood ratio test=56.09  on 6 df, p=2.792e-10
-#> n= 80, number of events= 80
+#> Error: object 'cox_pls_fit' not found
+```
+
+
+Visualise deviance residuals to assess the baseline model fit and verify the
+agreement between the R and C++ engines:
+
+``` r
+residuals_overview <- computeDR(Y_train, status_train, plot = TRUE)
+```
+
+<div class="figure">
+<img src="man/figures/README-unnamed-chunk-5-1.png" alt="plot of chunk unnamed-chunk-5" width="100%" />
+<p class="caption">plot of chunk unnamed-chunk-5</p>
+</div>
+
+``` r
+head(residuals_overview)
+#>          1          2          3          4          5          6 
+#> -1.4843296 -0.5469540 -0.2314550 -0.3400301 -0.9763372 -0.3866766
+
+cpp_residuals <- computeDR(
+  Y_train,
+  status_train,
+  engine = "cpp",
+  eta = predict(cox_pls_fit, type = "lp")
+)
+#> Error: object 'cox_pls_fit' not found
+stopifnot(all.equal(residuals_overview, cpp_residuals, tolerance = 1e-7))
+#> Error: object 'cpp_residuals' not found
 ```
 
 Cross-validate the number of components and re-fit using the deviance residual
@@ -161,13 +161,13 @@ solver for comparison:
 ``` r
 set.seed(123)
 cv_results <- cv.coxgpls(
-  dataY = list(x = X_train, time = Y_train, status = status_train),
+  list(x = X_train, time = Y_train, status = status_train),
   nt = 6,
   ind.block.x = c(3, 10, 20)
 )
-#> Error in cv.coxgpls(dataY = list(x = X_train, time = Y_train, status = status_train), : argument "data" is missing, with no default
+#> Error in colMeans(x, na.rm = TRUE): 'x' must be numeric
 cv_results$opt_nt
-#> NULL
+#> Error: object 'cv_results' not found
 cox_pls_dr <- coxgplsDR(
   Xplan = X_train,
   time = Y_train,
@@ -177,19 +177,7 @@ cox_pls_dr <- coxgplsDR(
 )
 #> Error in colMeans(x, na.rm = TRUE): 'x' must be numeric
 cox_pls_dr
-#> Call:
-#> coxph(formula = YCsurv ~ ., data = tt_gplsDR)
-#> 
-#>          coef exp(coef) se(coef)     z        p
-#> dim.1 0.53154   1.70155  0.08694 6.114 9.72e-10
-#> dim.2 0.39604   1.48593  0.10932 3.623 0.000292
-#> dim.3 0.36946   1.44696  0.12793 2.888 0.003876
-#> dim.4 0.21361   1.23814  0.09522 2.243 0.024872
-#> dim.5 0.12640   1.13474  0.08615 1.467 0.142322
-#> dim.6 0.05705   1.05871  0.10539 0.541 0.588302
-#> 
-#> Likelihood ratio test=54.01  on 6 df, p=7.348e-10
-#> n= 80, number of events= 80
+#> Error: object 'cox_pls_dr' not found
 ```
 
 Explore alternative estimators such as `coxgplsDR()` for deviance-residual fitting or `coxsgpls()` for sparse component selection. Refer to the package reference for the full list of available models and helper functions.

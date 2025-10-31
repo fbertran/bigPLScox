@@ -23,8 +23,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // big_pls_cox_component_cpp
-List big_pls_cox_component_cpp(SEXP xpMat, NumericVector residuals, NumericMatrix scores_prev, NumericMatrix loadings_prev, NumericVector means, NumericVector sds);
-RcppExport SEXP _bigPLScox_big_pls_cox_component_cpp(SEXP xpMatSEXP, SEXP residualsSEXP, SEXP scores_prevSEXP, SEXP loadings_prevSEXP, SEXP meansSEXP, SEXP sdsSEXP) {
+List big_pls_cox_component_cpp(SEXP xpMat, NumericVector residuals, NumericMatrix scores_prev, NumericMatrix loadings_prev, NumericVector means, NumericVector sds, int keepX);
+RcppExport SEXP _bigPLScox_big_pls_cox_component_cpp(SEXP xpMatSEXP, SEXP residualsSEXP, SEXP scores_prevSEXP, SEXP loadings_prevSEXP, SEXP meansSEXP, SEXP sdsSEXP, SEXP keepXSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -34,13 +34,46 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix >::type loadings_prev(loadings_prevSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type means(meansSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type sds(sdsSEXP);
-    rcpp_result_gen = Rcpp::wrap(big_pls_cox_component_cpp(xpMat, residuals, scores_prev, loadings_prev, means, sds));
+    Rcpp::traits::input_parameter< int >::type keepX(keepXSEXP);
+    rcpp_result_gen = Rcpp::wrap(big_pls_cox_component_cpp(xpMat, residuals, scores_prev, loadings_prev, means, sds, keepX));
+    return rcpp_result_gen;
+END_RCPP
+}
+// big_pls_cox_transform_cpp
+NumericMatrix big_pls_cox_transform_cpp(SEXP xpMat, NumericVector means, NumericVector sds, NumericMatrix weights, NumericMatrix loadings, IntegerVector comps);
+RcppExport SEXP _bigPLScox_big_pls_cox_transform_cpp(SEXP xpMatSEXP, SEXP meansSEXP, SEXP sdsSEXP, SEXP weightsSEXP, SEXP loadingsSEXP, SEXP compsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type xpMat(xpMatSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type means(meansSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type sds(sdsSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type loadings(loadingsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type comps(compsSEXP);
+    rcpp_result_gen = Rcpp::wrap(big_pls_cox_transform_cpp(xpMat, means, sds, weights, loadings, comps));
+    return rcpp_result_gen;
+END_RCPP
+}
+// matrix_pls_cox_transform_cpp
+NumericMatrix matrix_pls_cox_transform_cpp(NumericMatrix X, NumericVector means, NumericVector sds, NumericMatrix weights, NumericMatrix loadings, IntegerVector comps);
+RcppExport SEXP _bigPLScox_matrix_pls_cox_transform_cpp(SEXP XSEXP, SEXP meansSEXP, SEXP sdsSEXP, SEXP weightsSEXP, SEXP loadingsSEXP, SEXP compsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type means(meansSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type sds(sdsSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type loadings(loadingsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type comps(compsSEXP);
+    rcpp_result_gen = Rcpp::wrap(matrix_pls_cox_transform_cpp(X, means, sds, weights, loadings, comps));
     return rcpp_result_gen;
 END_RCPP
 }
 // big_pls_cox_gd_cpp
-Rcpp::List big_pls_cox_gd_cpp(SEXP X_ptr, Rcpp::NumericVector time, Rcpp::NumericVector status, int ncomp, int max_iter, double tol, double learning_rate);
-RcppExport SEXP _bigPLScox_big_pls_cox_gd_cpp(SEXP X_ptrSEXP, SEXP timeSEXP, SEXP statusSEXP, SEXP ncompSEXP, SEXP max_iterSEXP, SEXP tolSEXP, SEXP learning_rateSEXP) {
+Rcpp::List big_pls_cox_gd_cpp(SEXP X_ptr, Rcpp::NumericVector time, Rcpp::NumericVector status, int ncomp, int max_iter, double tol, double learning_rate, Rcpp::IntegerVector keepX);
+RcppExport SEXP _bigPLScox_big_pls_cox_gd_cpp(SEXP X_ptrSEXP, SEXP timeSEXP, SEXP statusSEXP, SEXP ncompSEXP, SEXP max_iterSEXP, SEXP tolSEXP, SEXP learning_rateSEXP, SEXP keepXSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -51,15 +84,127 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< double >::type learning_rate(learning_rateSEXP);
-    rcpp_result_gen = Rcpp::wrap(big_pls_cox_gd_cpp(X_ptr, time, status, ncomp, max_iter, tol, learning_rate));
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type keepX(keepXSEXP);
+    rcpp_result_gen = Rcpp::wrap(big_pls_cox_gd_cpp(X_ptr, time, status, ncomp, max_iter, tol, learning_rate, keepX));
+    return rcpp_result_gen;
+END_RCPP
+}
+// deviance_residuals_cpp
+List deviance_residuals_cpp(NumericVector time, NumericVector status, NumericVector eta, std::string method);
+RcppExport SEXP _bigPLScox_deviance_residuals_cpp(SEXP timeSEXP, SEXP statusSEXP, SEXP etaSEXP, SEXP methodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type status(statusSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type eta(etaSEXP);
+    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
+    rcpp_result_gen = Rcpp::wrap(deviance_residuals_cpp(time, status, eta, method));
+    return rcpp_result_gen;
+END_RCPP
+}
+// matrix_deviance_residuals_cpp
+List matrix_deviance_residuals_cpp(NumericMatrix X, NumericVector coef, NumericVector time, NumericVector status, Nullable<NumericVector> center, Nullable<NumericVector> scale, std::string method);
+RcppExport SEXP _bigPLScox_matrix_deviance_residuals_cpp(SEXP XSEXP, SEXP coefSEXP, SEXP timeSEXP, SEXP statusSEXP, SEXP centerSEXP, SEXP scaleSEXP, SEXP methodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type coef(coefSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type status(statusSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type center(centerSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
+    rcpp_result_gen = Rcpp::wrap(matrix_deviance_residuals_cpp(X, coef, time, status, center, scale, method));
+    return rcpp_result_gen;
+END_RCPP
+}
+// big_deviance_residuals_cpp
+List big_deviance_residuals_cpp(SEXP xpMat, NumericVector coef, NumericVector time, NumericVector status, Nullable<NumericVector> center, Nullable<NumericVector> scale, std::string method);
+RcppExport SEXP _bigPLScox_big_deviance_residuals_cpp(SEXP xpMatSEXP, SEXP coefSEXP, SEXP timeSEXP, SEXP statusSEXP, SEXP centerSEXP, SEXP scaleSEXP, SEXP methodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type xpMat(xpMatSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type coef(coefSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type status(statusSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type center(centerSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
+    rcpp_result_gen = Rcpp::wrap(big_deviance_residuals_cpp(xpMat, coef, time, status, center, scale, method));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cox_deviance_residuals_cpp
+NumericVector cox_deviance_residuals_cpp(NumericVector time, NumericVector status, Nullable<NumericVector> weights);
+RcppExport SEXP _bigPLScox_cox_deviance_residuals_cpp(SEXP timeSEXP, SEXP statusSEXP, SEXP weightsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type status(statusSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type weights(weightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cox_deviance_residuals_cpp(time, status, weights));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cox_deviance_details_cpp
+List cox_deviance_details_cpp(NumericVector time, NumericVector status, Nullable<NumericVector> weights);
+RcppExport SEXP _bigPLScox_cox_deviance_details_cpp(SEXP timeSEXP, SEXP statusSEXP, SEXP weightsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type status(statusSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type weights(weightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cox_deviance_details_cpp(time, status, weights));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cox_deviance_residuals_big_cpp
+NumericVector cox_deviance_residuals_big_cpp(SEXP xpMat, int time_col, int status_col, Nullable<NumericVector> weights);
+RcppExport SEXP _bigPLScox_cox_deviance_residuals_big_cpp(SEXP xpMatSEXP, SEXP time_colSEXP, SEXP status_colSEXP, SEXP weightsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type xpMat(xpMatSEXP);
+    Rcpp::traits::input_parameter< int >::type time_col(time_colSEXP);
+    Rcpp::traits::input_parameter< int >::type status_col(status_colSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type weights(weightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cox_deviance_residuals_big_cpp(xpMat, time_col, status_col, weights));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cox_partial_deviance_big_cpp
+List cox_partial_deviance_big_cpp(SEXP xpMat, NumericVector coef, NumericVector time, NumericVector status);
+RcppExport SEXP _bigPLScox_cox_partial_deviance_big_cpp(SEXP xpMatSEXP, SEXP coefSEXP, SEXP timeSEXP, SEXP statusSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type xpMat(xpMatSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type coef(coefSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type status(statusSEXP);
+    rcpp_result_gen = Rcpp::wrap(cox_partial_deviance_big_cpp(xpMat, coef, time, status));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_bigPLScox_big_pls_cox_col_stats_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_col_stats_cpp, 1},
-    {"_bigPLScox_big_pls_cox_component_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_component_cpp, 6},
-    {"_bigPLScox_big_pls_cox_gd_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_gd_cpp, 7},
+    {"_bigPLScox_big_pls_cox_component_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_component_cpp, 7},
+    {"_bigPLScox_big_pls_cox_transform_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_transform_cpp, 6},
+    {"_bigPLScox_matrix_pls_cox_transform_cpp", (DL_FUNC) &_bigPLScox_matrix_pls_cox_transform_cpp, 6},
+    {"_bigPLScox_big_pls_cox_gd_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_gd_cpp, 8},
+    {"_bigPLScox_deviance_residuals_cpp", (DL_FUNC) &_bigPLScox_deviance_residuals_cpp, 4},
+    {"_bigPLScox_matrix_deviance_residuals_cpp", (DL_FUNC) &_bigPLScox_matrix_deviance_residuals_cpp, 7},
+    {"_bigPLScox_big_deviance_residuals_cpp", (DL_FUNC) &_bigPLScox_big_deviance_residuals_cpp, 7},
+    {"_bigPLScox_cox_deviance_residuals_cpp", (DL_FUNC) &_bigPLScox_cox_deviance_residuals_cpp, 3},
+    {"_bigPLScox_cox_deviance_details_cpp", (DL_FUNC) &_bigPLScox_cox_deviance_details_cpp, 3},
+    {"_bigPLScox_cox_deviance_residuals_big_cpp", (DL_FUNC) &_bigPLScox_cox_deviance_residuals_big_cpp, 4},
+    {"_bigPLScox_cox_partial_deviance_big_cpp", (DL_FUNC) &_bigPLScox_cox_partial_deviance_big_cpp, 4},
     {NULL, NULL, 0}
 };
 

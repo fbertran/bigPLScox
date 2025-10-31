@@ -73,3 +73,23 @@ test_that("big_pls_cox approximates plsRcox", {
   expect_true(all(abs(cors) <= 1 + 1e-8))
   expect_true(mean(abs(diag(cors))) > 0.95)
 })
+
+
+test_that("prediction helpers return expected shapes", {
+  skip_if_not_installed("survival")
+  skip_if_not_installed("bigmemory")
+  set.seed(2025)
+  n <- 40
+  p <- 6
+  X <- bigmemory::as.big.matrix(matrix(rnorm(n * p), nrow = n))
+  time <- rexp(n)
+  status <- rbinom(n, 1, 0.6)
+  fit <- big_pls_cox(X, time, status, ncomp = 3)
+  risks <- predict(fit, type = "risk")
+  expect_length(risks, n)
+  comps <- predict(fit, type = "components")
+  expect_equal(dim(comps), c(n, 3))
+  info <- select_ncomp(fit)
+  expect_s3_class(info$summary, "data.frame")
+  expect_equal(info$summary$ncomp, seq_len(3))
+})
