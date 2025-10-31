@@ -181,28 +181,26 @@ SEXP cox_partial_loglik_cpp(NumericMatrix X,
   
   for (int col = 0; col < k; ++col) {
     std::vector<double> eta_sorted(n);
-    std::vector<double> exp_eta_sorted(n);
-    double max_eta = -std::numeric_limits<double>::infinity();
-    for (int i = 0; i < n; ++i) {
+    std::vector<double> suffix_scale(n);
+    std::vector<double> suffix_sum(n);
+    double current_scale = -std::numeric_limits<double>::infinity();
+    double current_sum = 0.0;
+    for (int i = n - 1; i >= 0; --i) {
       const int idx = order_idx[i];
       const double eta_val = eta_orig(idx, col);
       eta_sorted[i] = eta_val;
-      if (eta_val > max_eta) {
-        max_eta = eta_val;
+      if (!std::isfinite(current_scale)) {
+        current_scale = eta_val;
+        current_sum = 1.0;
+      } else {
+        const double new_scale = std::max(current_scale, eta_val);
+        const double scaled_existing = current_sum * std::exp(current_scale - new_scale);
+        const double scaled_new = std::exp(eta_val - new_scale);
+        current_scale = new_scale;
+        current_sum = scaled_existing + scaled_new;
       }
-    }
-    if (!std::isfinite(max_eta)) {
-      max_eta = 0.0;
-    }
-    for (int i = 0; i < n; ++i) {
-      exp_eta_sorted[i] = std::exp(eta_sorted[i] - max_eta);
-    }
-    
-    std::vector<double> suffix(n);
-    double running = 0.0;
-    for (int i = n - 1; i >= 0; --i) {
-      running += exp_eta_sorted[i];
-      suffix[i] = running;
+      suffix_scale[i] = current_scale;
+      suffix_sum[i] = current_sum;
     }
     
     double loglik_col = 0.0;
@@ -212,24 +210,25 @@ SEXP cox_partial_loglik_cpp(NumericMatrix X,
       if (event_count == 0) {
         continue;
       }
-      const double risk_sum_base = suffix[start];
+      const double risk_scale = suffix_scale[start];
+      const double risk_sum_scaled = suffix_sum[start];
       double event_sum_eta = 0.0;
-      double event_sum_exp = 0.0;
+      double event_sum_scaled = 0.0;
       const std::vector<int>& group_events = events_by_group[g];
       for (int row : group_events) {
         event_sum_eta += eta_sorted[row];
-        event_sum_exp += exp_eta_sorted[row];
+        event_sum_scaled += std::exp(eta_sorted[row] - risk_scale);
       }
       loglik_col += event_sum_eta;
       for (int idx_ev = 0; idx_ev < event_count; ++idx_ev) {
         const int row = group_events[idx_ev];
         const double di = static_cast<double>(event_count);
         const double adjust = method_is_efron ? (di - rept[row]) / di : 0.0;
-        double denom = risk_sum_base - adjust * event_sum_exp;
-        denom = regularise_positive(denom, risk_sum_base,
-                                    "Non-positive risk set sum encountered while computing partial log-likelihood.");
-        loglik_col -= max_eta;
-        loglik_col -= std::log(denom);
+        double denom_scaled = risk_sum_scaled - adjust * event_sum_scaled;
+        denom_scaled = regularise_positive(denom_scaled, risk_sum_scaled,
+                                           "Non-positive risk set sum encountered while computing partial log-likelihood.");
+        loglik_col -= risk_scale;
+        loglik_col -= std::log(denom_scaled);
         if (return_all && col == k - 1) {
           const int event_col_idx = event_col_for_row[row];
           for (int i = start; i < n; ++i) {
@@ -242,7 +241,7 @@ SEXP cox_partial_loglik_cpp(NumericMatrix X,
           }
           double wsum = 0.0;
           for (int i = start; i < n; ++i) {
-            const double val = dmat_last(i, event_col_idx) * exp_eta_sorted[i];
+            const double val = dmat_last(i, event_col_idx) * std::exp(eta_sorted[i] - risk_scale);
             w_last(i, event_col_idx) = val;
             wsum += val;
           }
