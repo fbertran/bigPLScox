@@ -5,7 +5,7 @@ test_that("C++ deviance residuals match survival implementation", {
   time <- rexp(100, rate = 0.2)
   status <- rbinom(100, 1, 0.6)
   dr_surv <- residuals(survival::coxph(survival::Surv(time, status) ~ 1), type = "deviance")
-  dr_surv_cdr <- bigPLScox::computeDR(time, status, engine = "survival")
+  dr_surv_cdr <- suppressWarnings(bigPLScox::computeDR(time, status, engine = "survival"))
   dr_cpp_cdr <- bigPLScox::computeDR(time, status, engine = "cpp", eta=rep(0 ,100))
   dr_qcpp_cdr <- bigPLScox::computeDR(time, status, engine = "qcpp")
   expect_equal(unname(dr_surv_cdr), unname(dr_surv), tolerance = 1e-6)

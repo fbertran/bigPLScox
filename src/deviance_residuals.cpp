@@ -321,6 +321,12 @@ CoxDevianceResult compute_deviance_impl(const NumericVector& time,
     } else {
       dev = -2.0 * mart;
     }
+    dev = std::max(0.0, dev);
+    double dev_res = std::sqrt(dev);
+    if (mart < 0.0) {
+      dev_res = -dev_res;
+    }
+    deviance[i] = dev_res;
   }
 
   return {cumhaz, martingale, deviance};

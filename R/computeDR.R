@@ -95,26 +95,32 @@
 #' 
 #' @export computeDR
 computeDR <- function (time, time2, event, type, origin, typeres = "deviance",
-                       collapse, weighted, scaleY = TRUE, plot=FALSE,
+                       collapse, weighted, scaleY = TRUE, plot = FALSE,
                        engine = c("survival", "cpp", "qcpp"),
                        method = c("efron", "breslow"),
                        X = NULL, coef = NULL, eta = NULL,
                        center = NULL, scale = NULL)
 {
   try(attachNamespace("survival"), silent = TRUE)
+  engine_missing <- missing(engine)
   engine <- match.arg(engine)
   method <- match.arg(method)
   
   simple_status <- if (missing(time2)) rep(1, length(time)) else time2
   simple_case <- missing(event) && missing(origin) && (missing(type) || type == "right") &&
-    missing(collapse) && missing(weighted) && identical(typeres, "deviance") && !plot && engine == "qcpp"
-  if (simple_case) {
+    missing(collapse) && missing(weighted) && identical(typeres, "deviance") && !plot
+  if (simple_case && (engine_missing || engine == "qcpp")) {
     time_use <- if (scaleY) {
       as.numeric(scale(time))
     } else {
       as.numeric(time)
     }
     return(cox_deviance_residuals(time_use, as.numeric(simple_status)))
+  }
+  
+  if (simple_case && engine == "survival") {
+    warning("'engine' is set to '", engine, "' so the fast qC++ backend is not used.",
+            call. = FALSE)
   }
   
   if ((scaleY & missing(time2))) {
