@@ -2,108 +2,93 @@
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
+  fig.path = "figures/getting-started-",
   fig.width = 7,
-  fig.height = 4,
-  dpi = 150
+  fig.height = 4.5,
+  dpi = 150,
+  message = FALSE,
+  warning = FALSE
 )
 
 ## ----load-data----------------------------------------------------------------
 library(bigPLScox)
 
 data(micro.censure)
-Y_train_micro <- micro.censure$survyear[1:80]
-C_train_micro <- micro.censure$DC[1:80]
-
 data(Xmicro.censure_compl_imp)
-X_train_micro <- apply(
+
+Y_train <- micro.censure$survyear[1:80]
+status_train <- micro.censure$DC[1:80]
+X_train <- apply(
   as.matrix(Xmicro.censure_compl_imp),
   MARGIN = 2,
   FUN = as.numeric
 )[1:80, ]
-X_train_micro_df <- data.frame(X_train_micro)
 
 ## ----original-design----------------------------------------------------------
-X_train_micro_orig <- Xmicro.censure_compl_imp[1:80, ]
-X_train_micro_orig_df <- data.frame(X_train_micro_orig)
+X_train_raw <- Xmicro.censure_compl_imp[1:80, ]
 
 ## ----deviance-residuals-------------------------------------------------------
-dev_res <- computeDR(Y_train_micro, C_train_micro, plot = FALSE)
-head(dev_res)
+residuals_overview <- computeDR(Y_train, status_train, plot = TRUE)
+head(residuals_overview)
 
-## ----model-matrix-------------------------------------------------------------
-coxgpls(~ ., Y_train_micro, C_train_micro,
-        ncomp = 6,
-        trace = TRUE,
-        model_matrix = TRUE,
-        dataXplan = X_train_micro_orig_df,
-        ind.block.x = c(3, 10, 20))[1:10, 1:6]
-
-## ----coxgpls-fits-------------------------------------------------------------
-cox_gpls_fit <- coxgpls(
-  X_train_micro,
-  Y_train_micro,
-  C_train_micro,
+## ----fit-coxgpls--------------------------------------------------------------
+set.seed(123)
+cox_pls_fit <- coxgpls(
+  Xplan = X_train,
+  time = Y_train,
+  status = status_train,
   ncomp = 6,
-  ind.block.x = c(3, 10, 15)
+    ind.block.x = c(3, 10, 20)
 )
-cox_gpls_fit
+cox_pls_fit
 
-## ----coxgpls-formula----------------------------------------------------------
-cox_gpls_fit_formula <- coxgpls(
-  ~ X_train_micro,
-  Y_train_micro,
-  C_train_micro,
+## ----fit-formula--------------------------------------------------------------
+cox_pls_fit_formula <- coxgpls(
+  ~ ., Y_train, status_train,
   ncomp = 6,
-  ind.block.x = c(3, 10, 15)
+  ind.block.x = c(3, 10, 20),
+  dataXplan = data.frame(X_train_raw)
 )
-cox_gpls_fit_formula
+cox_pls_fit_formula
 
 ## ----cv-coxgpls---------------------------------------------------------------
 set.seed(123456)
-cv_coxgpls_res <- cv.coxgpls(
-  list(x = X_train_micro, time = Y_train_micro, status = C_train_micro),
-  nt = 10,
-  ind.block.x = c(3, 10, 15)
-)
-cv_coxgpls_res
+cv_results <- suppressWarnings(cv.coxgpls(
+  list(x = X_train, time = Y_train, status = status_train),
+  nt = 6,
+  ind.block.x = c(3, 10, 20)
+))
+cv_results
 
-## ----coxgplsdr----------------------------------------------------------------
-cox_gplsDR_fit <- coxgplsDR(
-  X_train_micro,
-  Y_train_micro,
-  C_train_micro,
-  ncomp = 6,
-  ind.block.x = c(3, 10, 15)
-)
-cox_gplsDR_fit
-
-## ----cv-coxgplsdr-------------------------------------------------------------
+## ----fit-coxgplsdr------------------------------------------------------------
 set.seed(123456)
-cv_coxgplsDR_res <- cv.coxgplsDR(
-  list(x = X_train_micro, time = Y_train_micro, status = C_train_micro),
-  nt = 10,
-  ind.block.x = c(3, 10, 15)
+cox_pls_dr <- coxgplsDR(
+  Xplan = X_train,
+  time = Y_train,
+  status = status_train,
+  ncomp = cv_results$nt,
+  ind.block.x = c(3, 10, 20)
 )
-cv_coxgplsDR_res
+cox_pls_dr
 
-## ----coxdkgplsdr--------------------------------------------------------------
+## ----dk-splines---------------------------------------------------------------
 cox_DKsplsDR_fit <- coxDKgplsDR(
-  X_train_micro,
-  Y_train_micro,
-  C_train_micro,
+  Xplan = X_train,
+  time = Y_train,
+  status = status_train,
   ncomp = 6,
   validation = "CV",
-  ind.block.x = c(3, 10, 15),
+  ind.block.x = c(3, 10, 20),
   verbose = FALSE
 )
 cox_DKsplsDR_fit
 
-## ----cv-coxdkgplsdr-----------------------------------------------------------
+## ----cv-dk-splines------------------------------------------------------------
 set.seed(123456)
-cv_coxDKgplsDR_res <- cv.coxDKgplsDR(
-  list(x = X_train_micro, time = Y_train_micro, status = C_train_micro),
-  nt = 10,
-  ind.block.x = c(3, 10, 15)
-)
+cv_coxDKgplsDR_res <- suppressWarnings(cv.coxDKgplsDR(
+  list(x = X_train, time = Y_train, status = status_train),
+  nt = 6,
+  ind.block.x = c(3, 10, 20)
+))
 cv_coxDKgplsDR_res
 

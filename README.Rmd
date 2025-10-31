@@ -47,13 +47,17 @@ focuses on improving the multi-core CPU back-end instead.
 
 Additional articles are available in the `vignettes/` directory:
 
-* *Getting started with bigPLScox* — a walkthrough of core modelling and
-  validation helpers.
+* *Getting started with bigPLScox* — a walkthrough of core modelling,
+  cross-validation, and diagnostic helpers.
+* *Overview of bigPLScox* — a tour of the main modelling functions with
+  practical guidance on choosing estimators.
 * *Big-memory workflows with bigPLScox* — guidance on using `bigmemory`
   matrices and parallel back-ends.
+* *Benchmarking bigPLScox* — reproducible performance comparisons using the
+  **bench** package.
 
-A reproducible benchmarking script contrasting `big_pls_cox()` with
-`plsRcox::plsRcox()` is available under `inst/benchmarks/`.
+Standalone benchmarking scripts that complement the vignette live under
+`inst/benchmarks/`.
 
 The documentation website and examples are maintained by Frédéric
 Bertrand and Myriam Maumy.
@@ -90,11 +94,13 @@ devtools::install_github("fbertran/bigPLScox")
 
 ## Learning materials
 
-* Browse the **Getting Started** vignette with `vignette("bigPLScox")` for a
-  worked example.
+* Browse the **Getting started** vignette with `vignette("getting-started",
+  package = "bigPLScox")` for a worked example.
+* Explore `vignette("bigPLScox", package = "bigPLScox")` for big-memory
+  workflows and streaming solvers.
 * Consult the function reference at <https://fbertran.github.io/bigPLScox/>.
-* Run the benchmark script `inst/benchmarks/benchmark_bigPLScox.R` to compare
-  solver performance on simulated data.
+* Run the benchmarking scripts in `inst/benchmarks/` to compare solver
+  performance on simulated data.
 
 # Quick start
 
@@ -155,13 +161,15 @@ Explore alternative estimators such as `coxgplsDR()` for deviance-residual fitti
 
 ## Benchmarking
 
-We provide reproducible benchmarks that compare `coxgpls()` against classical Cox
-regression as implemented in **survival**. Run the benchmarking vignette or execute the
-script below to generate timing summaries:
+We provide reproducible benchmarks that compare `coxgpls()` and the big-memory
+solvers against `survival::coxph()`. Start with the **Benchmarking bigPLScox**
+vignette for an interactive tour.
 
-For large-scale benchmarking, execute the scripts in `inst/benchmarks/` after
+For command-line experiments, execute the scripts in `inst/benchmarks/` after
 installing the optional dependencies listed under `Suggests` in the
-`DESCRIPTION` file.
+`DESCRIPTION` file. Each script accepts environment variables (for example,
+`bigPLScox.benchmark.n`, `bigPLScox.benchmark.p`, and
+`bigPLScox.benchmark.ncomp`) to control the simulation size.
 
 ```bash
 Rscript inst/benchmarks/cox-benchmark.R
@@ -169,16 +177,21 @@ Rscript inst/benchmarks/cox_pls_benchmark.R
 Rscript inst/benchmarks/benchmark_bigPLScox.R
 ```
 
-Results are stored under `inst/benchmarks/results/` with timestamps for traceability.
+Results are stored under `inst/benchmarks/results/` with time-stamped filenames
+for traceability.
 
 ## Vignettes and documentation
 
-Two vignettes ship with the package:
+Four vignettes ship with the package:
 
 1. **Getting started with bigPLScox** – an end-to-end introduction covering data
    preparation, fitting, and validation workflows.
-2. **Benchmarking bigPLScox** – guidance for evaluating performance against baseline
-   Cox implementations using the **bench** package.
+2. **Overview of bigPLScox** – a high-level description of the modelling
+   functions and their typical use cases.
+3. **Big-memory workflows with bigPLScox** – instructions for working with
+   `bigmemory` matrices and the streaming solvers.
+4. **Benchmarking bigPLScox** – guidance for evaluating performance against
+   baseline Cox implementations using the **bench** package.
    
 The full reference documentation and pkgdown website are available at
 <https://fbertran.github.io/bigPLScox/>.

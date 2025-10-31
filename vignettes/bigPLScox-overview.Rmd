@@ -3,13 +3,13 @@ title: "Overview of bigPLScox"
 shorttitle: "Overview of bigPLScox"
 author:
 - name: "Frédéric Bertrand"
-  affiliation: 
+  affiliation:
   - Cedric, Cnam, Paris
   email: frederic.bertrand@lecnam.net
 date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
-  toc: true
+    toc: true
 vignette: >
   %\VignetteIndexEntry{Overview of bigPLScox}
   %\VignetteEngine{knitr::rmarkdown}
@@ -17,25 +17,46 @@ vignette: >
 ---
 
 
-```{r setup, include=FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "figures/overview-",
-  out.width = "100%"
+  fig.width = 7,
+  fig.height = 4.5,
+  dpi = 150,
+  message = FALSE,
+  warning = FALSE
 )
 ```
 
 # Introduction
 
-The goal of **bigPLScox** is to provide tools for fitting partial least squares (PLS)
-variants of the Cox proportional hazards model in high dimensional survival settings.
-The package implements several algorithms that are tailored for large-scale problems,
-including sparse, grouped, and deviance-residual based approaches.
+The goal of **bigPLScox** is to provide Partial Least Squares (PLS) variants of
+the Cox proportional hazards model that scale to high-dimensional survival
+settings. The package implements several algorithms tailored for large-scale
+problems, including sparse, grouped, and deviance-residual-based approaches. It
+integrates with the **bigmemory** ecosystem so that data stored on disk can be
+analysed without exhausting RAM.
 
-This vignette gives a quick tour of the core workflows available in the package. It
-highlights how to prepare data, fit a model, assess model quality, and extract
-interpretations from the fitted objects.
+This vignette gives a quick tour of the core workflows. It highlights how to
+prepare data, fit a model, assess model quality, and explore advanced
+extensions. The complementary vignette "Getting started with bigPLScox" offers a
+more hands-on tutorial, while "Benchmarking bigPLScox" focuses on performance
+comparisons.
+
+# Package highlights
+
+* **Generalised PLS Cox regression** via `coxgpls()` with support for grouped
+  predictors.
+* **Sparse and structured-sparse extensions** through `coxsgpls()` and
+  `coxspls_sgpls()`.
+* **Deviance-residual estimators** such as `coxgplsDR()` for increased
+  robustness.
+* **Cross-validation helpers** (`cv.coxgpls()`, `cv.coxsgpls()`, …) to select the
+  number of latent components.
+* **Big-memory interfaces** (`big_pls_cox()`, `big_pls_cox_gd()`) designed for
+  file-backed matrices stored with **bigmemory**.
 
 # Available algorithms
 
@@ -51,16 +72,16 @@ For stochastic gradient descent on large data the package includes
 
 # Loading an example dataset
 
-```{r}
+The package ships with a small allelotyping dataset that we use throughout this
+vignette. The data include censoring indicators alongside a large set of
+predictors.
+
+```{r load-data}
 library(bigPLScox)
+
 data(micro.censure)
 data(Xmicro.censure_compl_imp)
-```
 
-The dataset contains censored survival information together with a large number of
-predictors. We split it into training and test sets here for demonstration.
-
-```{r}
 train_idx <- seq_len(80)
 Y_train <- micro.censure$survyear[train_idx]
 C_train <- micro.censure$DC[train_idx]
@@ -69,24 +90,30 @@ X_train <- Xmicro.censure_compl_imp[train_idx, -40]
 
 # Fitting a PLS-Cox model
 
-`coxgpls()` provides a familiar interface for fitting models either via formulas or
-explicit matrices.
+`coxgpls()` provides a matrix interface that mirrors `survival::coxph()` but
+adds latent components to stabilise estimation in high dimensions.
 
-```{r}
-fit <- coxgpls(X_train, Y_train, C_train, ncomp = 6, ind.block.x = c(3, 10, 15))
+```{r fit-coxgpls}
+fit <- coxgpls(
+  X_train,
+  Y_train,
+  C_train,
+  ncomp = 6,
+  ind.block.x = c(3, 10, 15)
+)
 fit
 ```
 
-The summary shows the selected number of components, log-likelihoods, and convergence
-information. To ease integration in modeling workflows, the resulting object provides
-predicted linear predictors, estimated coefficients, and access to the latent scores.
+The summary includes convergence diagnostics, latent component information, and
+predicted linear predictors that can be used for risk stratification.
 
 # Model assessment
 
 Cross-validation helps decide how many components should be retained. The
-`cv.coxgpls()` helper runs repeated cross-validation with optional parallel support.
+`cv.coxgpls()` helper accepts either a matrix or a list containing `x`, `time`,
+and `status` elements.
 
-```{r}
+```{r cv-coxgpls}
 set.seed(123)
 cv_res <- cv.coxgpls(
   list(x = X_train, time = Y_train, status = C_train),
@@ -96,30 +123,56 @@ cv_res <- cv.coxgpls(
 cv_res
 ```
 
-The resulting object can be plotted to visualise the cross-validated deviance and to
-select a parsimonious model.
+The resulting object may be plotted to visualise the cross-validated deviance or
+to apply one-standard-error rules when choosing the number of components.
 
 # Alternative estimators
 
-The deviance residual-based estimator `coxgplsDR()` provides increased robustness by
-iteratively updating residuals. Sparse variants (`coxsgpls()`, `coxspls_sgpls()`) enable
-feature selection in very high-dimensional designs, optionally by groups through the
-`ind.block.x` argument.
+Deviance-residual-based estimators provide increased robustness by iteratively
+updating residuals. Sparse variants enable feature selection in extremely
+high-dimensional designs.
 
-```{r}
-dr_fit <- coxgplsDR(X_train, Y_train, C_train, ncomp = 6, ind.block.x = c(3, 10, 15))
+```{r alternative-estimators}
+dr_fit <- coxgplsDR(
+  X_train,
+  Y_train,
+  C_train,
+  ncomp = 6,
+  ind.block.x = c(3, 10, 15)
+)
 dr_fit
 ```
 
+Additional sparse estimators can be invoked via `coxsgpls()` and
+`coxspls_sgpls()` by providing `keepX` or `penalty` arguments that control the
+number of active predictors per component.
+
 # Working with big data
 
-For extremely large problems, stochastic gradient descent routines `big_pls_cox()` and
-`big_pls_cox_gd()` operate on memory-mapped matrices created with the **bigmemory**
-and **biganalytics** ecosystems. Refer to the package documentation for details on the
-required data preparation steps.
+For extremely large problems, stochastic gradient descent routines operate on
+memory-mapped matrices created with **bigmemory**. The helper below converts a
+standard matrix to a `big.matrix` and runs a small example.
+
+```{r bigmemory-example}
+X_big <- bigmemory::as.big.matrix(X_train)
+big_fit <- big_pls_cox(
+  X_big,
+  time = Y_train,
+  status = C_train,
+  ncomp = 6
+)
+big_fit
+```
+
+The `big_pls_cox_gd()` function exposes a gradient-descent variant that is often
+preferred for streaming workloads. Both functions can be combined with
+`foreach::foreach()` for multi-core execution.
 
 # Further reading
 
-Use `help(package = "bigPLScox")` to view all exported functions. The package website
-at <https://fbertran.github.io/bigPLScox/> hosts reference documentation and practical
-articles.
+* `vignette("getting-started", package = "bigPLScox")` for a detailed
+  walkthrough of data preparation and model diagnostics.
+* `vignette("bigPLScox-benchmarking", package = "bigPLScox")` for reproducible
+  performance comparisons.
+* The package website at <https://fbertran.github.io/bigPLScox/> hosts reference
+  documentation and additional examples.

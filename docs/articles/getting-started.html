@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,12 +75,16 @@ Paris<br><a class="author_email" href="mailto:#"></a><a href="mailto:frederic.be
 
     
     
+<div class="section level2">
+<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h2>
 <p>The <strong>bigPLScox</strong> package provides tools to fit Partial
 Least Squares (PLS) models tailored to the Cox proportional hazards
-setting, together with cross-validation helpers and diagnostic utilities
-that work on both classical in-memory matrices and
-<code>bigmemory</code> objects. This vignette walks through the core
-workflow on a small real dataset shipped with the package.</p>
+setting. It includes cross-validation helpers, diagnostic utilities, and
+interfaces that work with both in-memory matrices and
+<code>bigmemory</code> objects. This vignette walks through a core
+workflow on the allelotyping dataset bundled with the package.</p>
+</div>
 <div class="section level2">
 <h2 id="loading-the-data">Loading the data<a class="anchor" aria-label="anchor" href="#loading-the-data"></a>
 </h2>
@@ -88,155 +92,116 @@ workflow on a small real dataset shipped with the package.</p>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fbertran.github.io/bigPLScox/">bigPLScox</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">micro.censure</span><span class="op">)</span></span>
-<span><span class="va">Y_train_micro</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">survyear</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
-<span><span class="va">C_train_micro</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">DC</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
-<span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">Xmicro.censure_compl_imp</span><span class="op">)</span></span>
-<span><span class="va">X_train_micro</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span></span>
+<span></span>
+<span><span class="va">Y_train</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">survyear</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
+<span><span class="va">status_train</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">DC</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
+<span><span class="va">X_train</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">Xmicro.censure_compl_imp</span><span class="op">)</span>,</span>
 <span>  MARGIN <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  FUN <span class="op">=</span> <span class="va">as.numeric</span></span>
-<span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span>, <span class="op">]</span></span>
-<span><span class="va">X_train_micro_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">X_train_micro</span><span class="op">)</span></span></code></pre></div>
-<p>The package also exposes the original factor-based design matrix. You
-can retrieve it with:</p>
+<span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span>, <span class="op">]</span></span></code></pre></div>
+<p>The original factor-based design matrix is also available should you
+prefer to work with categorical predictors directly.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">X_train_micro_orig</span> <span class="op">&lt;-</span> <span class="va">Xmicro.censure_compl_imp</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span>, <span class="op">]</span></span>
-<span><span class="va">X_train_micro_orig_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">X_train_micro_orig</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">X_train_raw</span> <span class="op">&lt;-</span> <span class="va">Xmicro.censure_compl_imp</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span>, <span class="op">]</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="deviance-residuals">Deviance residuals<a class="anchor" aria-label="anchor" href="#deviance-residuals"></a>
+<h2 id="exploring-deviance-residuals">Exploring deviance residuals<a class="anchor" aria-label="anchor" href="#exploring-deviance-residuals"></a>
 </h2>
-<p>The <code><a href="../reference/computeDR.html">computeDR()</a></code> helper obtains deviance residuals from a
-null Cox model. This is often a first diagnostic step before fitting a
-PLS model.</p>
+<p><code><a href="../reference/computeDR.html">computeDR()</a></code> extracts deviance residuals from a null Cox
+model. Inspecting them before fitting the PLS components helps detect
+anomalies in the survival outcomes.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">dev_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeDR.html">computeDR</a></span><span class="op">(</span><span class="va">Y_train_micro</span>, <span class="va">C_train_micro</span>, plot <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dev_res</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">residuals_overview</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeDR.html">computeDR</a></span><span class="op">(</span><span class="va">Y_train</span>, <span class="va">status_train</span>, plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figures/getting-started-deviance-residuals-1.png" width="1050"></p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">residuals_overview</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          1          2          3          4          5          6 </span></span>
 <span><span class="co">#&gt; -1.4843296 -0.5469540 -0.2314550 -0.3400301 -0.9763372 -0.3866766</span></span></code></pre></div>
-<p>Setting <code>plot = TRUE</code> produces a Kaplan-Meier plot of the
-survival function.</p>
 </div>
 <div class="section level2">
-<h2 id="building-cox-pls-models">Building Cox PLS models<a class="anchor" aria-label="anchor" href="#building-cox-pls-models"></a>
+<h2 id="fitting-cox-pls-models">Fitting Cox PLS models<a class="anchor" aria-label="anchor" href="#fitting-cox-pls-models"></a>
 </h2>
-<p>With deviance residuals available, you can fit Cox PLS models using
-either a formula or matrix interface. Below we illustrate the
-formula-based approach that produces the design matrix as part of the
-computation.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/coxgpls.html">coxgpls</a></span><span class="op">(</span><span class="op">~</span> <span class="va">.</span>, <span class="va">Y_train_micro</span>, <span class="va">C_train_micro</span>,</span>
-<span>        ncomp <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>        trace <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>        model_matrix <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>        dataXplan <span class="op">=</span> <span class="va">X_train_micro_orig_df</span>,</span>
-<span>        ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span></span>
-<span><span class="co">#&gt;    D18S61 D17S794 D13S173 D20S107 TP53 D9S171</span></span>
-<span><span class="co">#&gt; 1       0       0       0       0    1      0</span></span>
-<span><span class="co">#&gt; 2       0       0       1       1    0      0</span></span>
-<span><span class="co">#&gt; 3       0       0       0       1    0      1</span></span>
-<span><span class="co">#&gt; 4       1       1       1       1    1      1</span></span>
-<span><span class="co">#&gt; 5       1       0       0       1    1      1</span></span>
-<span><span class="co">#&gt; 6       1       0       0       1    0      1</span></span>
-<span><span class="co">#&gt; 7       1       0       1       0    1      0</span></span>
-<span><span class="co">#&gt; 8       1       0       1       1    0      1</span></span>
-<span><span class="co">#&gt; 9       0       0       0       0    0      0</span></span>
-<span><span class="co">#&gt; 10      0       0       0       1    1      0</span></span></code></pre></div>
+<p>The matrix interface to <code><a href="../reference/coxgpls.html">coxgpls()</a></code> mirrors
+<code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">survival::coxph()</a></code> while adding latent components that
+stabilise estimation in high dimensions.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_gpls_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
-<span>  <span class="va">X_train_micro</span>,</span>
-<span>  <span class="va">Y_train_micro</span>,</span>
-<span>  <span class="va">C_train_micro</span>,</span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">cox_pls_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
+<span>  Xplan <span class="op">=</span> <span class="va">X_train</span>,</span>
+<span>  time <span class="op">=</span> <span class="va">Y_train</span>,</span>
+<span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
 <span>  ncomp <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span></span>
+<span>    ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">cox_gpls_fit</span></span>
+<span><span class="va">cox_pls_fit</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gpls)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;          coef exp(coef) se(coef)      z      p</span></span>
-<span><span class="co">#&gt; dim.1 -0.5771    0.5615   0.2266 -2.546 0.0109</span></span>
-<span><span class="co">#&gt; dim.2 -0.6350    0.5299   0.2798 -2.269 0.0233</span></span>
-<span><span class="co">#&gt; dim.3 -0.5675    0.5670   0.2358 -2.407 0.0161</span></span>
-<span><span class="co">#&gt; dim.4  0.2900    1.3365   0.2897  1.001 0.3167</span></span>
-<span><span class="co">#&gt; dim.5 -0.3797    0.6841   0.2272 -1.671 0.0947</span></span>
-<span><span class="co">#&gt; dim.6  0.2398    1.2710   0.2790  0.860 0.3899</span></span>
+<span><span class="co">#&gt;           coef exp(coef) se(coef)      z        p</span></span>
+<span><span class="co">#&gt; dim.1 -0.53932   0.58314  0.08723 -6.183  6.3e-10</span></span>
+<span><span class="co">#&gt; dim.2 -0.39532   0.67347  0.10387 -3.806 0.000141</span></span>
+<span><span class="co">#&gt; dim.3 -0.29623   0.74362  0.10763 -2.752 0.005918</span></span>
+<span><span class="co">#&gt; dim.4 -0.29523   0.74436  0.11762 -2.510 0.012074</span></span>
+<span><span class="co">#&gt; dim.5 -0.11801   0.88869  0.09157 -1.289 0.197498</span></span>
+<span><span class="co">#&gt; dim.6 -0.09332   0.91091  0.10717 -0.871 0.383910</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=26.12  on 6 df, p=0.0002119</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
+<span><span class="co">#&gt; Likelihood ratio test=56.09  on 6 df, p=2.792e-10</span></span>
+<span><span class="co">#&gt; n= 80, number of events= 80</span></span></code></pre></div>
+<p>A formula interface is also available when working with data frames
+that include both predictors and survival outcomes.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_gpls_fit_formula</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
-<span>  <span class="op">~</span> <span class="va">X_train_micro</span>,</span>
-<span>  <span class="va">Y_train_micro</span>,</span>
-<span>  <span class="va">C_train_micro</span>,</span>
+<code class="sourceCode R"><span><span class="va">cox_pls_fit_formula</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
+<span>  <span class="op">~</span> <span class="va">.</span>, <span class="va">Y_train</span>, <span class="va">status_train</span>,</span>
 <span>  ncomp <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span></span>
+<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span>,</span>
+<span>  dataXplan <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">X_train_raw</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">cox_gpls_fit_formula</span></span>
+<span><span class="va">cox_pls_fit_formula</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gpls)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;          coef exp(coef) se(coef)      z      p</span></span>
-<span><span class="co">#&gt; dim.1 -0.5771    0.5615   0.2266 -2.546 0.0109</span></span>
-<span><span class="co">#&gt; dim.2 -0.6350    0.5299   0.2798 -2.269 0.0233</span></span>
-<span><span class="co">#&gt; dim.3 -0.5675    0.5670   0.2358 -2.407 0.0161</span></span>
-<span><span class="co">#&gt; dim.4  0.2900    1.3365   0.2897  1.001 0.3167</span></span>
-<span><span class="co">#&gt; dim.5 -0.3797    0.6841   0.2272 -1.671 0.0947</span></span>
-<span><span class="co">#&gt; dim.6  0.2398    1.2710   0.2790  0.860 0.3899</span></span>
+<span><span class="co">#&gt; dim.1 -0.4391    0.6446   0.2048 -2.144 0.0320</span></span>
+<span><span class="co">#&gt; dim.2 -0.3630    0.6956   0.2390 -1.519 0.1288</span></span>
+<span><span class="co">#&gt; dim.3 -0.5598    0.5713   0.2236 -2.504 0.0123</span></span>
+<span><span class="co">#&gt; dim.4  0.3543    1.4252   0.2765  1.281 0.2000</span></span>
+<span><span class="co">#&gt; dim.5 -0.4526    0.6360   0.2118 -2.137 0.0326</span></span>
+<span><span class="co">#&gt; dim.6 -0.2873    0.7503   0.2667 -1.077 0.2814</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=26.12  on 6 df, p=0.0002119</span></span>
+<span><span class="co">#&gt; Likelihood ratio test=26.43  on 6 df, p=0.0001847</span></span>
 <span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="cross-validation-utilities">Cross-validation utilities<a class="anchor" aria-label="anchor" href="#cross-validation-utilities"></a>
 </h2>
 <p>Repeated cross-validation helps determine the appropriate number of
-latent components. The helpers in <strong>bigPLScox</strong> accept
-either a matrix or a list with <code>x</code>, <code>time</code>, and
-<code>status</code> components.</p>
+latent components. Provide either a matrix or a list with
+<code>x</code>, <code>time</code>, and <code>status</code> entries.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
-<span><span class="va">cv_coxgpls_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cv.coxgpls.html">cv.coxgpls</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">X_train_micro</span>, time <span class="op">=</span> <span class="va">Y_train_micro</span>, status <span class="op">=</span> <span class="va">C_train_micro</span><span class="op">)</span>,</span>
-<span>  nt <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; CV Fold 1</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; CV Fold 2</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; CV Fold 3</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; CV Fold 4</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
+<span><span class="va">cv_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="../reference/cv.coxgpls.html">cv.coxgpls</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">X_train</span>, time <span class="op">=</span> <span class="va">Y_train</span>, status <span class="op">=</span> <span class="va">status_train</span><span class="op">)</span>,</span>
+<span>  nt <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; CV Fold 1 </span></span>
+<span><span class="co">#&gt; CV Fold 2 </span></span>
+<span><span class="co">#&gt; CV Fold 3 </span></span>
+<span><span class="co">#&gt; CV Fold 4 </span></span>
 <span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
-<p><img src="getting-started_files/figure-html/cv-coxgpls-1.png" width="1050"></p>
+<p><img src="figures/getting-started-cv-coxgpls-1.png" width="1050"></p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cv_coxgpls_res</span></span>
+<code class="sourceCode R"><span><span class="va">cv_results</span></span>
 <span><span class="co">#&gt; $nt</span></span>
-<span><span class="co">#&gt; [1] 10</span></span>
+<span><span class="co">#&gt; [1] 6</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $cv.error10</span></span>
-<span><span class="co">#&gt;  [1] 0.5000000 0.5225223 0.6037656 0.5639968 0.4858183 0.4838439 0.4789940</span></span>
-<span><span class="co">#&gt;  [8] 0.5024710 0.5087634 0.5042579 0.5291176</span></span>
+<span><span class="co">#&gt; [1] 0.5000000 0.5225223 0.6037656 0.5639968 0.4858183 0.4838439 0.4789940</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $cv.se10</span></span>
-<span><span class="co">#&gt;  [1] 0.00000000 0.05032449 0.04012942 0.03493106 0.04691672 0.04371911</span></span>
-<span><span class="co">#&gt;  [7] 0.04422282 0.03840676 0.04679141 0.03907217 0.03902846</span></span>
+<span><span class="co">#&gt; [1] 0.00000000 0.05032449 0.04012942 0.03493106 0.04691672 0.04371911 0.04422282</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $folds</span></span>
 <span><span class="co">#&gt; $folds$`1`</span></span>
@@ -260,226 +225,98 @@ either a matrix or a list with <code>x</code>, <code>time</code>, and
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $lambda.1se10</span></span>
 <span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="deviance-residual-based-models">Deviance-residual based models<a class="anchor" aria-label="anchor" href="#deviance-residual-based-models"></a>
-</h2>
-<p>The package also provides variants that refit the model on deviance
-residuals.</p>
+<p>The selected number of components is stored under
+<code>cv_results$opt_nt</code>. Use it to refit the model with the
+deviance residual solver for comparison.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_gplsDR_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxgplsDR.html">coxgplsDR</a></span><span class="op">(</span></span>
-<span>  <span class="va">X_train_micro</span>,</span>
-<span>  <span class="va">Y_train_micro</span>,</span>
-<span>  <span class="va">C_train_micro</span>,</span>
-<span>  ncomp <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
+<span><span class="va">cox_pls_dr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxgplsDR.html">coxgplsDR</a></span><span class="op">(</span></span>
+<span>  Xplan <span class="op">=</span> <span class="va">X_train</span>,</span>
+<span>  time <span class="op">=</span> <span class="va">Y_train</span>,</span>
+<span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
+<span>  ncomp <span class="op">=</span> <span class="va">cv_results</span><span class="op">$</span><span class="va">nt</span>,</span>
+<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">cox_gplsDR_fit</span></span>
+<span><span class="va">cox_pls_dr</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gplsDR)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;         coef exp(coef) se(coef)     z        p</span></span>
-<span><span class="co">#&gt; dim.1 0.7784    2.1781   0.1987 3.917 8.96e-05</span></span>
-<span><span class="co">#&gt; dim.2 0.9626    2.6186   0.2982 3.228  0.00125</span></span>
-<span><span class="co">#&gt; dim.3 0.9110    2.4868   0.4075 2.236  0.02536</span></span>
-<span><span class="co">#&gt; dim.4 0.9022    2.4650   0.4004 2.253  0.02424</span></span>
-<span><span class="co">#&gt; dim.5 0.1844    1.2026   0.2664 0.692  0.48865</span></span>
-<span><span class="co">#&gt; dim.6 0.7448    2.1059   0.4228 1.761  0.07819</span></span>
+<span><span class="co">#&gt;          coef exp(coef) se(coef)     z        p</span></span>
+<span><span class="co">#&gt; dim.1 0.53154   1.70155  0.08694 6.114 9.72e-10</span></span>
+<span><span class="co">#&gt; dim.2 0.39604   1.48593  0.10932 3.623 0.000292</span></span>
+<span><span class="co">#&gt; dim.3 0.36946   1.44696  0.12793 2.888 0.003876</span></span>
+<span><span class="co">#&gt; dim.4 0.21361   1.23814  0.09522 2.243 0.024872</span></span>
+<span><span class="co">#&gt; dim.5 0.12640   1.13474  0.08615 1.467 0.142322</span></span>
+<span><span class="co">#&gt; dim.6 0.05705   1.05871  0.10539 0.541 0.588302</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=54.95  on 6 df, p=4.745e-10</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
-<span><span class="va">cv_coxgplsDR_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cv.coxgplsDR.html">cv.coxgplsDR</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">X_train_micro</span>, time <span class="op">=</span> <span class="va">Y_train_micro</span>, status <span class="op">=</span> <span class="va">C_train_micro</span><span class="op">)</span>,</span>
-<span>  nt <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; CV Fold 1</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; CV Fold 2</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; CV Fold 3</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; CV Fold 4</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
-<p><img src="getting-started_files/figure-html/cv-coxgplsdr-1.png" width="1050"></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cv_coxgplsDR_res</span></span>
-<span><span class="co">#&gt; $nt</span></span>
-<span><span class="co">#&gt; [1] 10</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $cv.error10</span></span>
-<span><span class="co">#&gt;  [1] 0.5000000 0.6786893 0.6913293 0.6485690 0.6656184 0.6591497 0.6733976</span></span>
-<span><span class="co">#&gt;  [8] 0.6252317 0.6388320 0.6592004 0.6589521</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $cv.se10</span></span>
-<span><span class="co">#&gt;  [1] 0.00000000 0.04017423 0.02726346 0.03897730 0.03874068 0.04042522</span></span>
-<span><span class="co">#&gt;  [7] 0.03952962 0.04645295 0.04782038 0.05168926 0.05259748</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds</span></span>
-<span><span class="co">#&gt; $folds$`1`</span></span>
-<span><span class="co">#&gt;  [1] 60  3  2 14 77  6 50  4 72 32 22  1 41 21 63 25</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`2`</span></span>
-<span><span class="co">#&gt;  [1] 42 67 65 15 73 48 57 26  7 13 31 53  5 27 37 64</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`3`</span></span>
-<span><span class="co">#&gt;  [1] 71 23 56 35 75 29 30 18 62 44 12 33 68 49 43 55</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`4`</span></span>
-<span><span class="co">#&gt;  [1] 54 76 24 16 34 66  9 11 69 40 70 36 39  8 19 20</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`5`</span></span>
-<span><span class="co">#&gt;  [1] 74 38 46 80 47 78 10 45 51 28 61 79 58 17 52 59</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $lambda.min10</span></span>
-<span><span class="co">#&gt; [1] 2</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $lambda.1se10</span></span>
-<span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
+<span><span class="co">#&gt; Likelihood ratio test=54.01  on 6 df, p=7.348e-10</span></span>
+<span><span class="co">#&gt; n= 80, number of events= 80</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="dk-splines-extension">DK-splines extension<a class="anchor" aria-label="anchor" href="#dk-splines-extension"></a>
 </h2>
-<p>For flexible baseline hazards, <strong>bigPLScox</strong> implements
-DK-splines augmented models. They accept the same inputs as the
-classical PLS Cox fits.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<p>For flexible baseline hazards the <code><a href="../reference/coxDKgplsDR.html">coxDKgplsDR()</a></code>
+estimator augments the PLS components with DK-splines. The interface
+mirrors the previous functions.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cox_DKsplsDR_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxDKgplsDR.html">coxDKgplsDR</a></span><span class="op">(</span></span>
-<span>  <span class="va">X_train_micro</span>,</span>
-<span>  <span class="va">Y_train_micro</span>,</span>
-<span>  <span class="va">C_train_micro</span>,</span>
+<span>  Xplan <span class="op">=</span> <span class="va">X_train</span>,</span>
+<span>  time <span class="op">=</span> <span class="va">Y_train</span>,</span>
+<span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
 <span>  ncomp <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  validation <span class="op">=</span> <span class="st">"CV"</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span>,</span>
+<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cox_DKsplsDR_fit</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_DKgplsDR)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;            coef exp(coef)  se(coef)     z       p</span></span>
-<span><span class="co">#&gt; dim.1 2.902e+00 1.821e+01 1.112e+00 2.609 0.00909</span></span>
-<span><span class="co">#&gt; dim.2 8.207e+00 3.667e+03 2.637e+00 3.112 0.00186</span></span>
-<span><span class="co">#&gt; dim.3 5.660e+00 2.871e+02 1.971e+00 2.872 0.00408</span></span>
-<span><span class="co">#&gt; dim.4 1.607e+01 9.535e+06 5.250e+00 3.061 0.00221</span></span>
-<span><span class="co">#&gt; dim.5 3.828e+00 4.596e+01 2.040e+00 1.876 0.06062</span></span>
-<span><span class="co">#&gt; dim.6 1.067e+01 4.288e+04 4.068e+00 2.622 0.00874</span></span>
+<span><span class="co">#&gt;          coef exp(coef) se(coef)     z        p</span></span>
+<span><span class="co">#&gt; dim.1  3.3274   27.8668   0.5645 5.894 3.77e-09</span></span>
+<span><span class="co">#&gt; dim.2  2.4738   11.8675   0.6257 3.954 7.69e-05</span></span>
+<span><span class="co">#&gt; dim.3  2.4957   12.1304   0.6312 3.954 7.69e-05</span></span>
+<span><span class="co">#&gt; dim.4  2.8810   17.8328   0.6481 4.445 8.77e-06</span></span>
+<span><span class="co">#&gt; dim.5  3.3967   29.8663   0.7657 4.436 9.16e-06</span></span>
+<span><span class="co">#&gt; dim.6  2.1731    8.7856   0.6025 3.607  0.00031</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=66.76  on 6 df, p=1.88e-12</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; Likelihood ratio test=81.85  on 6 df, p=1.484e-15</span></span>
+<span><span class="co">#&gt; n= 80, number of events= 80</span></span></code></pre></div>
+<p>Cross-validation is available for the DK-splines estimator as
+well.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
-<span><span class="va">cv_coxDKgplsDR_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cv.coxDKgplsDR.html">cv.coxDKgplsDR</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">X_train_micro</span>, time <span class="op">=</span> <span class="va">Y_train_micro</span>, status <span class="op">=</span> <span class="va">C_train_micro</span><span class="op">)</span>,</span>
-<span>  nt <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
+<span><span class="va">cv_coxDKgplsDR_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="../reference/cv.coxDKgplsDR.html">cv.coxDKgplsDR</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">X_train</span>, time <span class="op">=</span> <span class="va">Y_train</span>, status <span class="op">=</span> <span class="va">status_train</span><span class="op">)</span>,</span>
+<span>  nt <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01257168</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; one or more coefficients may be infinite</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; one or more coefficients may be infinite</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
+<span><span class="co">#&gt; Estimated_sigma  0.01257168 </span></span>
 <span><span class="co">#&gt; CV Fold 1 </span></span>
 <span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01198263</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; one or more coefficients may be infinite</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
+<span><span class="co">#&gt; Estimated_sigma  0.01198263 </span></span>
 <span><span class="co">#&gt; CV Fold 2 </span></span>
 <span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01156809</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
+<span><span class="co">#&gt; Estimated_sigma  0.01156809 </span></span>
 <span><span class="co">#&gt; CV Fold 3 </span></span>
 <span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01287851</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span></span>
-<span><span class="co">#&gt; Ran out of iterations and did not converge</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
+<span><span class="co">#&gt; Estimated_sigma  0.01287851 </span></span>
 <span><span class="co">#&gt; CV Fold 4 </span></span>
 <span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01127231</span></span>
-<span><span class="co">#&gt; Warning in min(diff(ux)): no non-missing arguments to min; returning Inf</span></span>
+<span><span class="co">#&gt; Estimated_sigma  0.01127231 </span></span>
 <span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
-<p><img src="getting-started_files/figure-html/cv-coxdkgplsdr-1.png" width="1050"></p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<p><img src="figures/getting-started-cv-dk-splines-1.png" width="1050"></p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cv_coxDKgplsDR_res</span></span>
 <span><span class="co">#&gt; $nt</span></span>
-<span><span class="co">#&gt; [1] 10</span></span>
+<span><span class="co">#&gt; [1] 6</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $cv.error10</span></span>
-<span><span class="co">#&gt;  [1] 0.5000000 0.6381540 0.6963262 0.6537039 0.6204813 0.6886401 0.6632860</span></span>
-<span><span class="co">#&gt;  [8] 0.6349883 0.6762113 0.6261072 0.6087014</span></span>
+<span><span class="co">#&gt; [1] 0.5000000 0.6381540 0.6963262 0.6537039 0.6204813 0.6886401 0.6632860</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $cv.se10</span></span>
-<span><span class="co">#&gt;  [1] 0.00000000 0.03036225 0.02912723 0.04020941 0.03577022 0.03542745</span></span>
-<span><span class="co">#&gt;  [7] 0.03283778 0.04532447 0.03390654 0.02968504 0.03306444</span></span>
+<span><span class="co">#&gt; [1] 0.00000000 0.03036225 0.02912723 0.04020941 0.03577022 0.03542745 0.03283778</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $folds</span></span>
 <span><span class="co">#&gt; $folds$`1`</span></span>
@@ -503,10 +340,22 @@ classical PLS Cox fits.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $lambda.1se10</span></span>
 <span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
-<p>Further sections explore sparse and group-sparse extensions as well
-as big-memory workflows. For a deeper dive into massive datasets and
-parallel execution, continue with the “Big-memory workflows with
-bigPLScox” vignette.</p>
+</div>
+<div class="section level2">
+<h2 id="next-steps">Next steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>
+</h2>
+<ul>
+<li>
+<code><a href="../articles/bigPLScox-overview.html">vignette("bigPLScox-overview", package = "bigPLScox")</a></code>
+summarises the main modelling functions and their big-memory
+counterparts.</li>
+<li>
+<code><a href="../articles/bigPLScox-benchmarking.html">vignette("bigPLScox-benchmarking", package = "bigPLScox")</a></code>
+explains how to reproduce performance comparisons with the scripts under
+<code>inst/benchmarks/</code>.</li>
+<li>The README and package website provide further references and data
+preparation tips for large-scale studies.</li>
+</ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

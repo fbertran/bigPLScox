@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Getting Started with bigPLScox • bigPLScox</title>
+<title>Big-memory workflows with bigPLScox • bigPLScox</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting Started with bigPLScox">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Big-memory workflows with bigPLScox">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,7 +59,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Getting Started with bigPLScox</h1>
+      <h1>Big-memory workflows with bigPLScox</h1>
                         <h4 data-toc-skip class="author">Frédéric
 Bertrand</h4>
             <address class="author_afil">
@@ -76,156 +76,178 @@ Paris<br><a class="author_email" href="mailto:#"></a><a href="mailto:frederic.be
     
     
 <div class="section level2">
-<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+<h2 id="motivation">Motivation<a class="anchor" aria-label="anchor" href="#motivation"></a>
 </h2>
-<p>The <code>bigPLScox</code> package provides Partial Least Squares
-(PLS) regression tools for Cox proportional hazards models that are
-designed to scale to high dimensional survival datasets stored as
-<code>bigmemory</code> matrices. This vignette presents a concise
-workflow that highlights the essential functions for pre-processing,
-modelling, and validating survival models with partial least squares
-components.</p>
+<p>A central feature of <strong>bigPLScox</strong> is the ability to
+operate on file-backed <code><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">bigmemory::big.matrix</a></code> objects. This
+vignette demonstrates how to prepare such datasets, fit models with
+<code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> and <code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code>, and
+integrate them with cross-validation helpers. The examples complement
+the introductory vignette “Getting started with bigPLScox”.</p>
 </div>
 <div class="section level2">
-<h2 id="installing-the-package">Installing the package<a class="anchor" aria-label="anchor" href="#installing-the-package"></a>
+<h2 id="preparing-a-big-matrix">Preparing a big.matrix<a class="anchor" aria-label="anchor" href="#preparing-a-big-matrix"></a>
 </h2>
+<p>We simulate a moderately large design matrix and persist it to disk
+via <code><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">bigmemory::filebacked.big.matrix()</a></code>. Using file-backed
+storage allows models to train on datasets that exceed the available
+RAM.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># From CRAN (once released)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"bigPLScox"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Development version</span></span>
-<span><span class="co"># remotes::install_github("fbertran/bigPLScox")</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="loading-example-data">Loading example data<a class="anchor" aria-label="anchor" href="#loading-example-data"></a>
-</h2>
-<p>The package ships with a small allelotyping dataset that we will use
-to illustrate the workflow. The dataset is intentionally compact to keep
-the vignette fast to build while still demonstrating the
-high-dimensional setting that <code>bigPLScox</code> targets.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fbertran.github.io/bigPLScox/">bigPLScox</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaneplusplus/bigmemory" class="external-link">bigmemory</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">micro.censure</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">Xmicro.censure_compl_imp</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
+<span><span class="va">n_obs</span> <span class="op">&lt;-</span> <span class="fl">5000</span></span>
+<span><span class="va">n_pred</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
 <span></span>
-<span><span class="va">Y_train</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">survyear</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
-<span><span class="va">status_train</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">DC</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
-<span><span class="va">X_train</span> <span class="op">&lt;-</span> <span class="va">Xmicro.censure_compl_imp</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span>, <span class="op">-</span><span class="fl">40</span><span class="op">]</span></span></code></pre></div>
+<span><span class="va">X_dense</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n_obs</span> <span class="op">*</span> <span class="va">n_pred</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">n_obs</span><span class="op">)</span></span>
+<span><span class="va">time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n_obs</span>, rate <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<span><span class="va">status</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">n_obs</span>, <span class="fl">1</span>, <span class="fl">0.7</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">big_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="st">"bigPLScox-"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">big_dir</span><span class="op">)</span></span>
+<span><span class="va">X_big</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">filebacked.big.matrix</a></span><span class="op">(</span></span>
+<span>  nrow <span class="op">=</span> <span class="va">n_obs</span>,</span>
+<span>  ncol <span class="op">=</span> <span class="va">n_pred</span>,</span>
+<span>  backingpath <span class="op">=</span> <span class="va">big_dir</span>,</span>
+<span>  backingfile <span class="op">=</span> <span class="st">"X.bin"</span>,</span>
+<span>  descriptorfile <span class="op">=</span> <span class="st">"X.desc"</span>,</span>
+<span>  init <span class="op">=</span> <span class="va">X_dense</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>The resulting <code>big.matrix</code> can be reopened in future
+sessions via its descriptor file. All big-memory modelling functions
+accept either an in-memory matrix or a <code>big.matrix</code>
+reference.</p>
 </div>
 <div class="section level2">
-<h2 id="exploring-deviance-residuals">Exploring deviance residuals<a class="anchor" aria-label="anchor" href="#exploring-deviance-residuals"></a>
+<h2 id="fitting-big-memory-models">Fitting big-memory models<a class="anchor" aria-label="anchor" href="#fitting-big-memory-models"></a>
 </h2>
-<p>The <code><a href="../reference/computeDR.html">computeDR()</a></code> helper visualises deviance residuals to
-assess potential model misspecification before fitting the PLS
-components.</p>
+<p><code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> runs the classical PLS-Cox algorithm while
+streaming data from disk.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit_big</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox.html">big_pls_cox</a></span><span class="op">(</span></span>
+<span>  X <span class="op">=</span> <span class="va">X_big</span>,</span>
+<span>  time <span class="op">=</span> <span class="va">time</span>,</span>
+<span>  status <span class="op">=</span> <span class="va">status</span>,</span>
+<span>  ncomp <span class="op">=</span> <span class="fl">5</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">fit_big</span><span class="op">$</span><span class="va">scores</span><span class="op">)</span></span>
+<span><span class="co">#&gt;               [,1]          [,2]          [,3]          [,4]          [,5]</span></span>
+<span><span class="co">#&gt; [1,] -4.450742e-06 -1.669808e-19 -1.671178e-32 -1.707642e-46 -1.148375e-59</span></span>
+<span><span class="co">#&gt; [2,] -4.450742e-06 -1.669808e-19 -1.671178e-32 -1.707642e-46 -1.148375e-59</span></span>
+<span><span class="co">#&gt; [3,] -4.450742e-06 -1.669808e-19 -1.671178e-32 -1.707642e-46 -1.148375e-59</span></span>
+<span><span class="co">#&gt; [4,] -4.450742e-06 -1.669808e-19 -1.671178e-32 -1.707642e-46 -1.148375e-59</span></span>
+<span><span class="co">#&gt; [5,] -4.450742e-06 -1.669808e-19 -1.671178e-32 -1.707642e-46 -1.148375e-59</span></span>
+<span><span class="co">#&gt; [6,] -4.450742e-06 -1.669808e-19 -1.671178e-32 -1.707642e-46 -1.148375e-59</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">fit_big</span><span class="op">)</span></span>
+<span><span class="co">#&gt; List of 6</span></span>
+<span><span class="co">#&gt;  $ scores  : num [1:5000, 1:5] -4.45e-06 -4.45e-06 -4.45e-06 -4.45e-06 -4.45e-06 ...</span></span>
+<span><span class="co">#&gt;  $ loadings: num [1:100, 1:5] -0.1 -0.1 -0.1 -0.1 -0.1 ...</span></span>
+<span><span class="co">#&gt;  $ weights : num [1:100, 1:5] -0.1 -0.1 -0.1 -0.1 -0.1 -0.1 -0.1 -0.1 -0.1 -0.1 ...</span></span>
+<span><span class="co">#&gt;  $ center  : num [1:100] 0.982 0.982 0.982 0.982 0.982 ...</span></span>
+<span><span class="co">#&gt;  $ scale   : num [1:100] 1.65e-07 1.65e-07 1.65e-07 1.65e-07 1.65e-07 ...</span></span>
+<span><span class="co">#&gt;  $ cox_fit :List of 10</span></span>
+<span><span class="co">#&gt;   ..$ coefficients     : num [1:5] NA NA 1.82e+41 NA NA</span></span>
+<span><span class="co">#&gt;   ..$ var              : num [1:5, 1:5] 0 0 0 0 0 0 0 0 0 0 ...</span></span>
+<span><span class="co">#&gt;   ..$ loglik           : num [1:2] -26230 -26230</span></span>
+<span><span class="co">#&gt;   ..$ score            : num 8.72e-20</span></span>
+<span><span class="co">#&gt;   ..$ iter             : int 1</span></span>
+<span><span class="co">#&gt;   ..$ linear.predictors: num [1:5000] 0.000392 0.000392 0.000392 0.000392 0.000392 ...</span></span>
+<span><span class="co">#&gt;   ..$ residuals        : Named num [1:5000] 0.8605 0.7913 -0.0129 0.1737 0.9958 ...</span></span>
+<span><span class="co">#&gt;   .. ..- attr(*, "names")= chr [1:5000] "1" "2" "3" "4" ...</span></span>
+<span><span class="co">#&gt;   ..$ means            : num [1:5] -4.45e-06 -1.67e-19 -1.67e-32 -1.71e-46 -1.15e-59</span></span>
+<span><span class="co">#&gt;   ..$ method           : chr "efron"</span></span>
+<span><span class="co">#&gt;   ..$ class            : chr "coxph"</span></span>
+<span><span class="co">#&gt;  - attr(*, "class")= chr "big_pls_cox"</span></span></code></pre></div>
+<p>The gradient-descent variant <code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code> uses
+stochastic optimisation and is well-suited for very large datasets.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">residuals_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeDR.html">computeDR</a></span><span class="op">(</span><span class="va">Y_train</span>, <span class="va">status_train</span>, plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="bigPLScox_files/figure-html/unnamed-chunk-4-1.png" width="1050"></p>
+<code class="sourceCode R"><span><span class="va">fit_big_gd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span></span>
+<span>  X <span class="op">=</span> <span class="va">X_big</span>,</span>
+<span>  time <span class="op">=</span> <span class="va">time</span>,</span>
+<span>  status <span class="op">=</span> <span class="va">status</span>,</span>
+<span>  ncomp <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  max_iter <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  tol <span class="op">=</span> <span class="fl">1e-4</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">fit_big</span><span class="op">$</span><span class="va">scores</span><span class="op">)</span></span>
+<span><span class="co">#&gt;               [,1]          [,2]          [,3]          [,4]          [,5]</span></span>
+<span><span class="co">#&gt; [1,] -4.450742e-06 -1.669808e-19 -1.671178e-32 -1.707642e-46 -1.148375e-59</span></span>
+<span><span class="co">#&gt; [2,] -4.450742e-06 -1.669808e-19 -1.671178e-32 -1.707642e-46 -1.148375e-59</span></span>
+<span><span class="co">#&gt; [3,] -4.450742e-06 -1.669808e-19 -1.671178e-32 -1.707642e-46 -1.148375e-59</span></span>
+<span><span class="co">#&gt; [4,] -4.450742e-06 -1.669808e-19 -1.671178e-32 -1.707642e-46 -1.148375e-59</span></span>
+<span><span class="co">#&gt; [5,] -4.450742e-06 -1.669808e-19 -1.671178e-32 -1.707642e-46 -1.148375e-59</span></span>
+<span><span class="co">#&gt; [6,] -4.450742e-06 -1.669808e-19 -1.671178e-32 -1.707642e-46 -1.148375e-59</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">fit_big</span><span class="op">)</span></span>
+<span><span class="co">#&gt; List of 6</span></span>
+<span><span class="co">#&gt;  $ scores  : num [1:5000, 1:5] -4.45e-06 -4.45e-06 -4.45e-06 -4.45e-06 -4.45e-06 ...</span></span>
+<span><span class="co">#&gt;  $ loadings: num [1:100, 1:5] -0.1 -0.1 -0.1 -0.1 -0.1 ...</span></span>
+<span><span class="co">#&gt;  $ weights : num [1:100, 1:5] -0.1 -0.1 -0.1 -0.1 -0.1 -0.1 -0.1 -0.1 -0.1 -0.1 ...</span></span>
+<span><span class="co">#&gt;  $ center  : num [1:100] 0.982 0.982 0.982 0.982 0.982 ...</span></span>
+<span><span class="co">#&gt;  $ scale   : num [1:100] 1.65e-07 1.65e-07 1.65e-07 1.65e-07 1.65e-07 ...</span></span>
+<span><span class="co">#&gt;  $ cox_fit :List of 10</span></span>
+<span><span class="co">#&gt;   ..$ coefficients     : num [1:5] NA NA 1.82e+41 NA NA</span></span>
+<span><span class="co">#&gt;   ..$ var              : num [1:5, 1:5] 0 0 0 0 0 0 0 0 0 0 ...</span></span>
+<span><span class="co">#&gt;   ..$ loglik           : num [1:2] -26230 -26230</span></span>
+<span><span class="co">#&gt;   ..$ score            : num 8.72e-20</span></span>
+<span><span class="co">#&gt;   ..$ iter             : int 1</span></span>
+<span><span class="co">#&gt;   ..$ linear.predictors: num [1:5000] 0.000392 0.000392 0.000392 0.000392 0.000392 ...</span></span>
+<span><span class="co">#&gt;   ..$ residuals        : Named num [1:5000] 0.8605 0.7913 -0.0129 0.1737 0.9958 ...</span></span>
+<span><span class="co">#&gt;   .. ..- attr(*, "names")= chr [1:5000] "1" "2" "3" "4" ...</span></span>
+<span><span class="co">#&gt;   ..$ means            : num [1:5] -4.45e-06 -1.67e-19 -1.67e-32 -1.71e-46 -1.15e-59</span></span>
+<span><span class="co">#&gt;   ..$ method           : chr "efron"</span></span>
+<span><span class="co">#&gt;   ..$ class            : chr "coxph"</span></span>
+<span><span class="co">#&gt;  - attr(*, "class")= chr "big_pls_cox"</span></span></code></pre></div>
+<p>Both functions return objects that expose the latent scores and
+loading vectors, allowing downstream visualisations and diagnostics
+identical to their in-memory counterparts.</p>
+</div>
+<div class="section level2">
+<h2 id="cross-validation-on-big-matrices">Cross-validation on big matrices<a class="anchor" aria-label="anchor" href="#cross-validation-on-big-matrices"></a>
+</h2>
+<p>Cross-validation for big-memory models is supported through the list
+interface. This enables streaming each fold directly from disk.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">residuals_plot</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          1          2          3          4          5          6 </span></span>
-<span><span class="co">#&gt; -1.4843296 -0.5469540 -0.2314550 -0.3400301 -0.9763372 -0.3866766</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
+<span><span class="va">data_big</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">X_big</span>, time <span class="op">=</span> <span class="va">time</span>, status <span class="op">=</span> <span class="va">status</span><span class="op">)</span></span>
+<span><span class="va">cv_big</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cv.coxgpls.html">cv.coxgpls</a></span><span class="op">(</span></span>
+<span>  <span class="va">data_big</span>,</span>
+<span>  nt <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  ncores <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">cv_big</span><span class="op">$</span><span class="va">opt_nt</span></span></code></pre></div>
+<p>For large experiments consider combining
+<code><a href="https://rdrr.io/pkg/foreach/man/foreach.html" class="external-link">foreach::foreach()</a></code> with
+<code><a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html" class="external-link">doParallel::registerDoParallel()</a></code> to parallelise folds.</p>
 </div>
 <div class="section level2">
-<h2 id="fitting-a-cox-pls-model">Fitting a Cox-PLS model<a class="anchor" aria-label="anchor" href="#fitting-a-cox-pls-model"></a>
+<h2 id="cleaning-up">Cleaning up<a class="anchor" aria-label="anchor" href="#cleaning-up"></a>
 </h2>
-<p>We now fit a Cox model with six PLS components directly from the
-matrix of predictors. The <code><a href="../reference/coxgpls.html">coxgpls()</a></code> function operates on
-<code>bigmemory</code> objects, but it also accepts base R matrices as
-in this example.</p>
+<p>Temporary backing files can be removed after the analysis. In
+production pipelines you will typically keep the descriptor file
+alongside the binary data.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
-<span>  Xplan <span class="op">=</span> <span class="va">X_train</span>,</span>
-<span>  time <span class="op">=</span> <span class="va">Y_train</span>,</span>
-<span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
-<span>  ncomp <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">fit</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gpls)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           coef exp(coef) se(coef)      z        p</span></span>
-<span><span class="co">#&gt; dim.1 -0.54132   0.58198  0.08749 -6.187 6.12e-10</span></span>
-<span><span class="co">#&gt; dim.2 -0.39414   0.67426  0.10398 -3.791  0.00015</span></span>
-<span><span class="co">#&gt; dim.3 -0.30806   0.73487  0.10882 -2.831  0.00464</span></span>
-<span><span class="co">#&gt; dim.4 -0.30364   0.73813  0.11769 -2.580  0.00988</span></span>
-<span><span class="co">#&gt; dim.5 -0.11503   0.89134  0.09256 -1.243  0.21398</span></span>
-<span><span class="co">#&gt; dim.6 -0.09611   0.90837  0.10636 -0.904  0.36621</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=56.28  on 6 df, p=2.553e-10</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 80</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">X_big</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.remove</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">big_dir</span>, <span class="st">"X.bin"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.remove</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">big_dir</span>, <span class="st">"X.desc"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="va">big_dir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="cross-validation">Cross-validation<a class="anchor" aria-label="anchor" href="#cross-validation"></a>
-</h2>
-<p>Use <code><a href="../reference/cv.coxgpls.html">cv.coxgpls()</a></code> to select the number of PLS components
-by cross-validation. The result includes the recommended component count
-and time-dependent AUC metrics to monitor predictive performance.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span><span class="va">cv_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cv.coxgpls.html">cv.coxgpls</a></span><span class="op">(</span></span>
-<span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">X_train</span>, time <span class="op">=</span> <span class="va">Y_train</span>, status <span class="op">=</span> <span class="va">status_train</span><span class="op">)</span>,</span>
-<span>  nt <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span>,</span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; CV Fold 1</span></span>
-<span><span class="co">#&gt; CV Fold 2</span></span>
-<span><span class="co">#&gt; CV Fold 3</span></span>
-<span><span class="co">#&gt; CV Fold 4</span></span>
-<span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
-<p><img src="bigPLScox_files/figure-html/unnamed-chunk-6-1.png" width="1050"></p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">cv_results</span><span class="op">$</span><span class="va">opt_nt</span></span>
-<span><span class="co">#&gt; NULL</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="deviance-residual-solver">Deviance residual solver<a class="anchor" aria-label="anchor" href="#deviance-residual-solver"></a>
-</h2>
-<p>For large problems the <code><a href="../reference/coxgplsDR.html">coxgplsDR()</a></code> solver often
-converges faster. The interface mirrors <code><a href="../reference/coxgpls.html">coxgpls()</a></code> so
-switching between solvers is straightforward.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">micro.censure</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">Xmicro.censure_compl_imp</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">X_train_micro</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">Xmicro.censure_compl_imp</span><span class="op">)</span><span class="op">)</span>,FUN<span class="op">=</span><span class="st">"as.numeric"</span>,MARGIN<span class="op">=</span><span class="fl">2</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span>,<span class="op">]</span></span>
-<span><span class="va">X_train_micro_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">X_train_micro</span><span class="op">)</span></span>
-<span><span class="va">Y_train_micro</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">survyear</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
-<span><span class="va">C_train_micro</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">DC</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
-<span></span>
-<span></span>
-<span><span class="va">fit_dr</span><span class="op">=</span><span class="fu"><a href="../reference/coxgplsDR.html">coxgplsDR</a></span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,</span>
-<span>ncomp<span class="op">=</span><span class="fl">6</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>,keepX<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">4</span>,<span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">fit_dr</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;         coef exp(coef) se(coef)     z        p</span></span>
-<span><span class="co">#&gt; dim.1 0.7784    2.1781   0.1987 3.917 8.96e-05</span></span>
-<span><span class="co">#&gt; dim.2 0.9626    2.6186   0.2982 3.228  0.00125</span></span>
-<span><span class="co">#&gt; dim.3 0.9110    2.4868   0.4075 2.236  0.02536</span></span>
-<span><span class="co">#&gt; dim.4 0.9022    2.4650   0.4004 2.253  0.02424</span></span>
-<span><span class="co">#&gt; dim.5 0.1844    1.2026   0.2664 0.692  0.48865</span></span>
-<span><span class="co">#&gt; dim.6 0.7448    2.1059   0.4228 1.761  0.07819</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=54.95  on 6 df, p=4.745e-10</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="next-steps">Next steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>
+<h2 id="additional-resources">Additional resources<a class="anchor" aria-label="anchor" href="#additional-resources"></a>
 </h2>
 <ul>
-<li>Explore the <code>inst/benchmarks</code> folder for scripts that
-compare the runtime of the available solvers on larger simulated
-datasets.</li>
-<li>Review the package reference documentation and articles at <a href="https://fbertran.github.io/bigPLScox/" class="uri">https://fbertran.github.io/bigPLScox/</a> for advanced
-modelling strategies, including sparse and kernel-based extensions.</li>
+<li>
+<code><a href="../reference/big_pls_cox.html">help(big_pls_cox)</a></code> and <code><a href="../reference/big_pls_cox_gd.html">help(big_pls_cox_gd)</a></code>
+document all tuning parameters for the big-memory solvers.</li>
+<li>The benchmarking vignette demonstrates how to measure performance
+improvements obtained with file-backed matrices.</li>
+<li>Consider persisting fitted objects with <code><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS()</a></code> to
+avoid recomputing large models when iterating on analyses.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -1,69 +1,76 @@
-## ----include = FALSE----------------------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
+  fig.path = "figures/bigmemory-",
   fig.width = 7,
-  fig.height = 5,
+  fig.height = 4.5,
   dpi = 150,
   message = FALSE,
   warning = FALSE
 )
 
-## ----eval = FALSE-------------------------------------------------------------
-# # From CRAN (once released)
-# install.packages("bigPLScox")
-# 
-# # Development version
-# # remotes::install_github("fbertran/bigPLScox")
-
-## -----------------------------------------------------------------------------
+## ----simulate-bigmatrix-------------------------------------------------------
 library(bigPLScox)
+library(bigmemory)
 
-data(micro.censure)
-data(Xmicro.censure_compl_imp)
+set.seed(2024)
+n_obs <- 5000
+n_pred <- 100
 
-Y_train <- micro.censure$survyear[1:80]
-status_train <- micro.censure$DC[1:80]
-X_train <- Xmicro.censure_compl_imp[1:80, -40]
+X_dense <- matrix(rnorm(n_obs * n_pred), nrow = n_obs)
+time <- rexp(n_obs, rate = 0.2)
+status <- rbinom(n_obs, 1, 0.7)
 
-## -----------------------------------------------------------------------------
-residuals_plot <- computeDR(Y_train, status_train, plot = TRUE)
-head(residuals_plot)
-
-## -----------------------------------------------------------------------------
-set.seed(123)
-fit <- coxgpls(
-  Xplan = X_train,
-  time = Y_train,
-  status = status_train,
-  ncomp = 6,
-  ind.block.x = c(3, 10, 20)
+big_dir <- tempfile("bigPLScox-")
+dir.create(big_dir)
+X_big <- filebacked.big.matrix(
+  nrow = n_obs,
+  ncol = n_pred,
+  backingpath = big_dir,
+  backingfile = "X.bin",
+  descriptorfile = "X.desc",
+  init = X_dense
 )
 
-fit
-
-## -----------------------------------------------------------------------------
-set.seed(123)
-cv_results <- cv.coxgpls(
-  data = list(x = X_train, time = Y_train, status = status_train),
-  nt = 6,
-  ind.block.x = c(3, 10, 20),
+## ----big-pls-cox--------------------------------------------------------------
+fit_big <- big_pls_cox(
+  X = X_big,
+  time = time,
+  status = status,
+  ncomp = 5
 )
 
-cv_results$opt_nt
+head(fit_big$scores)
+str(fit_big)
 
-## -----------------------------------------------------------------------------
-data(micro.censure)
-data(Xmicro.censure_compl_imp)
+## ----big-pls-cox-gd-----------------------------------------------------------
+fit_big_gd <- big_pls_cox_gd(
+  X = X_big,
+  time = time,
+  status = status,
+  ncomp = 5,
+  max_iter = 100,
+  tol = 1e-4
+  )
 
-X_train_micro <- apply((as.matrix(Xmicro.censure_compl_imp)),FUN="as.numeric",MARGIN=2)[1:80,]
-X_train_micro_df <- data.frame(X_train_micro)
-Y_train_micro <- micro.censure$survyear[1:80]
-C_train_micro <- micro.censure$DC[1:80]
+head(fit_big$scores)
+str(fit_big)
 
+## ----big-cv, eval = FALSE-----------------------------------------------------
+# set.seed(2024)
+# data_big <- list(x = X_big, time = time, status = status)
+# cv_big <- cv.coxgpls(
+#   data_big,
+#   nt = 5,
+#   ncores = 1,
+#   ind.block.x = c(10, 40)
+# )
+# cv_big$opt_nt
 
-fit_dr=coxgplsDR(X_train_micro,Y_train_micro,C_train_micro,
-ncomp=6,ind.block.x=c(3,10,15),keepX=rep(4,6))
-
-fit_dr
+## ----cleanup------------------------------------------------------------------
+rm(X_big)
+file.remove(file.path(big_dir, "X.bin"))
+file.remove(file.path(big_dir, "X.desc"))
+unlink(big_dir, recursive = TRUE)
 

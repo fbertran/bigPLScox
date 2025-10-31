@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,12 +81,16 @@
 <p>Additional articles are available in the <code>vignettes/</code> directory:</p>
 <ul>
 <li>
-<em>Getting started with bigPLScox</em> — a walkthrough of core modelling and validation helpers.</li>
+<em>Getting started with bigPLScox</em> — a walkthrough of core modelling, cross-validation, and diagnostic helpers.</li>
+<li>
+<em>Overview of bigPLScox</em> — a tour of the main modelling functions with practical guidance on choosing estimators.</li>
 <li>
 <em>Big-memory workflows with bigPLScox</em> — guidance on using <code>bigmemory</code> matrices and parallel back-ends.</li>
+<li>
+<em>Benchmarking bigPLScox</em> — reproducible performance comparisons using the <strong>bench</strong> package.</li>
 </ul>
-<p>A reproducible benchmarking script contrasting <code><a href="reference/big_pls_cox.html">big_pls_cox()</a></code> with <code><a href="https://fbertran.github.io/plsRcox/reference/plsRcox.html" class="external-link">plsRcox::plsRcox()</a></code> is available under <code>inst/benchmarks/</code>.</p>
-<p>The documentation website and examples are maintained by Frédéric Bertrand and Myriam Maumy-Bertrand.</p>
+<p>Standalone benchmarking scripts that complement the vignette live under <code>inst/benchmarks/</code>.</p>
+<p>The documentation website and examples are maintained by Frédéric Bertrand and Myriam Maumy.</p>
 </div>
 <div class="section level2">
 <h2 id="key-features">Key features<a class="anchor" aria-label="anchor" href="#key-features"></a>
@@ -119,9 +123,10 @@
 <h2 id="learning-materials">Learning materials<a class="anchor" aria-label="anchor" href="#learning-materials"></a>
 </h2>
 <ul>
-<li>Browse the <strong>Getting Started</strong> vignette with <code><a href="articles/bigPLScox.html">vignette("bigPLScox")</a></code> for a worked example.</li>
+<li>Browse the <strong>Getting started</strong> vignette with <code><a href="articles/getting-started.html">vignette("getting-started",   package = "bigPLScox")</a></code> for a worked example.</li>
+<li>Explore <code><a href="articles/bigPLScox.html">vignette("bigPLScox", package = "bigPLScox")</a></code> for big-memory workflows and streaming solvers.</li>
 <li>Consult the function reference at <a href="https://fbertran.github.io/bigPLScox/" class="uri">https://fbertran.github.io/bigPLScox/</a>.</li>
-<li>Run the benchmark script <code>inst/benchmarks/benchmark_bigPLScox.R</code> to compare solver performance on simulated data.</li>
+<li>Run the benchmarking scripts in <code>inst/benchmarks/</code> to compare solver performance on simulated data.</li>
 </ul>
 </div>
 </div>
@@ -146,8 +151,10 @@ plot of chunk unnamed-chunk-4
 </div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">residuals_overview</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          1          2          3          4          5          6 </span></span>
-<span><span class="co">#&gt; -1.4843296 -0.5469540 -0.2314550 -0.3400301 -0.9763372 -0.3866766</span></span></code></pre></div>
+<span><span class="co">#&gt;          1          2          3          4          5 </span></span>
+<span><span class="co">#&gt; -1.4843296 -0.5469540 -0.2314550 -0.3400301 -0.9763372 </span></span>
+<span><span class="co">#&gt;          6 </span></span>
+<span><span class="co">#&gt; -0.3866766</span></span></code></pre></div>
 <p>Fit a Cox-PLS model with six components and inspect the fit summary:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -160,7 +167,19 @@ plot of chunk unnamed-chunk-4
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Error in colMeans(x, na.rm = TRUE): 'x' must be numeric</span></span>
 <span><span class="va">cox_pls_fit</span></span>
-<span><span class="co">#&gt; Error: object 'cox_pls_fit' not found</span></span></code></pre></div>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gpls)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;           coef exp(coef) se(coef)      z        p</span></span>
+<span><span class="co">#&gt; dim.1 -0.53932   0.58314  0.08723 -6.183  6.3e-10</span></span>
+<span><span class="co">#&gt; dim.2 -0.39532   0.67347  0.10387 -3.806 0.000141</span></span>
+<span><span class="co">#&gt; dim.3 -0.29623   0.74362  0.10763 -2.752 0.005918</span></span>
+<span><span class="co">#&gt; dim.4 -0.29523   0.74436  0.11762 -2.510 0.012074</span></span>
+<span><span class="co">#&gt; dim.5 -0.11801   0.88869  0.09157 -1.289 0.197498</span></span>
+<span><span class="co">#&gt; dim.6 -0.09332   0.91091  0.10717 -0.871 0.383910</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Likelihood ratio test=56.09  on 6 df, p=2.792e-10</span></span>
+<span><span class="co">#&gt; n= 80, number of events= 80</span></span></code></pre></div>
 <p>Cross-validate the number of components and re-fit using the deviance residual solver for comparison:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
@@ -181,25 +200,41 @@ plot of chunk unnamed-chunk-4
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Error in colMeans(x, na.rm = TRUE): 'x' must be numeric</span></span>
 <span><span class="va">cox_pls_dr</span></span>
-<span><span class="co">#&gt; Error: object 'cox_pls_dr' not found</span></span></code></pre></div>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gplsDR)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;          coef exp(coef) se(coef)     z        p</span></span>
+<span><span class="co">#&gt; dim.1 0.53154   1.70155  0.08694 6.114 9.72e-10</span></span>
+<span><span class="co">#&gt; dim.2 0.39604   1.48593  0.10932 3.623 0.000292</span></span>
+<span><span class="co">#&gt; dim.3 0.36946   1.44696  0.12793 2.888 0.003876</span></span>
+<span><span class="co">#&gt; dim.4 0.21361   1.23814  0.09522 2.243 0.024872</span></span>
+<span><span class="co">#&gt; dim.5 0.12640   1.13474  0.08615 1.467 0.142322</span></span>
+<span><span class="co">#&gt; dim.6 0.05705   1.05871  0.10539 0.541 0.588302</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Likelihood ratio test=54.01  on 6 df, p=7.348e-10</span></span>
+<span><span class="co">#&gt; n= 80, number of events= 80</span></span></code></pre></div>
 <p>Explore alternative estimators such as <code><a href="reference/coxgplsDR.html">coxgplsDR()</a></code> for deviance-residual fitting or <code><a href="reference/coxsgpls.html">coxsgpls()</a></code> for sparse component selection. Refer to the package reference for the full list of available models and helper functions.</p>
 <div class="section level2">
 <h2 id="benchmarking">Benchmarking<a class="anchor" aria-label="anchor" href="#benchmarking"></a>
 </h2>
-<p>We provide reproducible benchmarks that compare <code><a href="reference/coxgpls.html">coxgpls()</a></code> against classical Cox regression as implemented in <strong>survival</strong>. Run the benchmarking vignette or execute the script below to generate timing summaries:</p>
-<p>For large-scale benchmarking, execute the scripts in <code>inst/benchmarks/</code> after installing the optional dependencies listed under <code>Suggests</code> in the <code>DESCRIPTION</code> file.</p>
+<p>We provide reproducible benchmarks that compare <code><a href="reference/coxgpls.html">coxgpls()</a></code> and the big-memory solvers against <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">survival::coxph()</a></code>. Start with the <strong>Benchmarking bigPLScox</strong> vignette for an interactive tour.</p>
+<p>For command-line experiments, execute the scripts in <code>inst/benchmarks/</code> after installing the optional dependencies listed under <code>Suggests</code> in the <code>DESCRIPTION</code> file. Each script accepts environment variables (for example, <code>bigPLScox.benchmark.n</code>, <code>bigPLScox.benchmark.p</code>, and <code>bigPLScox.benchmark.ncomp</code>) to control the simulation size.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox-benchmark.R</span>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox_pls_benchmark.R</span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/benchmark_bigPLScox.R</span></code></pre></div>
-<p>Results are stored under <code>inst/benchmarks/results/</code> with timestamps for traceability.</p>
+<p>Results are stored under <code>inst/benchmarks/results/</code> with time-stamped filenames for traceability.</p>
 </div>
 <div class="section level2">
 <h2 id="vignettes-and-documentation">Vignettes and documentation<a class="anchor" aria-label="anchor" href="#vignettes-and-documentation"></a>
 </h2>
-<p>Two vignettes ship with the package:</p>
+<p>Four vignettes ship with the package:</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>Getting started with bigPLScox</strong> – an end-to-end introduction covering data preparation, fitting, and validation workflows.</li>
+<li>
+<strong>Overview of bigPLScox</strong> – a high-level description of the modelling functions and their typical use cases.</li>
+<li>
+<strong>Big-memory workflows with bigPLScox</strong> – instructions for working with <code>bigmemory</code> matrices and the streaming solvers.</li>
 <li>
 <strong>Benchmarking bigPLScox</strong> – guidance for evaluating performance against baseline Cox implementations using the <strong>bench</strong> package.</li>
 </ol>
@@ -208,7 +243,7 @@ plot of chunk unnamed-chunk-4
 <div class="section level2">
 <h2 id="bug-reports-and-feature-requests">Bug reports and feature requests<a class="anchor" aria-label="anchor" href="#bug-reports-and-feature-requests"></a>
 </h2>
-<p>Bug reports and feature requests can be filed on the <a href="https://github.com/fbertran/bigPLScox/issues" class="external-link">issue tracker</a>. Please make sure that new code comes with unit tests or reproducible examples when applicable.</p>
+<p>Bug reports and feature requests can be filed on the <a href="https://github.com/fbertran/bigPLScox/issues/" class="external-link">issue tracker</a>. Please make sure that new code comes with unit tests or reproducible examples when applicable.</p>
 </div>
 </div>
 

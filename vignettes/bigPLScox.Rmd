@@ -1,142 +1,152 @@
 ---
-title: "Getting Started with bigPLScox"
-shorttitle: "Getting Started with bigPLScox"
+title: "Big-memory workflows with bigPLScox"
+shorttitle: "Big-memory workflows"
 author:
 - name: "Frédéric Bertrand"
-  affiliation: 
+  affiliation:
   - Cedric, Cnam, Paris
   email: frederic.bertrand@lecnam.net
 date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
-  toc: true
+    toc: true
 vignette: >
-  %\VignetteIndexEntry{Getting Started with bigPLScox}
+  %\VignetteIndexEntry{Big-memory workflows with bigPLScox}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
   
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
+  fig.path = "figures/bigmemory-",
   fig.width = 7,
-  fig.height = 5,
+  fig.height = 4.5,
   dpi = 150,
   message = FALSE,
   warning = FALSE
 )
 ```
 
-# Overview
+# Motivation
 
-The `bigPLScox` package provides Partial Least Squares (PLS) regression tools
-for Cox proportional hazards models that are designed to scale to high
-dimensional survival datasets stored as `bigmemory` matrices. This vignette
-presents a concise workflow that highlights the essential functions for
-pre-processing, modelling, and validating survival models with partial least
-squares components.
+A central feature of **bigPLScox** is the ability to operate on file-backed
+`bigmemory::big.matrix` objects. This vignette demonstrates how to prepare such
+datasets, fit models with `big_pls_cox()` and `big_pls_cox_gd()`, and integrate
+them with cross-validation helpers. The examples complement the introductory
+vignette "Getting started with bigPLScox".
 
-# Installing the package
+# Preparing a big.matrix
 
-```{r eval = FALSE}
-# From CRAN (once released)
-install.packages("bigPLScox")
+We simulate a moderately large design matrix and persist it to disk via
+`bigmemory::filebacked.big.matrix()`. Using file-backed storage allows models to
+train on datasets that exceed the available RAM.
 
-# Development version
-# remotes::install_github("fbertran/bigPLScox")
-```
-
-# Loading example data
-
-The package ships with a small allelotyping dataset that we will use to
-illustrate the workflow. The dataset is intentionally compact to keep the
-vignette fast to build while still demonstrating the high-dimensional setting
-that `bigPLScox` targets.
-
-```{r}
+```{r simulate-bigmatrix}
 library(bigPLScox)
+library(bigmemory)
 
-data(micro.censure)
-data(Xmicro.censure_compl_imp)
+set.seed(2024)
+n_obs <- 5000
+n_pred <- 100
 
-Y_train <- micro.censure$survyear[1:80]
-status_train <- micro.censure$DC[1:80]
-X_train <- Xmicro.censure_compl_imp[1:80, -40]
+X_dense <- matrix(rnorm(n_obs * n_pred), nrow = n_obs)
+time <- rexp(n_obs, rate = 0.2)
+status <- rbinom(n_obs, 1, 0.7)
+
+big_dir <- tempfile("bigPLScox-")
+dir.create(big_dir)
+X_big <- filebacked.big.matrix(
+  nrow = n_obs,
+  ncol = n_pred,
+  backingpath = big_dir,
+  backingfile = "X.bin",
+  descriptorfile = "X.desc",
+  init = X_dense
+)
 ```
 
-# Exploring deviance residuals
+The resulting `big.matrix` can be reopened in future sessions via its descriptor
+file. All big-memory modelling functions accept either an in-memory matrix or a
+`big.matrix` reference.
 
-The `computeDR()` helper visualises deviance residuals to assess potential
-model misspecification before fitting the PLS components.
+# Fitting big-memory models
 
-```{r}
-residuals_plot <- computeDR(Y_train, status_train, plot = TRUE)
-head(residuals_plot)
-```
+`big_pls_cox()` runs the classical PLS-Cox algorithm while streaming data from
+disk.
 
-# Fitting a Cox-PLS model
-
-We now fit a Cox model with six PLS components directly from the matrix of
-predictors. The `coxgpls()` function operates on `bigmemory` objects, but it
-also accepts base R matrices as in this example.
-
-```{r}
-set.seed(123)
-fit <- coxgpls(
-  Xplan = X_train,
-  time = Y_train,
-  status = status_train,
-  ncomp = 6,
-  ind.block.x = c(3, 10, 20)
+```{r big-pls-cox}
+fit_big <- big_pls_cox(
+  X = X_big,
+  time = time,
+  status = status,
+  ncomp = 5
 )
 
-fit
+head(fit_big$scores)
+str(fit_big)
 ```
 
-# Cross-validation
+The gradient-descent variant `big_pls_cox_gd()` uses stochastic optimisation and
+is well-suited for very large datasets.
 
-Use `cv.coxgpls()` to select the number of PLS components by cross-validation.
-The result includes the recommended component count and time-dependent AUC
-metrics to monitor predictive performance.
+```{r big-pls-cox-gd}
+fit_big_gd <- big_pls_cox_gd(
+  X = X_big,
+  time = time,
+  status = status,
+  ncomp = 5,
+  max_iter = 100,
+  tol = 1e-4
+  )
 
-```{r}
-set.seed(123)
-cv_results <- cv.coxgpls(
-  data = list(x = X_train, time = Y_train, status = status_train),
-  nt = 6,
-  ind.block.x = c(3, 10, 20),
+head(fit_big$scores)
+str(fit_big)
+```
+
+Both functions return objects that expose the latent scores and loading vectors,
+allowing downstream visualisations and diagnostics identical to their in-memory
+counterparts.
+
+# Cross-validation on big matrices
+
+Cross-validation for big-memory models is supported through the list interface.
+This enables streaming each fold directly from disk.
+
+```{r big-cv, eval = FALSE}
+set.seed(2024)
+data_big <- list(x = X_big, time = time, status = status)
+cv_big <- cv.coxgpls(
+  data_big,
+  nt = 5,
+  ncores = 1,
+  ind.block.x = c(10, 40)
 )
-
-cv_results$opt_nt
+cv_big$opt_nt
 ```
 
-# Deviance residual solver
+For large experiments consider combining `foreach::foreach()` with
+`doParallel::registerDoParallel()` to parallelise folds.
 
-For large problems the `coxgplsDR()` solver often converges faster. The
-interface mirrors `coxgpls()` so switching between solvers is straightforward.
+# Cleaning up
 
-```{r}
-data(micro.censure)
-data(Xmicro.censure_compl_imp)
+Temporary backing files can be removed after the analysis. In production
+pipelines you will typically keep the descriptor file alongside the binary data.
 
-X_train_micro <- apply((as.matrix(Xmicro.censure_compl_imp)),FUN="as.numeric",MARGIN=2)[1:80,]
-X_train_micro_df <- data.frame(X_train_micro)
-Y_train_micro <- micro.censure$survyear[1:80]
-C_train_micro <- micro.censure$DC[1:80]
-
-
-fit_dr=coxgplsDR(X_train_micro,Y_train_micro,C_train_micro,
-ncomp=6,ind.block.x=c(3,10,15),keepX=rep(4,6))
-
-fit_dr
+```{r cleanup}
+rm(X_big)
+file.remove(file.path(big_dir, "X.bin"))
+file.remove(file.path(big_dir, "X.desc"))
+unlink(big_dir, recursive = TRUE)
 ```
 
-# Next steps
+# Additional resources
 
-* Explore the `inst/benchmarks` folder for scripts that compare the runtime of
-the available solvers on larger simulated datasets.
-* Review the package reference documentation and articles at
-<https://fbertran.github.io/bigPLScox/> for advanced modelling strategies,
-including sparse and kernel-based extensions.
+* `help(big_pls_cox)` and `help(big_pls_cox_gd)` document all tuning parameters
+  for the big-memory solvers.
+* The benchmarking vignette demonstrates how to measure performance improvements
+  obtained with file-backed matrices.
+* Consider persisting fitted objects with `saveRDS()` to avoid recomputing large
+  models when iterating on analyses.

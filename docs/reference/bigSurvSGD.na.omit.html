@@ -9,7 +9,7 @@ models after removing observations with missing values."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -299,13 +299,15 @@ features.sd: Returns standard deviations of features, if given or calculated.</p
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">micro.censure</span>, package <span class="op">=</span> <span class="st">"bigPLScox"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">surv_data</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">na.omit</a></span><span class="op">(</span><span class="va">micro.censure</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"survyear"</span>, <span class="st">"DC"</span>, <span class="st">"sexe"</span>, <span class="st">"Agediag"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Increase num.epoch and num.boot for real use</span></span></span>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">bigSurvSGD.na.omit</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">survyear</span>, <span class="va">DC</span><span class="op">)</span> <span class="op">~</span> <span class="va">.</span>,</span></span>
 <span class="r-in"><span>  data <span class="op">=</span> <span class="va">surv_data</span>,</span></span>
 <span class="r-in"><span>  norm.method <span class="op">=</span> <span class="st">"standardize"</span>,</span></span>
 <span class="r-in"><span>  opt.method <span class="op">=</span> <span class="st">"adam"</span>,</span></span>
-<span class="r-in"><span>  batch.size <span class="op">=</span> <span class="fl">16</span>,</span></span>
-<span class="r-in"><span>  num.epoch <span class="op">=</span> <span class="fl">2</span></span></span>
+<span class="r-in"><span>  batch.size <span class="op">=</span> <span class="fl">64</span>,</span></span>
+<span class="r-in"><span>  num.epoch <span class="op">=</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>  num.boot <span class="op">=</span> <span class="fl">100</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Strata size times batch size is greater than number of observations.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>  This package resizes them to strata size = 20 and batch size = 4</span>

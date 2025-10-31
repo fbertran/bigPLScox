@@ -1,17 +1,21 @@
-## ----setup, include=FALSE-----------------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "figures/benchmark-",
-  out.width = "100%"
+  fig.path = "figures/benchmarking-",
+  fig.width = 7,
+  fig.height = 5,
+  dpi = 150,
+  message = FALSE,
+  warning = FALSE
 )
 
-## ----message=FALSE------------------------------------------------------------
+## ----packages-----------------------------------------------------------------
 library(bigPLScox)
 library(survival)
 library(bench)
 
-## -----------------------------------------------------------------------------
+## ----simulate-data------------------------------------------------------------
 set.seed(2024)
 sim_design <- dataCox(
   n = 2000,
@@ -22,15 +26,14 @@ sim_design <- dataCox(
   cens.rate = 5
 )
 
-## -----------------------------------------------------------------------------
 cox_data <- list(
-  x = as.matrix(sim_design[,-(1:3)]),
+  x = as.matrix(sim_design[, -(1:3)]),
   time = sim_design$time,
   status = sim_design$status
 )
 
-## -----------------------------------------------------------------------------
-res <- bench::mark(
+## ----run-benchmarks-----------------------------------------------------------
+bench_res <- bench::mark(
   bigPLScox = coxgpls(
     cox_data$x,
     cox_data$time,
@@ -42,8 +45,14 @@ res <- bench::mark(
   iterations = 100,
   check = FALSE
 )
-res
+bench_res
 
-## -----------------------------------------------------------------------------
-plot(res, type = "jitter")
+## ----bench-plot---------------------------------------------------------------
+plot(bench_res, type = "jitter")
+
+## ----export-benchmark, eval = FALSE-------------------------------------------
+# if (!dir.exists("inst/benchmarks/results")) {
+#   dir.create("inst/benchmarks/results", recursive = TRUE)
+# }
+# write.csv(bench_res, file = "inst/benchmarks/results/benchmarking-demo.csv", row.names = FALSE)
 

@@ -34,16 +34,20 @@ focuses on improving the multi-core CPU back-end instead.
 
 Additional articles are available in the `vignettes/` directory:
 
-* *Getting started with bigPLScox* — a walkthrough of core modelling and
-  validation helpers.
+* *Getting started with bigPLScox* — a walkthrough of core modelling,
+  cross-validation, and diagnostic helpers.
+* *Overview of bigPLScox* — a tour of the main modelling functions with
+  practical guidance on choosing estimators.
 * *Big-memory workflows with bigPLScox* — guidance on using `bigmemory`
   matrices and parallel back-ends.
+* *Benchmarking bigPLScox* — reproducible performance comparisons using the
+  **bench** package.
 
-A reproducible benchmarking script contrasting `big_pls_cox()` with
-`plsRcox::plsRcox()` is available under `inst/benchmarks/`.
+Standalone benchmarking scripts that complement the vignette live under
+`inst/benchmarks/`.
 
 The documentation website and examples are maintained by Frédéric
-Bertrand and Myriam Maumy-Bertrand.
+Bertrand and Myriam Maumy.
 
 ## Key features
 
@@ -79,11 +83,13 @@ devtools::install_github("fbertran/bigPLScox")
 
 ## Learning materials
 
-* Browse the **Getting Started** vignette with `vignette("bigPLScox")` for a
-  worked example.
+* Browse the **Getting started** vignette with `vignette("getting-started",
+  package = "bigPLScox")` for a worked example.
+* Explore `vignette("bigPLScox", package = "bigPLScox")` for big-memory
+  workflows and streaming solvers.
 * Consult the function reference at <https://fbertran.github.io/bigPLScox/>.
-* Run the benchmark script `inst/benchmarks/benchmark_bigPLScox.R` to compare
-  solver performance on simulated data.
+* Run the benchmarking scripts in `inst/benchmarks/` to compare solver
+  performance on simulated data.
 
 # Quick start
 
@@ -115,8 +121,10 @@ residuals_overview <- computeDR(Y_train, status_train, plot = TRUE)
 
 ``` r
 head(residuals_overview)
-#>          1          2          3          4          5          6 
-#> -1.4843296 -0.5469540 -0.2314550 -0.3400301 -0.9763372 -0.3866766
+#>          1          2          3          4          5 
+#> -1.4843296 -0.5469540 -0.2314550 -0.3400301 -0.9763372 
+#>          6 
+#> -0.3866766
 ```
 
 Fit a Cox-PLS model with six components and inspect the fit summary:
@@ -132,7 +140,19 @@ cox_pls_fit <- coxgpls(
 )
 #> Error in colMeans(x, na.rm = TRUE): 'x' must be numeric
 cox_pls_fit
-#> Error: object 'cox_pls_fit' not found
+#> Call:
+#> coxph(formula = YCsurv ~ ., data = tt_gpls)
+#> 
+#>           coef exp(coef) se(coef)      z        p
+#> dim.1 -0.53932   0.58314  0.08723 -6.183  6.3e-10
+#> dim.2 -0.39532   0.67347  0.10387 -3.806 0.000141
+#> dim.3 -0.29623   0.74362  0.10763 -2.752 0.005918
+#> dim.4 -0.29523   0.74436  0.11762 -2.510 0.012074
+#> dim.5 -0.11801   0.88869  0.09157 -1.289 0.197498
+#> dim.6 -0.09332   0.91091  0.10717 -0.871 0.383910
+#> 
+#> Likelihood ratio test=56.09  on 6 df, p=2.792e-10
+#> n= 80, number of events= 80
 ```
 
 Cross-validate the number of components and re-fit using the deviance residual
@@ -157,20 +177,34 @@ cox_pls_dr <- coxgplsDR(
 )
 #> Error in colMeans(x, na.rm = TRUE): 'x' must be numeric
 cox_pls_dr
-#> Error: object 'cox_pls_dr' not found
+#> Call:
+#> coxph(formula = YCsurv ~ ., data = tt_gplsDR)
+#> 
+#>          coef exp(coef) se(coef)     z        p
+#> dim.1 0.53154   1.70155  0.08694 6.114 9.72e-10
+#> dim.2 0.39604   1.48593  0.10932 3.623 0.000292
+#> dim.3 0.36946   1.44696  0.12793 2.888 0.003876
+#> dim.4 0.21361   1.23814  0.09522 2.243 0.024872
+#> dim.5 0.12640   1.13474  0.08615 1.467 0.142322
+#> dim.6 0.05705   1.05871  0.10539 0.541 0.588302
+#> 
+#> Likelihood ratio test=54.01  on 6 df, p=7.348e-10
+#> n= 80, number of events= 80
 ```
 
 Explore alternative estimators such as `coxgplsDR()` for deviance-residual fitting or `coxsgpls()` for sparse component selection. Refer to the package reference for the full list of available models and helper functions.
 
 ## Benchmarking
 
-We provide reproducible benchmarks that compare `coxgpls()` against classical Cox
-regression as implemented in **survival**. Run the benchmarking vignette or execute the
-script below to generate timing summaries:
+We provide reproducible benchmarks that compare `coxgpls()` and the big-memory
+solvers against `survival::coxph()`. Start with the **Benchmarking bigPLScox**
+vignette for an interactive tour.
 
-For large-scale benchmarking, execute the scripts in `inst/benchmarks/` after
+For command-line experiments, execute the scripts in `inst/benchmarks/` after
 installing the optional dependencies listed under `Suggests` in the
-`DESCRIPTION` file.
+`DESCRIPTION` file. Each script accepts environment variables (for example,
+`bigPLScox.benchmark.n`, `bigPLScox.benchmark.p`, and
+`bigPLScox.benchmark.ncomp`) to control the simulation size.
 
 ```bash
 Rscript inst/benchmarks/cox-benchmark.R
@@ -178,16 +212,21 @@ Rscript inst/benchmarks/cox_pls_benchmark.R
 Rscript inst/benchmarks/benchmark_bigPLScox.R
 ```
 
-Results are stored under `inst/benchmarks/results/` with timestamps for traceability.
+Results are stored under `inst/benchmarks/results/` with time-stamped filenames
+for traceability.
 
 ## Vignettes and documentation
 
-Two vignettes ship with the package:
+Four vignettes ship with the package:
 
 1. **Getting started with bigPLScox** – an end-to-end introduction covering data
    preparation, fitting, and validation workflows.
-2. **Benchmarking bigPLScox** – guidance for evaluating performance against baseline
-   Cox implementations using the **bench** package.
+2. **Overview of bigPLScox** – a high-level description of the modelling
+   functions and their typical use cases.
+3. **Big-memory workflows with bigPLScox** – instructions for working with
+   `bigmemory` matrices and the streaming solvers.
+4. **Benchmarking bigPLScox** – guidance for evaluating performance against
+   baseline Cox implementations using the **bench** package.
    
 The full reference documentation and pkgdown website are available at
 <https://fbertran.github.io/bigPLScox/>.
@@ -195,5 +234,5 @@ The full reference documentation and pkgdown website are available at
 ## Bug reports and feature requests
 
 Bug reports and feature requests can be
-filed on the [issue tracker](https://github.com/fbertran/bigPLScox/issues). Please make
+filed on the [issue tracker](https://github.com/fbertran/bigPLScox/issues/). Please make
 sure that new code comes with unit tests or reproducible examples when applicable.
