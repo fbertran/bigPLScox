@@ -58,3 +58,4 @@ test_that("partial deviance from big matrices is consistent", {
   expect_length(stats_big$linear_predictor, nrow(X))
   expect_equal(stats_big$loglik, loglik_ref, tolerance = 1e-6)
 })
+
