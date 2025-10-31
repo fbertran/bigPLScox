@@ -182,11 +182,20 @@ SEXP cox_partial_loglik_cpp(NumericMatrix X,
   for (int col = 0; col < k; ++col) {
     std::vector<double> eta_sorted(n);
     std::vector<double> exp_eta_sorted(n);
+    double max_eta = -std::numeric_limits<double>::infinity();
     for (int i = 0; i < n; ++i) {
       const int idx = order_idx[i];
       const double eta_val = eta_orig(idx, col);
       eta_sorted[i] = eta_val;
-      exp_eta_sorted[i] = std::exp(eta_val);
+      if (eta_val > max_eta) {
+        max_eta = eta_val;
+      }
+    }
+    if (!std::isfinite(max_eta)) {
+      max_eta = 0.0;
+    }
+    for (int i = 0; i < n; ++i) {
+      exp_eta_sorted[i] = std::exp(eta_sorted[i] - max_eta);
     }
     
     std::vector<double> suffix(n);
@@ -219,6 +228,7 @@ SEXP cox_partial_loglik_cpp(NumericMatrix X,
         double denom = risk_sum_base - adjust * event_sum_exp;
         denom = regularise_positive(denom, risk_sum_base,
                                     "Non-positive risk set sum encountered while computing partial log-likelihood.");
+        loglik_col -= max_eta;
         loglik_col -= std::log(denom);
         if (return_all && col == k - 1) {
           const int event_col_idx = event_col_for_row[row];

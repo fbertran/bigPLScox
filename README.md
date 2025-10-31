@@ -123,7 +123,19 @@ cox_pls_fit <- coxgpls(
 )
 #> Error in colMeans(x, na.rm = TRUE): 'x' must be numeric
 cox_pls_fit
-#> Error: object 'cox_pls_fit' not found
+#> Call:
+#> coxph(formula = YCsurv ~ ., data = tt_gpls)
+#> 
+#>          coef exp(coef) se(coef)      z        p
+#> dim.1 -0.7368    0.4786   0.1162 -6.340  2.3e-10
+#> dim.2 -0.5256    0.5912   0.1382 -3.804 0.000142
+#> dim.3 -0.3314    0.7179   0.1199 -2.763 0.005720
+#> dim.4 -0.2883    0.7495   0.1092 -2.641 0.008272
+#> dim.5 -0.4002    0.6702   0.1435 -2.788 0.005298
+#> dim.6 -0.2696    0.7636   0.1239 -2.176 0.029529
+#> 
+#> Likelihood ratio test=60.94  on 6 df, p=2.906e-11
+#> n= 60, number of events= 60
 ```
 
 
@@ -150,7 +162,7 @@ cpp_residuals <- computeDR(
   engine = "cpp",
   eta = predict(cox_pls_fit, type = "lp")
 )
-#> Error: object 'cox_pls_fit' not found
+#> Error: `eta` must have the same length as `time`
 stopifnot(all.equal(residuals_overview, cpp_residuals, tolerance = 1e-7))
 #> Error: object 'cpp_residuals' not found
 ```
@@ -167,7 +179,7 @@ cv_results <- cv.coxgpls(
 )
 #> Error in colMeans(x, na.rm = TRUE): 'x' must be numeric
 cv_results$opt_nt
-#> Error: object 'cv_results' not found
+#> NULL
 cox_pls_dr <- coxgplsDR(
   Xplan = X_train,
   time = Y_train,
@@ -177,7 +189,19 @@ cox_pls_dr <- coxgplsDR(
 )
 #> Error in colMeans(x, na.rm = TRUE): 'x' must be numeric
 cox_pls_dr
-#> Error: object 'cox_pls_dr' not found
+#> Call:
+#> coxph(formula = YCsurv ~ ., data = tt_gplsDR)
+#> 
+#>         coef exp(coef) se(coef)     z        p
+#> dim.1 0.7329    2.0812   0.1120 6.545 5.95e-11
+#> dim.2 0.6418    1.8999   0.1456 4.409 1.04e-05
+#> dim.3 0.3467    1.4144   0.1080 3.210  0.00133
+#> dim.4 0.4266    1.5320   0.1554 2.745  0.00605
+#> dim.5 0.3694    1.4468   0.1453 2.542  0.01101
+#> dim.6 0.2884    1.3343   0.1095 2.633  0.00847
+#> 
+#> Likelihood ratio test=63.84  on 6 df, p=7.442e-12
+#> n= 60, number of events= 60
 ```
 
 Explore alternative estimators such as `coxgplsDR()` for deviance-residual fitting or `coxsgpls()` for sparse component selection. Refer to the package reference for the full list of available models and helper functions.

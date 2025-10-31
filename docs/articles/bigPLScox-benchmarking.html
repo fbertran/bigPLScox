@@ -148,20 +148,20 @@ information.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 6</span></span></span>
 <span><span class="co">#&gt;   expression      min   median `itr/sec` mem_alloc `gc/sec`</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;bch:expr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:byt&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> coxgpls     19.14ms  19.75ms      50.7   30.97MB   190.  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls      7.77ms   7.92ms     124.     3.54MB     9.35</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_gd  11.81ms  12.01ms      82.8    2.75MB     4.36</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> survival    27.31ms  27.72ms      35.8   13.39MB    14.6</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> coxgpls      19.2ms  20.89ms      47.5   30.97MB   178.  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls       7.8ms   8.04ms     124.     3.54MB     9.35</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_gd   11.9ms  12.19ms      78.3    2.75MB     4.12</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> survival     27.3ms  27.99ms      35.7   13.39MB    14.6</span></span>
 <span></span>
 <span><span class="va">bench_summary</span> <span class="op">&lt;-</span> <span class="va">bench_res</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"expression"</span>, <span class="st">"median"</span>, <span class="st">"itr/sec"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">bench_summary</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 3</span></span></span>
 <span><span class="co">#&gt;   expression   median `itr/sec`</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;bch:expr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> coxgpls     19.75ms      50.7</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls      7.92ms     124. </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_gd  12.01ms      82.8</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> survival    27.72ms      35.8</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> coxgpls     20.89ms      47.5</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls      8.04ms     124. </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_gd  12.19ms      78.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> survival    27.99ms      35.7</span></span></code></pre></div>
 <p>The resulting tibble reports elapsed time, memory allocations, and
 garbage collection statistics for each estimator. The
 <code>itr/sec</code> column is often the most useful indicator when
