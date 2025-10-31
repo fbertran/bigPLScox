@@ -46,8 +46,14 @@
 #' \email{frederic.bertrand@@lecnam.net}\cr
 #' \url{https://fbertran.github.io/homepage/}
 #' @seealso \code{\link[survival]{coxph}}
-#' @references TODO
-#' 
+#' @references
+#'   Bastien, P., Bertrand, F., Meyer, N., and Maumy-Bertrand, M.
+#'   (2015). Deviance residuals-based sparse PLS and sparse kernel PLS for
+#'   binary classification and survival analysis. *BMC Bioinformatics*, 16, 211.
+#'   
+#' Therneau, T.M., Grambsch, P.M. (2000). *Modeling Survival Data: Extending the
+#'   Cox Model*. Springer.
+#'
 #' @keywords models regression
 #' @examples
 #' 

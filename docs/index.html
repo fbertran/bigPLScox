@@ -31,7 +31,16 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="articles/bigPLScox.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/bigPLScox-benchmarking.html">Benchmarking bigPLScox</a></li>
+    <li><a class="dropdown-item" href="articles/bigPLScox-overview.html">Overview of bigPLScox</a></li>
+    <li><a class="dropdown-item" href="articles/getting-started.html">Getting started with bigPLScox</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -58,9 +67,42 @@
 </h2>
 <!-- badges: start -->
 
-<p>The goal of bigPLScox is provide Cox models in a high dimensional setting in R.</p>
-<p>Support for parallel computation and GPU is being developed.</p>
-<p>This website and these examples were created by F. Bertrand and M. Maumy-Bertrand.</p>
+<p><code>bigPLScox</code> provides Partial Least Squares (PLS) methods tailored for Cox proportional hazards models with large, high-dimensional feature matrices. The package works directly with <a href="https://cran.r-project.org/package=bigmemory" class="external-link"><code>bigmemory</code></a> objects, enabling native C++ accelerators and iterative algorithms to run without loading the full dataset into memory. In addition to the classical <code><a href="reference/coxgpls.html">coxgpls()</a></code> solver, the package contains accelerated variants, cross-validation helpers, and model diagnostics.</p>
+<ul>
+<li>Generalised PLS Cox regression via <code><a href="reference/coxgpls.html">coxgpls()</a></code> with support for grouped predictors.</li>
+<li>Sparse and structured sparse extensions (<code><a href="reference/coxsgpls.html">coxsgpls()</a></code>, <code><a href="reference/coxspls_sgpls.html">coxspls_sgpls()</a></code>).</li>
+<li>Deviance-residual estimators (<code><a href="reference/coxgplsDR.html">coxgplsDR()</a></code>, <code><a href="reference/coxsgplsDR.html">coxsgplsDR()</a></code>) for robust fits.</li>
+<li>Cross-validation helpers (<code><a href="reference/cv.coxgpls.html">cv.coxgpls()</a></code>, <code><a href="reference/cv.coxsgpls.html">cv.coxsgpls()</a></code>, …) to select the number of latent components.</li>
+<li>Dataset generators, and diagnostics such as <code><a href="reference/computeDR.html">computeDR()</a></code> for quick residual exploration.</li>
+<li>Sparse, group-sparse, and stochastic gradient variants able to consume file-backed <code>big.matrix</code> objects while leveraging <code>foreach</code> parallelism.</li>
+<li>Interfaces for big-memory data through <code><a href="reference/big_pls_cox.html">big_pls_cox()</a></code> and <code><a href="reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code>.</li>
+</ul>
+<p>GPU support is <strong>not</strong> available in the current release; ongoing development focuses on improving the multi-core CPU back-end instead.</p>
+<p>Additional articles are available in the <code>vignettes/</code> directory:</p>
+<ul>
+<li>
+<em>Getting started with bigPLScox</em> — a walkthrough of core modelling and validation helpers.</li>
+<li>
+<em>Big-memory workflows with bigPLScox</em> — guidance on using <code>bigmemory</code> matrices and parallel back-ends.</li>
+</ul>
+<p>A reproducible benchmarking script contrasting <code><a href="reference/big_pls_cox.html">big_pls_cox()</a></code> with <code><a href="https://fbertran.github.io/plsRcox/reference/plsRcox.html" class="external-link">plsRcox::plsRcox()</a></code> is available under <code>inst/benchmarks/</code>.</p>
+<p>The documentation website and examples are maintained by Frédéric Bertrand and Myriam Maumy-Bertrand.</p>
+</div>
+<div class="section level2">
+<h2 id="key-features">Key features<a class="anchor" aria-label="anchor" href="#key-features"></a>
+</h2>
+<ul>
+<li>
+<strong>Scalable Cox-PLS solvers</strong> (<code><a href="reference/coxgpls.html">coxgpls()</a></code>, <code><a href="reference/coxgplsDR.html">coxgplsDR()</a></code>) that operate on big matrices stored on disk.</li>
+<li>
+<strong>Cross-validation tooling</strong> to select the optimal number of PLS components with time-dependent performance metrics.</li>
+<li>
+<strong>Model diagnostics</strong> such as deviance residual visualisation through <code><a href="reference/computeDR.html">computeDR()</a></code>.</li>
+<li>
+<strong>Benchmark scripts</strong> in <code>inst/benchmarks/</code> to quantify runtime trade-offs between the available solvers.</li>
+<li>
+<strong>Comprehensive vignette</strong> (<code>vignettes/bigPLScox.Rmd</code>) showing a complete modelling workflow.</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -68,831 +110,105 @@
 <p>You can install the released version of bigPLScox from <a href="https://CRAN.R-project.org" class="external-link">CRAN</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"bigPLScox"</span><span class="op">)</span></span></code></pre></div>
-<p>You can install the development version of bigPLScox from <a href="https://github.com" class="external-link">github</a> with:</p>
+<p>You can install the development version of bigPLScox from <a href="https://github.com/fbertran/bigPLScox" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"fbertran/bigPLScox"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"fbertran/bigPLScox"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="learning-materials">Learning materials<a class="anchor" aria-label="anchor" href="#learning-materials"></a>
+</h2>
+<ul>
+<li>Browse the <strong>Getting Started</strong> vignette with <code><a href="articles/bigPLScox.html">vignette("bigPLScox")</a></code> for a worked example.</li>
+<li>Consult the function reference at <a href="https://fbertran.github.io/bigPLScox/" class="uri">https://fbertran.github.io/bigPLScox/</a>.</li>
+<li>Run the benchmark script <code>inst/benchmarks/benchmark_bigPLScox.R</code> to compare solver performance on simulated data.</li>
+</ul>
 </div>
 </div>
 <div class="section level1">
-<h1 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+<h1 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h1>
-<div class="section level2">
-<h2 id="allelotyping-real-dataset">Allelotyping real dataset<a class="anchor" aria-label="anchor" href="#allelotyping-real-dataset"></a>
-</h2>
-<div class="section level3">
-<h3 id="the-dataset">The dataset<a class="anchor" aria-label="anchor" href="#the-dataset"></a>
-</h3>
+<p>The following example demonstrates the typical workflow on a subset of the allelotyping dataset bundled with the package. Chunks are evaluated by default when the README is rendered locally, but they can be toggled with <code>knitr::opts_chunk$set(eval = FALSE)</code> for faster builds.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fbertran.github.io/bigPLScox/">bigPLScox</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">micro.censure</span><span class="op">)</span></span>
-<span><span class="va">Y_train_micro</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">survyear</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
-<span><span class="va">C_train_micro</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">DC</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
-<span><span class="va">Y_test_micro</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">survyear</span><span class="op">[</span><span class="fl">81</span><span class="op">:</span><span class="fl">117</span><span class="op">]</span></span>
-<span><span class="va">C_test_micro</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">DC</span><span class="op">[</span><span class="fl">81</span><span class="op">:</span><span class="fl">117</span><span class="op">]</span></span>
-<span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">Xmicro.censure_compl_imp</span><span class="op">)</span></span>
-<span><span class="va">X_train_micro</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">Xmicro.censure_compl_imp</span><span class="op">)</span><span class="op">)</span>,FUN<span class="op">=</span><span class="st">"as.numeric"</span>,MARGIN<span class="op">=</span><span class="fl">2</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span>,<span class="op">]</span></span>
-<span><span class="va">X_train_micro_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">X_train_micro</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">X_train_micro_orig</span> <span class="op">&lt;-</span> <span class="va">Xmicro.censure_compl_imp</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span>,<span class="op">]</span></span>
-<span><span class="va">X_train_micro_orig_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">X_train_micro_orig</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="compute-deviance-residuals-with-some-options">Compute deviance residuals with some options.<a class="anchor" aria-label="anchor" href="#compute-deviance-residuals-with-some-options"></a>
-</h3>
+<span><span class="va">Y_train</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">survyear</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
+<span><span class="va">status_train</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">DC</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
+<span><span class="va">X_train</span> <span class="op">&lt;-</span> <span class="va">Xmicro.censure_compl_imp</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span>, <span class="op">]</span></span></code></pre></div>
+<p>Visualise deviance residuals to assess the baseline model fit:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/computeDR.html">computeDR</a></span><span class="op">(</span><span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,plot<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">residuals_overview</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/computeDR.html">computeDR</a></span><span class="op">(</span><span class="va">Y_train</span>, <span class="va">status_train</span>, plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="reference/figures/README-devianceresiduals-1.png" alt="plot of chunk devianceresiduals" width="100%"><p class="caption">
-plot of chunk devianceresiduals
+<img src="reference/figures/README-unnamed-chunk-4-1.png" alt="plot of chunk unnamed-chunk-4" width="100%"><p class="caption">
+plot of chunk unnamed-chunk-4
 </p>
 </div>
-<pre><code><span><span class="co">#&gt; Error in computeDR(Y_train_micro, C_train_micro, plot = TRUE)[1:6, 1:6]: incorrect number of dimensions</span></span></code></pre>
-</div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">residuals_overview</span><span class="op">)</span></span>
+<span><span class="co">#&gt;          1          2          3          4          5          6 </span></span>
+<span><span class="co">#&gt; -1.4843296 -0.5469540 -0.2314550 -0.3400301 -0.9763372 -0.3866766</span></span></code></pre></div>
+<p>Fit a Cox-PLS model with six components and inspect the fit summary:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">cox_pls_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
+<span>  Xplan <span class="op">=</span> <span class="va">X_train</span>,</span>
+<span>  time <span class="op">=</span> <span class="va">Y_train</span>,</span>
+<span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
+<span>  ncomp <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error in colMeans(x, na.rm = TRUE): 'x' must be numeric</span></span>
+<span><span class="va">cox_pls_fit</span></span>
+<span><span class="co">#&gt; Error: object 'cox_pls_fit' not found</span></span></code></pre></div>
+<p>Cross-validate the number of components and re-fit using the deviance residual solver for comparison:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">cv_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cv.coxgpls.html">cv.coxgpls</a></span><span class="op">(</span></span>
+<span>  dataY <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">X_train</span>, time <span class="op">=</span> <span class="va">Y_train</span>, status <span class="op">=</span> <span class="va">status_train</span><span class="op">)</span>,</span>
+<span>  nt <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error in cv.coxgpls(dataY = list(x = X_train, time = Y_train, status = status_train), : argument "data" is missing, with no default</span></span>
+<span><span class="va">cv_results</span><span class="op">$</span><span class="va">opt_nt</span></span>
+<span><span class="co">#&gt; NULL</span></span>
+<span><span class="va">cox_pls_dr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/coxgplsDR.html">coxgplsDR</a></span><span class="op">(</span></span>
+<span>  Xplan <span class="op">=</span> <span class="va">X_train</span>,</span>
+<span>  time <span class="op">=</span> <span class="va">Y_train</span>,</span>
+<span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
+<span>  ncomp <span class="op">=</span> <span class="va">cv_results</span><span class="op">$</span><span class="va">opt_nt</span>,</span>
+<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error in colMeans(x, na.rm = TRUE): 'x' must be numeric</span></span>
+<span><span class="va">cox_pls_dr</span></span>
+<span><span class="co">#&gt; Error: object 'cox_pls_dr' not found</span></span></code></pre></div>
+<p>Explore alternative estimators such as <code><a href="reference/coxgplsDR.html">coxgplsDR()</a></code> for deviance-residual fitting or <code><a href="reference/coxsgpls.html">coxsgpls()</a></code> for sparse component selection. Refer to the package reference for the full list of available models and helper functions.</p>
+<div class="section level2">
+<h2 id="benchmarking">Benchmarking<a class="anchor" aria-label="anchor" href="#benchmarking"></a>
+</h2>
+<p>We provide reproducible benchmarks that compare <code><a href="reference/coxgpls.html">coxgpls()</a></code> against classical Cox regression as implemented in <strong>survival</strong>. Run the benchmarking vignette or execute the script below to generate timing summaries:</p>
+<p>For large-scale benchmarking, execute the scripts in <code>inst/benchmarks/</code> after installing the optional dependencies listed under <code>Suggests</code> in the <code>DESCRIPTION</code> file.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox-benchmark.R</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox_pls_benchmark.R</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/benchmark_bigPLScox.R</span></code></pre></div>
+<p>Results are stored under <code>inst/benchmarks/results/</code> with timestamps for traceability.</p>
 </div>
 <div class="section level2">
-<h2 id="simulated-data">Simulated data<a class="anchor" aria-label="anchor" href="#simulated-data"></a>
+<h2 id="vignettes-and-documentation">Vignettes and documentation<a class="anchor" aria-label="anchor" href="#vignettes-and-documentation"></a>
 </h2>
-<div class="section level3">
-<h3 id="generate-dataset">Generate dataset<a class="anchor" aria-label="anchor" href="#generate-dataset"></a>
-</h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4669</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fbertran.github.io/bigPLScox/">bigPLScox</a></span><span class="op">)</span></span>
-<span><span class="va">x_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">1</span>, size <span class="op">=</span> <span class="fl">20000</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="va">dCox_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/dataCox.html">dataCox</a></span><span class="op">(</span><span class="fl">10</span><span class="op">^</span><span class="fl">4</span>, lambda <span class="op">=</span> <span class="fl">3</span>, rho <span class="op">=</span> <span class="fl">2</span>, <span class="va">x_sim</span>,</span>
-<span>beta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span><span class="op">)</span>, cens.rate <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">dCox_sim</span><span class="op">)</span></span></code></pre></div>
+<p>Two vignettes ship with the package:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Getting started with bigPLScox</strong> – an end-to-end introduction covering data preparation, fitting, and validation workflows.</li>
+<li>
+<strong>Benchmarking bigPLScox</strong> – guidance for evaluating performance against baseline Cox implementations using the <strong>bench</strong> package.</li>
+</ol>
+<p>The full reference documentation and pkgdown website are available at <a href="https://fbertran.github.io/bigPLScox/" class="uri">https://fbertran.github.io/bigPLScox/</a>.</p>
 </div>
-<div class="section level3">
-<h3 id="compute-deviance-residuals-with-some-options-1">Compute deviance residuals with some options.<a class="anchor" aria-label="anchor" href="#compute-deviance-residuals-with-some-options-1"></a>
-</h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">dCox_sim</span>,<span class="va">temp</span><span class="op">&lt;-</span><span class="fu"><a href="reference/computeDR.html">computeDR</a></span><span class="op">(</span><span class="va">time</span>,<span class="va">status</span>,plot<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="reference/figures/README-devianceresiduals2-1.png" alt="plot of chunk devianceresiduals2" width="100%"><p class="caption">
-plot of chunk devianceresiduals2
-</p>
-</div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">temp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in rm(temp): object 'temp' not found</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="model-matrix">Model Matrix<a class="anchor" aria-label="anchor" href="#model-matrix"></a>
-</h3>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/coxgpls.html">coxgpls</a></span><span class="op">(</span><span class="op">~</span><span class="va">.</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,trace<span class="op">=</span><span class="cn">TRUE</span>,model_matrix<span class="op">=</span><span class="cn">TRUE</span>,dataXplan <span class="op">=</span> <span class="va">X_train_micro_orig_df</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">20</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span></span>
-<span><span class="co">#&gt;    D18S61 D17S794 D13S173 D20S107 TP53 D9S171</span></span>
-<span><span class="co">#&gt; 1       0       0       0       0    1      0</span></span>
-<span><span class="co">#&gt; 2       0       0       1       1    0      0</span></span>
-<span><span class="co">#&gt; 3       0       0       0       1    0      1</span></span>
-<span><span class="co">#&gt; 4       1       1       1       1    1      1</span></span>
-<span><span class="co">#&gt; 5       1       0       0       1    1      1</span></span>
-<span><span class="co">#&gt; 6       1       0       0       1    0      1</span></span>
-<span><span class="co">#&gt; 7       1       0       1       0    1      0</span></span>
-<span><span class="co">#&gt; 8       1       0       1       1    0      1</span></span>
-<span><span class="co">#&gt; 9       0       0       0       0    0      0</span></span>
-<span><span class="co">#&gt; 10      0       0       0       1    1      0</span></span>
-<span><span class="co">#&gt; 11      0       0       1       1    1      1</span></span>
-<span><span class="co">#&gt; 12      0       1       1       1    1      1</span></span>
-<span><span class="co">#&gt; 13      0       1       1       1    0      1</span></span>
-<span><span class="co">#&gt; 14      1       0       1       1    0      0</span></span>
-<span><span class="co">#&gt; 15      0       1       0       0    1      1</span></span>
-<span><span class="co">#&gt; 16      1       0       0       0    0      0</span></span>
-<span><span class="co">#&gt; 17      0       1       1       0    0      1</span></span>
-<span><span class="co">#&gt; 18      0       0       0       0    0      1</span></span>
-<span><span class="co">#&gt; 19      1       1       0       1    1      1</span></span>
-<span><span class="co">#&gt; 20      1       0       1       0    1      0</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="coxgpls">coxgpls<a class="anchor" aria-label="anchor" href="#coxgpls"></a>
-</h3>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_gpls_fit</span><span class="op">=</span><span class="fu"><a href="reference/coxgpls.html">coxgpls</a></span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_gpls_fit</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gpls)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;          coef exp(coef) se(coef)      z      p</span></span>
-<span><span class="co">#&gt; dim.1 -0.5771    0.5615   0.2266 -2.546 0.0109</span></span>
-<span><span class="co">#&gt; dim.2 -0.6350    0.5299   0.2798 -2.269 0.0233</span></span>
-<span><span class="co">#&gt; dim.3 -0.5675    0.5670   0.2358 -2.407 0.0161</span></span>
-<span><span class="co">#&gt; dim.4  0.2900    1.3365   0.2897  1.001 0.3167</span></span>
-<span><span class="co">#&gt; dim.5 -0.3797    0.6841   0.2272 -1.671 0.0947</span></span>
-<span><span class="co">#&gt; dim.6  0.2398    1.2710   0.2790  0.860 0.3899</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=26.12  on 6 df, p=0.0002119</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_gpls_fit2</span><span class="op">=</span><span class="fu"><a href="reference/coxgpls.html">coxgpls</a></span><span class="op">(</span><span class="op">~</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_gpls_fit2</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gpls)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;          coef exp(coef) se(coef)      z      p</span></span>
-<span><span class="co">#&gt; dim.1 -0.5771    0.5615   0.2266 -2.546 0.0109</span></span>
-<span><span class="co">#&gt; dim.2 -0.6350    0.5299   0.2798 -2.269 0.0233</span></span>
-<span><span class="co">#&gt; dim.3 -0.5675    0.5670   0.2358 -2.407 0.0161</span></span>
-<span><span class="co">#&gt; dim.4  0.2900    1.3365   0.2897  1.001 0.3167</span></span>
-<span><span class="co">#&gt; dim.5 -0.3797    0.6841   0.2272 -1.671 0.0947</span></span>
-<span><span class="co">#&gt; dim.6  0.2398    1.2710   0.2790  0.860 0.3899</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=26.12  on 6 df, p=0.0002119</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_gpls_fit3</span><span class="op">=</span><span class="fu"><a href="reference/coxgpls.html">coxgpls</a></span><span class="op">(</span><span class="op">~</span><span class="va">.</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,</span>
-<span>dataXplan<span class="op">=</span><span class="va">X_train_micro_df</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_gpls_fit3</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gpls)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;          coef exp(coef) se(coef)      z      p</span></span>
-<span><span class="co">#&gt; dim.1 -0.5771    0.5615   0.2266 -2.546 0.0109</span></span>
-<span><span class="co">#&gt; dim.2 -0.6350    0.5299   0.2798 -2.269 0.0233</span></span>
-<span><span class="co">#&gt; dim.3 -0.5675    0.5670   0.2358 -2.407 0.0161</span></span>
-<span><span class="co">#&gt; dim.4  0.2900    1.3365   0.2897  1.001 0.3167</span></span>
-<span><span class="co">#&gt; dim.5 -0.3797    0.6841   0.2272 -1.671 0.0947</span></span>
-<span><span class="co">#&gt; dim.6  0.2398    1.2710   0.2790  0.860 0.3899</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=26.12  on 6 df, p=0.0002119</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">cox_gpls_fit</span>,<span class="va">cox_gpls_fit2</span>,<span class="va">cox_gpls_fit3</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="cvcoxgpls">cv.coxgpls<a class="anchor" aria-label="anchor" href="#cvcoxgpls"></a>
-</h3>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
-<span><span class="va">cv.coxgpls.res</span><span class="op">=</span><span class="fu"><a href="reference/cv.coxgpls.html">cv.coxgpls</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X_train_micro</span>,time<span class="op">=</span><span class="va">Y_train_micro</span>, status<span class="op">=</span><span class="va">C_train_micro</span><span class="op">)</span>,nt<span class="op">=</span><span class="fl">10</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; CV Fold 1</span></span>
-<span><span class="co">#&gt; CV Fold 2</span></span>
-<span><span class="co">#&gt; CV Fold 3</span></span>
-<span><span class="co">#&gt; CV Fold 4</span></span>
-<span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
-<div class="figure">
-<img src="reference/figures/README-cvcoxgpls-1.png" alt="plot of chunk cvcoxgpls" width="100%"><p class="caption">
-plot of chunk cvcoxgpls
-</p>
-</div>
-</div>
-<div class="section level3">
-<h3 id="coxgplsdr">coxgplsDR<a class="anchor" aria-label="anchor" href="#coxgplsdr"></a>
-</h3>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_gplsDR_fit</span><span class="op">=</span><span class="fu"><a href="reference/coxgplsDR.html">coxgplsDR</a></span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_gplsDR_fit</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;         coef exp(coef) se(coef)     z        p</span></span>
-<span><span class="co">#&gt; dim.1 0.7784    2.1781   0.1987 3.917 8.96e-05</span></span>
-<span><span class="co">#&gt; dim.2 0.9626    2.6186   0.2982 3.228  0.00125</span></span>
-<span><span class="co">#&gt; dim.3 0.9110    2.4868   0.4075 2.236  0.02536</span></span>
-<span><span class="co">#&gt; dim.4 0.9022    2.4650   0.4004 2.253  0.02424</span></span>
-<span><span class="co">#&gt; dim.5 0.1844    1.2026   0.2664 0.692  0.48865</span></span>
-<span><span class="co">#&gt; dim.6 0.7448    2.1059   0.4228 1.761  0.07819</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=54.95  on 6 df, p=4.745e-10</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_gplsDR_fit2</span><span class="op">=</span><span class="fu"><a href="reference/coxgplsDR.html">coxgplsDR</a></span><span class="op">(</span><span class="op">~</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_gplsDR_fit2</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;         coef exp(coef) se(coef)     z        p</span></span>
-<span><span class="co">#&gt; dim.1 0.7784    2.1781   0.1987 3.917 8.96e-05</span></span>
-<span><span class="co">#&gt; dim.2 0.9626    2.6186   0.2982 3.228  0.00125</span></span>
-<span><span class="co">#&gt; dim.3 0.9110    2.4868   0.4075 2.236  0.02536</span></span>
-<span><span class="co">#&gt; dim.4 0.9022    2.4650   0.4004 2.253  0.02424</span></span>
-<span><span class="co">#&gt; dim.5 0.1844    1.2026   0.2664 0.692  0.48865</span></span>
-<span><span class="co">#&gt; dim.6 0.7448    2.1059   0.4228 1.761  0.07819</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=54.95  on 6 df, p=4.745e-10</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_gplsDR_fit3</span><span class="op">=</span><span class="fu"><a href="reference/coxgplsDR.html">coxgplsDR</a></span><span class="op">(</span><span class="op">~</span><span class="va">.</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,</span>
-<span>dataXplan<span class="op">=</span><span class="va">X_train_micro_df</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_gplsDR_fit3</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_gplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;         coef exp(coef) se(coef)     z        p</span></span>
-<span><span class="co">#&gt; dim.1 0.7784    2.1781   0.1987 3.917 8.96e-05</span></span>
-<span><span class="co">#&gt; dim.2 0.9626    2.6186   0.2982 3.228  0.00125</span></span>
-<span><span class="co">#&gt; dim.3 0.9110    2.4868   0.4075 2.236  0.02536</span></span>
-<span><span class="co">#&gt; dim.4 0.9022    2.4650   0.4004 2.253  0.02424</span></span>
-<span><span class="co">#&gt; dim.5 0.1844    1.2026   0.2664 0.692  0.48865</span></span>
-<span><span class="co">#&gt; dim.6 0.7448    2.1059   0.4228 1.761  0.07819</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=54.95  on 6 df, p=4.745e-10</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">cox_gplsDR_fit</span>,<span class="va">cox_gplsDR_fit2</span>,<span class="va">cox_gplsDR_fit3</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="cvcoxgplsdr">cv.coxgplsDR<a class="anchor" aria-label="anchor" href="#cvcoxgplsdr"></a>
-</h3>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">cv.coxsplsDR.res</span><span class="op">=</span><span class="fu"><a href="reference/cv.coxgplsDR.html">cv.coxgplsDR</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X_train_micro</span>,time<span class="op">=</span><span class="va">Y_train_micro</span>, status<span class="op">=</span><span class="va">C_train_micro</span><span class="op">)</span>,nt<span class="op">=</span><span class="fl">10</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; CV Fold 1</span></span>
-<span><span class="co">#&gt; CV Fold 2</span></span>
-<span><span class="co">#&gt; CV Fold 3</span></span>
-<span><span class="co">#&gt; CV Fold 4</span></span>
-<span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
-<div class="figure">
-<img src="reference/figures/README-cvcoxgplsDR-1.png" alt="plot of chunk cvcoxgplsDR" width="100%"><p class="caption">
-plot of chunk cvcoxgplsDR
-</p>
-</div>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cv.coxsplsDR.res</span></span>
-<span><span class="co">#&gt; $nt</span></span>
-<span><span class="co">#&gt; [1] 10</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $cv.error10</span></span>
-<span><span class="co">#&gt;  [1] 0.5000000 0.6786893 0.6913293 0.6485690 0.6656184 0.6591497 0.6733976 0.6252317 0.6388320 0.6592004 0.6589521</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $cv.se10</span></span>
-<span><span class="co">#&gt;  [1] 0.00000000 0.04017423 0.02726346 0.03897730 0.03874068 0.04042522 0.03952962 0.04645295 0.04782038 0.05168926</span></span>
-<span><span class="co">#&gt; [11] 0.05259748</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds</span></span>
-<span><span class="co">#&gt; $folds$`1`</span></span>
-<span><span class="co">#&gt;  [1] 60  3  2 14 77  6 50  4 72 32 22  1 41 21 63 25</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`2`</span></span>
-<span><span class="co">#&gt;  [1] 42 67 65 15 73 48 57 26  7 13 31 53  5 27 37 64</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`3`</span></span>
-<span><span class="co">#&gt;  [1] 71 23 56 35 75 29 30 18 62 44 12 33 68 49 43 55</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`4`</span></span>
-<span><span class="co">#&gt;  [1] 54 76 24 16 34 66  9 11 69 40 70 36 39  8 19 20</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`5`</span></span>
-<span><span class="co">#&gt;  [1] 74 38 46 80 47 78 10 45 51 28 61 79 58 17 52 59</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $lambda.min10</span></span>
-<span><span class="co">#&gt; [1] 2</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $lambda.1se10</span></span>
-<span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="coxdkgplsdr">coxDKgplsDR<a class="anchor" aria-label="anchor" href="#coxdkgplsdr"></a>
-</h3>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_DKsplsDR_fit</span><span class="op">=</span><span class="fu"><a href="reference/coxDKgplsDR.html">coxDKgplsDR</a></span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>, validation<span class="op">=</span><span class="st">"CV"</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>,verbose<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.0122308</span></span>
-<span><span class="va">cox_DKsplsDR_fit</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_DKgplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;            coef exp(coef)  se(coef)     z       p</span></span>
-<span><span class="co">#&gt; dim.1 2.902e+00 1.821e+01 1.112e+00 2.609 0.00909</span></span>
-<span><span class="co">#&gt; dim.2 8.207e+00 3.667e+03 2.637e+00 3.112 0.00186</span></span>
-<span><span class="co">#&gt; dim.3 5.660e+00 2.871e+02 1.971e+00 2.872 0.00408</span></span>
-<span><span class="co">#&gt; dim.4 1.607e+01 9.535e+06 5.250e+00 3.061 0.00221</span></span>
-<span><span class="co">#&gt; dim.5 3.828e+00 4.596e+01 2.040e+00 1.876 0.06062</span></span>
-<span><span class="co">#&gt; dim.6 1.067e+01 4.288e+04 4.068e+00 2.622 0.00874</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=66.76  on 6 df, p=1.88e-12</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_DKsplsDR_fit2</span><span class="op">=</span><span class="fu"><a href="reference/coxDKgplsDR.html">coxDKgplsDR</a></span><span class="op">(</span><span class="op">~</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>, validation<span class="op">=</span><span class="st">"CV"</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_DKsplsDR_fit2</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_DKgplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;            coef exp(coef)  se(coef)     z       p</span></span>
-<span><span class="co">#&gt; dim.1 2.885e+00 1.790e+01 1.107e+00 2.607 0.00914</span></span>
-<span><span class="co">#&gt; dim.2 8.022e+00 3.046e+03 2.582e+00 3.106 0.00189</span></span>
-<span><span class="co">#&gt; dim.3 5.456e+00 2.341e+02 1.896e+00 2.877 0.00401</span></span>
-<span><span class="co">#&gt; dim.4 1.568e+01 6.460e+06 5.125e+00 3.060 0.00222</span></span>
-<span><span class="co">#&gt; dim.5 3.757e+00 4.282e+01 2.019e+00 1.860 0.06283</span></span>
-<span><span class="co">#&gt; dim.6 1.056e+01 3.866e+04 4.077e+00 2.591 0.00958</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=66.12  on 6 df, p=2.543e-12</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_DKsplsDR_fit3</span><span class="op">=</span><span class="fu"><a href="reference/coxDKgplsDR.html">coxDKgplsDR</a></span><span class="op">(</span><span class="op">~</span><span class="va">.</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,</span>
-<span>validation<span class="op">=</span><span class="st">"CV"</span>,dataXplan<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">X_train_micro</span><span class="op">)</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_DKsplsDR_fit3</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_DKgplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;            coef exp(coef)  se(coef)     z       p</span></span>
-<span><span class="co">#&gt; dim.1 3.043e+00 2.097e+01 1.157e+00 2.630 0.00854</span></span>
-<span><span class="co">#&gt; dim.2 9.096e+00 8.918e+03 2.926e+00 3.109 0.00188</span></span>
-<span><span class="co">#&gt; dim.3 6.658e+00 7.792e+02 2.358e+00 2.824 0.00474</span></span>
-<span><span class="co">#&gt; dim.4 1.772e+01 4.972e+07 5.815e+00 3.047 0.00231</span></span>
-<span><span class="co">#&gt; dim.5 4.140e+00 6.279e+01 2.134e+00 1.940 0.05240</span></span>
-<span><span class="co">#&gt; dim.6 1.100e+01 5.989e+04 4.047e+00 2.718 0.00656</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=69.44  on 6 df, p=5.327e-13</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">cox_DKsplsDR_fit</span>, <span class="va">cox_DKsplsDR_fit2</span>, <span class="va">cox_DKsplsDR_fit3</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="cvcoxdkgplsdr">cv.coxDKgPLSDR<a class="anchor" aria-label="anchor" href="#cvcoxdkgplsdr"></a>
-</h3>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">cv.coxDKgplsDR.res</span><span class="op">=</span><span class="fu"><a href="reference/cv.coxDKgplsDR.html">cv.coxDKgplsDR</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X_train_micro</span>,time<span class="op">=</span><span class="va">Y_train_micro</span>, status<span class="op">=</span><span class="va">C_train_micro</span><span class="op">)</span>,nt<span class="op">=</span><span class="fl">10</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01257168</span></span>
-<span><span class="co">#&gt; CV Fold 1 </span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01198263</span></span>
-<span><span class="co">#&gt; CV Fold 2 </span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01156809</span></span>
-<span><span class="co">#&gt; CV Fold 3 </span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01287851</span></span>
-<span><span class="co">#&gt; CV Fold 4 </span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01127231</span></span>
-<span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
-<div class="figure">
-<img src="reference/figures/README-cvcoxDKgplsDR-1.png" alt="plot of chunk cvcoxDKgplsDR" width="100%"><p class="caption">
-plot of chunk cvcoxDKgplsDR
-</p>
-</div>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cv.coxDKgplsDR.res</span></span>
-<span><span class="co">#&gt; $nt</span></span>
-<span><span class="co">#&gt; [1] 10</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $cv.error10</span></span>
-<span><span class="co">#&gt;  [1] 0.5000000 0.6381540 0.6963262 0.6537039 0.6204813 0.6886401 0.6632860 0.6349883 0.6762113 0.6261072 0.6087014</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $cv.se10</span></span>
-<span><span class="co">#&gt;  [1] 0.00000000 0.03036225 0.02912723 0.04020941 0.03577022 0.03542745 0.03283778 0.04532447 0.03390654 0.02968504</span></span>
-<span><span class="co">#&gt; [11] 0.03306444</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds</span></span>
-<span><span class="co">#&gt; $folds$`1`</span></span>
-<span><span class="co">#&gt;  [1] 60  3  2 14 77  6 50  4 72 32 22  1 41 21 63 25</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`2`</span></span>
-<span><span class="co">#&gt;  [1] 42 67 65 15 73 48 57 26  7 13 31 53  5 27 37 64</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`3`</span></span>
-<span><span class="co">#&gt;  [1] 71 23 56 35 75 29 30 18 62 44 12 33 68 49 43 55</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`4`</span></span>
-<span><span class="co">#&gt;  [1] 54 76 24 16 34 66  9 11 69 40 70 36 39  8 19 20</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`5`</span></span>
-<span><span class="co">#&gt;  [1] 74 38 46 80 47 78 10 45 51 28 61 79 58 17 52 59</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $lambda.min10</span></span>
-<span><span class="co">#&gt; [1] 2</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $lambda.1se10</span></span>
-<span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="coxsgpls">coxsgpls<a class="anchor" aria-label="anchor" href="#coxsgpls"></a>
-</h3>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_sgpls_fit</span><span class="op">=</span><span class="fu"><a href="reference/coxsgpls.html">coxsgpls</a></span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_sgpls_fit</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_sgpls)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;          coef exp(coef) se(coef)      z      p</span></span>
-<span><span class="co">#&gt; dim.1 -0.7429    0.4757   0.2647 -2.807 0.0050</span></span>
-<span><span class="co">#&gt; dim.2 -0.4003    0.6701   0.2622 -1.527 0.1268</span></span>
-<span><span class="co">#&gt; dim.3 -0.6329    0.5310   0.2930 -2.160 0.0308</span></span>
-<span><span class="co">#&gt; dim.4 -0.5733    0.5637   0.2591 -2.213 0.0269</span></span>
-<span><span class="co">#&gt; dim.5  0.1578    1.1709   0.2375  0.664 0.5064</span></span>
-<span><span class="co">#&gt; dim.6 -0.2209    0.8018   0.3337 -0.662 0.5079</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=21.77  on 6 df, p=0.001331</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_sgpls_fit2</span><span class="op">=</span><span class="fu"><a href="reference/coxsgpls.html">coxsgpls</a></span><span class="op">(</span><span class="op">~</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_sgpls_fit2</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_sgpls)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;          coef exp(coef) se(coef)      z      p</span></span>
-<span><span class="co">#&gt; dim.1 -0.7429    0.4757   0.2647 -2.807 0.0050</span></span>
-<span><span class="co">#&gt; dim.2 -0.4003    0.6701   0.2622 -1.527 0.1268</span></span>
-<span><span class="co">#&gt; dim.3 -0.6329    0.5310   0.2930 -2.160 0.0308</span></span>
-<span><span class="co">#&gt; dim.4 -0.5733    0.5637   0.2591 -2.213 0.0269</span></span>
-<span><span class="co">#&gt; dim.5  0.1578    1.1709   0.2375  0.664 0.5064</span></span>
-<span><span class="co">#&gt; dim.6 -0.2209    0.8018   0.3337 -0.662 0.5079</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=21.77  on 6 df, p=0.001331</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_sgpls_fit3</span><span class="op">=</span><span class="fu"><a href="reference/coxsgpls.html">coxsgpls</a></span><span class="op">(</span><span class="op">~</span><span class="va">.</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,</span>
-<span>dataXplan<span class="op">=</span><span class="va">X_train_micro_df</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_sgpls_fit3</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_sgpls)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;          coef exp(coef) se(coef)      z      p</span></span>
-<span><span class="co">#&gt; dim.1 -0.7429    0.4757   0.2647 -2.807 0.0050</span></span>
-<span><span class="co">#&gt; dim.2 -0.4003    0.6701   0.2622 -1.527 0.1268</span></span>
-<span><span class="co">#&gt; dim.3 -0.6329    0.5310   0.2930 -2.160 0.0308</span></span>
-<span><span class="co">#&gt; dim.4 -0.5733    0.5637   0.2591 -2.213 0.0269</span></span>
-<span><span class="co">#&gt; dim.5  0.1578    1.1709   0.2375  0.664 0.5064</span></span>
-<span><span class="co">#&gt; dim.6 -0.2209    0.8018   0.3337 -0.662 0.5079</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=21.77  on 6 df, p=0.001331</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">cox_sgpls_fit</span>,<span class="va">cox_sgpls_fit2</span>,<span class="va">cox_sgpls_fit3</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="cvcoxsgpls">cv.coxsgpls<a class="anchor" aria-label="anchor" href="#cvcoxsgpls"></a>
-</h3>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
-<span><span class="va">cv.coxsgpls.res</span><span class="op">=</span><span class="fu"><a href="reference/cv.coxsgpls.html">cv.coxsgpls</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X_train_micro</span>,time<span class="op">=</span><span class="va">Y_train_micro</span>, status<span class="op">=</span><span class="va">C_train_micro</span><span class="op">)</span>,nt<span class="op">=</span><span class="fl">10</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; CV Fold 1</span></span>
-<span><span class="co">#&gt; CV Fold 2</span></span>
-<span><span class="co">#&gt; CV Fold 3</span></span>
-<span><span class="co">#&gt; CV Fold 4</span></span>
-<span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
-<div class="figure">
-<img src="reference/figures/README-cvcoxsgls-1.png" alt="plot of chunk cvcoxsgls" width="100%"><p class="caption">
-plot of chunk cvcoxsgls
-</p>
-</div>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cv.coxsgpls.res</span></span>
-<span><span class="co">#&gt; $nt</span></span>
-<span><span class="co">#&gt; [1] 10</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $cv.error10</span></span>
-<span><span class="co">#&gt;  [1] 0.5000000 0.4217599 0.5382923 0.5519544 0.5656905 0.6314850 0.5693082 0.5326229 0.5315857 0.5420410 0.5542452</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $cv.se10</span></span>
-<span><span class="co">#&gt;  [1] 0.00000000 0.03195833 0.02746499 0.03490158 0.02550641 0.04067144 0.03223606 0.03644131 0.03369888 0.03727618</span></span>
-<span><span class="co">#&gt; [11] 0.03369400</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds</span></span>
-<span><span class="co">#&gt; $folds$`1`</span></span>
-<span><span class="co">#&gt;  [1] 60  3  2 14 77  6 50  4 72 32 22  1 41 21 63 25</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`2`</span></span>
-<span><span class="co">#&gt;  [1] 42 67 65 15 73 48 57 26  7 13 31 53  5 27 37 64</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`3`</span></span>
-<span><span class="co">#&gt;  [1] 71 23 56 35 75 29 30 18 62 44 12 33 68 49 43 55</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`4`</span></span>
-<span><span class="co">#&gt;  [1] 54 76 24 16 34 66  9 11 69 40 70 36 39  8 19 20</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`5`</span></span>
-<span><span class="co">#&gt;  [1] 74 38 46 80 47 78 10 45 51 28 61 79 58 17 52 59</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $lambda.min10</span></span>
-<span><span class="co">#&gt; [1] 5</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $lambda.1se10</span></span>
-<span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="coxsgplsdr">coxsgplsDR<a class="anchor" aria-label="anchor" href="#coxsgplsdr"></a>
-</h3>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_sgplsDR_fit</span><span class="op">=</span><span class="fu"><a href="reference/coxsgplsDR.html">coxsgplsDR</a></span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_sgplsDR_fit</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_sgplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           coef exp(coef) se(coef)      z        p</span></span>
-<span><span class="co">#&gt; dim.1  0.85431   2.34976  0.24239  3.525 0.000424</span></span>
-<span><span class="co">#&gt; dim.2  0.96004   2.61180  0.29938  3.207 0.001342</span></span>
-<span><span class="co">#&gt; dim.3  1.64702   5.19149  0.69268  2.378 0.017419</span></span>
-<span><span class="co">#&gt; dim.4  0.23137   1.26033  0.23656  0.978 0.328037</span></span>
-<span><span class="co">#&gt; dim.5 -0.06767   0.93457  0.30587 -0.221 0.824917</span></span>
-<span><span class="co">#&gt; dim.6  0.37661   1.45734  0.36468  1.033 0.301734</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=53.66  on 6 df, p=8.658e-10</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_sgplsDR_fit2</span><span class="op">=</span><span class="fu"><a href="reference/coxsgplsDR.html">coxsgplsDR</a></span><span class="op">(</span><span class="op">~</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_sgplsDR_fit2</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_sgplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           coef exp(coef) se(coef)      z        p</span></span>
-<span><span class="co">#&gt; dim.1  0.85431   2.34976  0.24239  3.525 0.000424</span></span>
-<span><span class="co">#&gt; dim.2  0.96004   2.61180  0.29938  3.207 0.001342</span></span>
-<span><span class="co">#&gt; dim.3  1.64702   5.19149  0.69268  2.378 0.017419</span></span>
-<span><span class="co">#&gt; dim.4  0.23137   1.26033  0.23656  0.978 0.328037</span></span>
-<span><span class="co">#&gt; dim.5 -0.06767   0.93457  0.30587 -0.221 0.824917</span></span>
-<span><span class="co">#&gt; dim.6  0.37661   1.45734  0.36468  1.033 0.301734</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=53.66  on 6 df, p=8.658e-10</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_sgplsDR_fit3</span><span class="op">=</span><span class="fu"><a href="reference/coxsgplsDR.html">coxsgplsDR</a></span><span class="op">(</span><span class="op">~</span><span class="va">.</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>, dataXplan<span class="op">=</span><span class="va">X_train_micro_df</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_sgplsDR_fit3</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_sgplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           coef exp(coef) se(coef)      z        p</span></span>
-<span><span class="co">#&gt; dim.1  0.85431   2.34976  0.24239  3.525 0.000424</span></span>
-<span><span class="co">#&gt; dim.2  0.96004   2.61180  0.29938  3.207 0.001342</span></span>
-<span><span class="co">#&gt; dim.3  1.64702   5.19149  0.69268  2.378 0.017419</span></span>
-<span><span class="co">#&gt; dim.4  0.23137   1.26033  0.23656  0.978 0.328037</span></span>
-<span><span class="co">#&gt; dim.5 -0.06767   0.93457  0.30587 -0.221 0.824917</span></span>
-<span><span class="co">#&gt; dim.6  0.37661   1.45734  0.36468  1.033 0.301734</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=53.66  on 6 df, p=8.658e-10</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">cox_sgplsDR_fit</span>,<span class="va">cox_sgplsDR_fit2</span>,<span class="va">cox_sgplsDR_fit3</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="cvcoxsgplsdr">cv.coxsgplsDR<a class="anchor" aria-label="anchor" href="#cvcoxsgplsdr"></a>
-</h3>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4669</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">cv.coxsgplsDR.res</span><span class="op">=</span><span class="fu"><a href="reference/cv.coxsgplsDR.html">cv.coxsgplsDR</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X_train_micro</span>,time<span class="op">=</span><span class="va">Y_train_micro</span>, status<span class="op">=</span><span class="va">C_train_micro</span><span class="op">)</span>,nt<span class="op">=</span><span class="fl">10</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; CV Fold 1</span></span>
-<span><span class="co">#&gt; CV Fold 2</span></span>
-<span><span class="co">#&gt; CV Fold 3</span></span>
-<span><span class="co">#&gt; CV Fold 4</span></span>
-<span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
-<div class="figure">
-<img src="reference/figures/README-cvcoxsgplsDR-1.png" alt="plot of chunk cvcoxsgplsDR" width="100%"><p class="caption">
-plot of chunk cvcoxsgplsDR
-</p>
-</div>
-</div>
-<div class="section level3">
-<h3 id="coxdksgplsdr">coxDKsgplsDR<a class="anchor" aria-label="anchor" href="#coxdksgplsdr"></a>
-</h3>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_DKsgplsDR_fit</span><span class="op">=</span><span class="fu"><a href="reference/coxDKsgplsDR.html">coxDKsgplsDR</a></span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>, validation<span class="op">=</span><span class="st">"CV"</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">10</span><span class="op">)</span>,verbose<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01231673</span></span>
-<span><span class="va">cox_DKsgplsDR_fit</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_sgplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           coef exp(coef) se(coef)      z        p</span></span>
-<span><span class="co">#&gt; dim.1  0.85431   2.34976  0.24239  3.525 0.000424</span></span>
-<span><span class="co">#&gt; dim.2  0.96004   2.61180  0.29938  3.207 0.001342</span></span>
-<span><span class="co">#&gt; dim.3  1.64702   5.19149  0.69268  2.378 0.017419</span></span>
-<span><span class="co">#&gt; dim.4  0.23137   1.26033  0.23656  0.978 0.328037</span></span>
-<span><span class="co">#&gt; dim.5 -0.06767   0.93457  0.30587 -0.221 0.824917</span></span>
-<span><span class="co">#&gt; dim.6  0.37661   1.45734  0.36468  1.033 0.301734</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=53.66  on 6 df, p=8.658e-10</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_DKsgplsDR_fit2</span><span class="op">=</span><span class="fu"><a href="reference/coxDKsgplsDR.html">coxDKsgplsDR</a></span><span class="op">(</span><span class="op">~</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>, validation<span class="op">=</span><span class="st">"CV"</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_DKsgplsDR_fit2</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_sgplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           coef exp(coef) se(coef)      z        p</span></span>
-<span><span class="co">#&gt; dim.1  0.85431   2.34976  0.24239  3.525 0.000424</span></span>
-<span><span class="co">#&gt; dim.2  0.96004   2.61180  0.29938  3.207 0.001342</span></span>
-<span><span class="co">#&gt; dim.3  1.64702   5.19149  0.69268  2.378 0.017419</span></span>
-<span><span class="co">#&gt; dim.4  0.23137   1.26033  0.23656  0.978 0.328037</span></span>
-<span><span class="co">#&gt; dim.5 -0.06767   0.93457  0.30587 -0.221 0.824917</span></span>
-<span><span class="co">#&gt; dim.6  0.37661   1.45734  0.36468  1.033 0.301734</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=53.66  on 6 df, p=8.658e-10</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_DKsgplsDR_fit3</span><span class="op">=</span><span class="fu"><a href="reference/coxDKsgplsDR.html">coxDKsgplsDR</a></span><span class="op">(</span><span class="op">~</span><span class="va">.</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>, validation<span class="op">=</span><span class="st">"CV"</span>,dataXplan<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">X_train_micro</span><span class="op">)</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_DKsgplsDR_fit3</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_sgplsDR)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           coef exp(coef) se(coef)      z        p</span></span>
-<span><span class="co">#&gt; dim.1  0.85431   2.34976  0.24239  3.525 0.000424</span></span>
-<span><span class="co">#&gt; dim.2  0.96004   2.61180  0.29938  3.207 0.001342</span></span>
-<span><span class="co">#&gt; dim.3  1.64702   5.19149  0.69268  2.378 0.017419</span></span>
-<span><span class="co">#&gt; dim.4  0.23137   1.26033  0.23656  0.978 0.328037</span></span>
-<span><span class="co">#&gt; dim.5 -0.06767   0.93457  0.30587 -0.221 0.824917</span></span>
-<span><span class="co">#&gt; dim.6  0.37661   1.45734  0.36468  1.033 0.301734</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=53.66  on 6 df, p=8.658e-10</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">cox_DKsgplsDR_fit</span>, <span class="va">cox_DKsgplsDR_fit2</span>, <span class="va">cox_DKsgplsDR_fit3</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="cvcoxdkgplsdr-1">cv.coxDKgplsDR<a class="anchor" aria-label="anchor" href="#cvcoxdkgplsdr-1"></a>
-</h3>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">cv.coxDKgplsDR.res</span><span class="op">=</span><span class="fu"><a href="reference/cv.coxDKgplsDR.html">cv.coxDKgplsDR</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X_train_micro</span>,time<span class="op">=</span><span class="va">Y_train_micro</span>, status<span class="op">=</span><span class="va">C_train_micro</span><span class="op">)</span>,nt<span class="op">=</span><span class="fl">10</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01257168</span></span>
-<span><span class="co">#&gt; CV Fold 1 </span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01198263</span></span>
-<span><span class="co">#&gt; CV Fold 2 </span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01156809</span></span>
-<span><span class="co">#&gt; CV Fold 3 </span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01287851</span></span>
-<span><span class="co">#&gt; CV Fold 4 </span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01127231</span></span>
-<span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
-<div class="figure">
-<img src="reference/figures/README-cvcoxDKgplsDR2-1.png" alt="plot of chunk cvcoxDKgplsDR2" width="100%"><p class="caption">
-plot of chunk cvcoxDKgplsDR2
-</p>
-</div>
-</div>
-<div class="section level3">
-<h3 id="coxspls_sgpls">coxspls_sgpls<a class="anchor" aria-label="anchor" href="#coxspls_sgpls"></a>
-</h3>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_coxspls_sgpls_fit</span><span class="op">=</span><span class="fu"><a href="reference/coxspls_sgpls.html">coxspls_sgpls</a></span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,keepX <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_coxspls_sgpls_fit</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_spls_sgpls)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           coef exp(coef) se(coef)      z       p</span></span>
-<span><span class="co">#&gt; dim.1 -0.86093   0.42277  0.31260 -2.754 0.00589</span></span>
-<span><span class="co">#&gt; dim.2 -0.07828   0.92471  0.29744 -0.263 0.79242</span></span>
-<span><span class="co">#&gt; dim.3 -0.65945   0.51714  0.30904 -2.134 0.03285</span></span>
-<span><span class="co">#&gt; dim.4 -0.02423   0.97606  0.32508 -0.075 0.94058</span></span>
-<span><span class="co">#&gt; dim.5 -0.29968   0.74106  0.30668 -0.977 0.32849</span></span>
-<span><span class="co">#&gt; dim.6 -0.31284   0.73137  0.24256 -1.290 0.19714</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=15.83  on 6 df, p=0.01468</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_coxspls_sgpls_fit2</span><span class="op">=</span><span class="fu"><a href="reference/coxspls_sgpls.html">coxspls_sgpls</a></span><span class="op">(</span><span class="op">~</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,ind.keepX <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_coxspls_sgpls_fit2</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_spls_sgpls)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;            coef exp(coef)  se(coef)      z      p</span></span>
-<span><span class="co">#&gt; dim.1 -0.295124  0.744439  0.260495 -1.133 0.2572</span></span>
-<span><span class="co">#&gt; dim.2 -0.652196  0.520901  0.323480 -2.016 0.0438</span></span>
-<span><span class="co">#&gt; dim.3 -0.445224  0.640681  0.278859 -1.597 0.1104</span></span>
-<span><span class="co">#&gt; dim.4 -0.069023  0.933305  0.276956 -0.249 0.8032</span></span>
-<span><span class="co">#&gt; dim.5  0.044924  1.045948  0.275060  0.163 0.8703</span></span>
-<span><span class="co">#&gt; dim.6 -0.005691  0.994325  0.303281 -0.019 0.9850</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=8.81  on 6 df, p=0.1845</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_coxspls_sgpls_fit3</span><span class="op">=</span><span class="fu"><a href="reference/coxspls_sgpls.html">coxspls_sgpls</a></span><span class="op">(</span><span class="op">~</span><span class="va">.</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>, dataXplan<span class="op">=</span><span class="va">X_train_micro_df</span>,keepX <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cox_coxspls_sgpls_fit3</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_spls_sgpls)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           coef exp(coef) se(coef)      z       p</span></span>
-<span><span class="co">#&gt; dim.1 -0.86093   0.42277  0.31260 -2.754 0.00589</span></span>
-<span><span class="co">#&gt; dim.2 -0.07828   0.92471  0.29744 -0.263 0.79242</span></span>
-<span><span class="co">#&gt; dim.3 -0.65945   0.51714  0.30904 -2.134 0.03285</span></span>
-<span><span class="co">#&gt; dim.4 -0.02423   0.97606  0.32508 -0.075 0.94058</span></span>
-<span><span class="co">#&gt; dim.5 -0.29968   0.74106  0.30668 -0.977 0.32849</span></span>
-<span><span class="co">#&gt; dim.6 -0.31284   0.73137  0.24256 -1.290 0.19714</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=15.83  on 6 df, p=0.01468</span></span>
-<span><span class="co">#&gt; n= 80, number of events= 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">cox_coxspls_sgpls_fit</span>, <span class="va">cox_coxspls_sgpls_fit2</span>, <span class="va">cox_coxspls_sgpls_fit3</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="cvcoxspls_sgpls">cv.coxspls_sgpls<a class="anchor" aria-label="anchor" href="#cvcoxspls_sgpls"></a>
-</h3>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
-<span><span class="op">(</span><span class="va">cv.coxspls_sgpls.res</span><span class="op">=</span><span class="fu"><a href="reference/cv.coxspls_sgpls.html">cv.coxspls_sgpls</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X_train_micro</span>,time<span class="op">=</span><span class="va">Y_train_micro</span>, status<span class="op">=</span><span class="va">C_train_micro</span><span class="op">)</span>,nt<span class="op">=</span><span class="fl">10</span>, keepX <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; CV Fold 1</span></span>
-<span><span class="co">#&gt; CV Fold 2</span></span>
-<span><span class="co">#&gt; CV Fold 3</span></span>
-<span><span class="co">#&gt; CV Fold 4</span></span>
-<span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
-<div class="figure">
-<img src="reference/figures/README-cvcoxsplsDR-1.png" alt="plot of chunk cvcoxsplsDR" width="100%"><p class="caption">
-plot of chunk cvcoxsplsDR
-</p>
-</div>
-<pre><code><span><span class="co">#&gt; $nt</span></span>
-<span><span class="co">#&gt; [1] 10</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; $cv.error10</span></span>
-<span><span class="co">#&gt;  [1] 0.5000000 0.4832648 0.3002967 0.2839353 0.3828152 0.4222179 0.4471778 0.4902294 0.5282298 0.5060990 0.4823500</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; $cv.se10</span></span>
-<span><span class="co">#&gt;  [1] 0.000000000 0.044268528 0.009191356 0.008710989 0.020220150 0.030221867 0.037941448 0.029609116 0.020393025</span></span>
-<span><span class="co">#&gt; [10] 0.023001067 0.011534037</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; $folds</span></span>
-<span><span class="co">#&gt; $folds$`1`</span></span>
-<span><span class="co">#&gt;  [1] 60  3  2 14 77  6 50  4 72 32 22  1 41 21 63 25</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; $folds$`2`</span></span>
-<span><span class="co">#&gt;  [1] 42 67 65 15 73 48 57 26  7 13 31 53  5 27 37 64</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; $folds$`3`</span></span>
-<span><span class="co">#&gt;  [1] 71 23 56 35 75 29 30 18 62 44 12 33 68 49 43 55</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; $folds$`4`</span></span>
-<span><span class="co">#&gt;  [1] 54 76 24 16 34 66  9 11 69 40 70 36 39  8 19 20</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; $folds$`5`</span></span>
-<span><span class="co">#&gt;  [1] 74 38 46 80 47 78 10 45 51 28 61 79 58 17 52 59</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; $lambda.min10</span></span>
-<span><span class="co">#&gt; [1] 8</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; $lambda.1se10</span></span>
-<span><span class="co">#&gt; [1] 0</span></span></code></pre>
-</div>
-<div class="section level3">
-<h3 id="coxspls_sgplsdr">coxspls_sgplsDR<a class="anchor" aria-label="anchor" href="#coxspls_sgplsdr"></a>
-</h3>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_spls_sgplsDR_fit</span><span class="op">=</span><span class="fu"><a href="reference/coxspls_sgplsDR.html">coxspls_sgplsDR</a></span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error: alpha.x must be provided when 'ind.block.x' is specified</span></span></code></pre></div>
-<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_spls_sgplsDR_fit2</span><span class="op">=</span><span class="fu"><a href="reference/coxspls_sgplsDR.html">coxspls_sgplsDR</a></span><span class="op">(</span><span class="op">~</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error: alpha.x must be provided when 'ind.block.x' is specified</span></span></code></pre></div>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_spls_sgplsDR_fit3</span><span class="op">=</span><span class="fu"><a href="reference/coxspls_sgplsDR.html">coxspls_sgplsDR</a></span><span class="op">(</span><span class="op">~</span><span class="va">.</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,dataXplan<span class="op">=</span><span class="va">X_train_micro_df</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error: alpha.x must be provided when 'ind.block.x' is specified</span></span></code></pre></div>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">cox_spls_sgplsDR_fit</span>,<span class="va">cox_spls_sgplsDR_fit2</span>,<span class="va">cox_spls_sgplsDR_fit3</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in rm(cox_spls_sgplsDR_fit, cox_spls_sgplsDR_fit2, cox_spls_sgplsDR_fit3): object 'cox_spls_sgplsDR_fit'</span></span>
-<span><span class="co">#&gt; not found</span></span>
-<span><span class="co">#&gt; Warning in rm(cox_spls_sgplsDR_fit, cox_spls_sgplsDR_fit2, cox_spls_sgplsDR_fit3): object 'cox_spls_sgplsDR_fit2'</span></span>
-<span><span class="co">#&gt; not found</span></span>
-<span><span class="co">#&gt; Warning in rm(cox_spls_sgplsDR_fit, cox_spls_sgplsDR_fit2, cox_spls_sgplsDR_fit3): object 'cox_spls_sgplsDR_fit3'</span></span>
-<span><span class="co">#&gt; not found</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="cvcoxspls_sgplsdr">cv.coxspls_sgplsDR<a class="anchor" aria-label="anchor" href="#cvcoxspls_sgplsdr"></a>
-</h3>
-<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">cv.coxspls_sgplsDR.res</span><span class="op">=</span><span class="fu"><a href="reference/cv.coxspls_sgplsDR.html">cv.coxspls_sgplsDR</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X_train_micro</span>,time<span class="op">=</span><span class="va">Y_train_micro</span>, status<span class="op">=</span><span class="va">C_train_micro</span><span class="op">)</span>,nt<span class="op">=</span><span class="fl">10</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error: alpha.x must be provided when 'ind.block.x' is specified</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="coxdkspls_sgplsdr">coxDKspls_sgplsDR<a class="anchor" aria-label="anchor" href="#coxdkspls_sgplsdr"></a>
-</h3>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_DKspls_sgplsDR_fit</span><span class="op">=</span><span class="fu"><a href="reference/coxDKspls_sgplsDR.html">coxDKspls_sgplsDR</a></span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>, validation<span class="op">=</span><span class="st">"CV"</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>,verbose<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.0122308</span></span>
-<span><span class="co">#&gt; Error: alpha.x must be provided when 'ind.block.x' is specified</span></span></code></pre></div>
-<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_DKspls_sgplsDR_fit</span><span class="op">=</span><span class="fu"><a href="reference/coxDKspls_sgplsDR.html">coxDKspls_sgplsDR</a></span><span class="op">(</span><span class="op">~</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>, validation<span class="op">=</span><span class="st">"CV"</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error: alpha.x must be provided when 'ind.block.x' is specified</span></span></code></pre></div>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_DKspls_sgplsDR_fit</span><span class="op">=</span><span class="fu"><a href="reference/coxDKspls_sgplsDR.html">coxDKspls_sgplsDR</a></span><span class="op">(</span><span class="op">~</span><span class="va">.</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>, validation<span class="op">=</span><span class="st">"CV"</span>,dataXplan<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">X_train_micro</span><span class="op">)</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error: alpha.x must be provided when 'ind.block.x' is specified</span></span></code></pre></div>
-<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">cox_DKspls_sgplsDR_fit</span>, <span class="va">cox_DKspls_sgplsDR_fit2</span>, <span class="va">cox_DKspls_sgplsDR_fit3</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in rm(cox_DKspls_sgplsDR_fit, cox_DKspls_sgplsDR_fit2, cox_DKspls_sgplsDR_fit3): object</span></span>
-<span><span class="co">#&gt; 'cox_DKspls_sgplsDR_fit' not found</span></span>
-<span><span class="co">#&gt; Warning in rm(cox_DKspls_sgplsDR_fit, cox_DKspls_sgplsDR_fit2, cox_DKspls_sgplsDR_fit3): object</span></span>
-<span><span class="co">#&gt; 'cox_DKspls_sgplsDR_fit2' not found</span></span>
-<span><span class="co">#&gt; Warning in rm(cox_DKspls_sgplsDR_fit, cox_DKspls_sgplsDR_fit2, cox_DKspls_sgplsDR_fit3): object</span></span>
-<span><span class="co">#&gt; 'cox_DKspls_sgplsDR_fit3' not found</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="cvcoxdkspls_sgplsdr">cv.coxDKspls_sgplsDR<a class="anchor" aria-label="anchor" href="#cvcoxdkspls_sgplsdr"></a>
-</h3>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">cv.coxDKspls_sgplsDR.res</span><span class="op">=</span><span class="fu"><a href="reference/cv.coxDKspls_sgplsDR.html">cv.coxDKspls_sgplsDR</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X_train_micro</span>,time<span class="op">=</span><span class="va">Y_train_micro</span>, status<span class="op">=</span><span class="va">C_train_micro</span><span class="op">)</span>,nt<span class="op">=</span><span class="fl">10</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01257168</span></span>
-<span><span class="co">#&gt; Error: alpha.x must be provided when 'ind.block.x' is specified</span></span></code></pre></div>
-</div>
+<div class="section level2">
+<h2 id="bug-reports-and-feature-requests">Bug reports and feature requests<a class="anchor" aria-label="anchor" href="#bug-reports-and-feature-requests"></a>
+</h2>
+<p>Bug reports and feature requests can be filed on the <a href="https://github.com/fbertran/bigPLScox/issues" class="external-link">issue tracker</a>. Please make sure that new code comes with unit tests or reproducible examples when applicable.</p>
 </div>
 </div>
 

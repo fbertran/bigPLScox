@@ -1,0 +1,142 @@
+---
+title: "Getting Started with bigPLScox"
+shorttitle: "Getting Started with bigPLScox"
+author:
+- name: "Frédéric Bertrand"
+  affiliation: 
+  - Cedric, Cnam, Paris
+  email: frederic.bertrand@lecnam.net
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+  toc: true
+vignette: >
+  %\VignetteIndexEntry{Getting Started with bigPLScox}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+  
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  dpi = 150,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+# Overview
+
+The `bigPLScox` package provides Partial Least Squares (PLS) regression tools
+for Cox proportional hazards models that are designed to scale to high
+dimensional survival datasets stored as `bigmemory` matrices. This vignette
+presents a concise workflow that highlights the essential functions for
+pre-processing, modelling, and validating survival models with partial least
+squares components.
+
+# Installing the package
+
+```{r eval = FALSE}
+# From CRAN (once released)
+install.packages("bigPLScox")
+
+# Development version
+# remotes::install_github("fbertran/bigPLScox")
+```
+
+# Loading example data
+
+The package ships with a small allelotyping dataset that we will use to
+illustrate the workflow. The dataset is intentionally compact to keep the
+vignette fast to build while still demonstrating the high-dimensional setting
+that `bigPLScox` targets.
+
+```{r}
+library(bigPLScox)
+
+data(micro.censure)
+data(Xmicro.censure_compl_imp)
+
+Y_train <- micro.censure$survyear[1:80]
+status_train <- micro.censure$DC[1:80]
+X_train <- Xmicro.censure_compl_imp[1:80, -40]
+```
+
+# Exploring deviance residuals
+
+The `computeDR()` helper visualises deviance residuals to assess potential
+model misspecification before fitting the PLS components.
+
+```{r}
+residuals_plot <- computeDR(Y_train, status_train, plot = TRUE)
+head(residuals_plot)
+```
+
+# Fitting a Cox-PLS model
+
+We now fit a Cox model with six PLS components directly from the matrix of
+predictors. The `coxgpls()` function operates on `bigmemory` objects, but it
+also accepts base R matrices as in this example.
+
+```{r}
+set.seed(123)
+fit <- coxgpls(
+  Xplan = X_train,
+  time = Y_train,
+  status = status_train,
+  ncomp = 6,
+  ind.block.x = c(3, 10, 20)
+)
+
+fit
+```
+
+# Cross-validation
+
+Use `cv.coxgpls()` to select the number of PLS components by cross-validation.
+The result includes the recommended component count and time-dependent AUC
+metrics to monitor predictive performance.
+
+```{r}
+set.seed(123)
+cv_results <- cv.coxgpls(
+  data = list(x = X_train, time = Y_train, status = status_train),
+  nt = 6,
+  ind.block.x = c(3, 10, 20),
+)
+
+cv_results$opt_nt
+```
+
+# Deviance residual solver
+
+For large problems the `coxgplsDR()` solver often converges faster. The
+interface mirrors `coxgpls()` so switching between solvers is straightforward.
+
+```{r}
+data(micro.censure)
+data(Xmicro.censure_compl_imp)
+
+X_train_micro <- apply((as.matrix(Xmicro.censure_compl_imp)),FUN="as.numeric",MARGIN=2)[1:80,]
+X_train_micro_df <- data.frame(X_train_micro)
+Y_train_micro <- micro.censure$survyear[1:80]
+C_train_micro <- micro.censure$DC[1:80]
+
+
+fit_dr=coxgplsDR(X_train_micro,Y_train_micro,C_train_micro,
+ncomp=6,ind.block.x=c(3,10,15),keepX=rep(4,6))
+
+fit_dr
+```
+
+# Next steps
+
+* Explore the `inst/benchmarks` folder for scripts that compare the runtime of
+the available solvers on larger simulated datasets.
+* Review the package reference documentation and articles at
+<https://fbertran.github.io/bigPLScox/> for advanced modelling strategies,
+including sparse and kernel-based extensions.

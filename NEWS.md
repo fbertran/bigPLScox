@@ -1,21 +1,46 @@
-# bigPLScox 0.4.0 
+# bigPLScox 0.5.0
 
-* Maintainer email update
-* Added unit tests
+* Added reproducible benchmarking utilities under `inst/benchmarks` comparing
+  `big_pls_cox()` against `plsRcox::plsRcox()` on in-memory and file-backed
+  matrices.
+* Published two package vignettes that cover introductory workflows and
+  large-scale analyses with `bigmemory`.
+* Added an introductory vignette covering the core Cox-PLS workflow.
+* Refreshed the README and website copy to highlight core functionality and to
+  demonstrate working examples without warnings.
+* Refreshed the README with guidance on learning materials and benchmarking.
+* Completed package-level documentation with bibliographic references.
+* Updated package metadata to list optional dependencies used in docs and
+  benchmarks.
+
+# bigPLScox 0.4.0
+
+* Updated maintainer contact details in `DESCRIPTION`.
+* Added unit tests for `big_pls_cox()` and `big_pls_cox_gd()` stability checks.
+* Added unit tests covering the new C++-accelerated Cox PLS implementation and
+  cross-validation utilities.
 
 # bigPLScox 0.3.0 
 
-* Code update
+* Improved `big_pls_cox()` numerical stability and added support for additional
+  convergence diagnostics in the gradient-descent solver.
+* Refactored stochastic gradient solvers to better integrate with
+  `bigmemory` file-backed matrices.
+* Improved numerical stability of the deviance residual computations.
 
 # bigPLScox 0.2.0 
 
-* Improving code and help pages
+* Expanded documentation examples for deviance residuals and Cox model
+  utilities.
+* Added dataset documentation for `micro.censure` and simulated Cox examples.
+* Added pkgdown site configuration and continuous integration workflows.
 
-# bigPLScox 0.1.0 
+# bigPLScox 0.1.0
 
-* Implementing gpls, sgpls based models
+* Introduced gPLS and sgPLS model families with support for grouped predictors
+  and deviance residual pipelines with cross-validation support.
 
 # bigPLScox 0.0.1 
 
-* Package creation
+* Initial package skeleton with core data objects and helper routines.
 

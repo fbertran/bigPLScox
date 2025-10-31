@@ -6,7 +6,10 @@
 \alias{bigPLScox}
 \title{bigPLScox-package}
 \description{
-Provides Partial least squares Regression for regular, generalized linear and Cox models for big data. It allows for missing data in the explanatory variables. Repeated k-fold cross-validation of such models using various criteria. Bootstrap confidence intervals constructions are also available.
+Provides Partial least squares Regression for regular, generalized linear and
+Cox models for big data. It allows for missing data in the explanatory variables.
+Repeated k-fold cross-validation of such models using various criteria.
+Bootstrap confidence intervals constructions are also available.
 }
 \examples{
 set.seed(314)
@@ -16,7 +19,17 @@ head(sim_data)
 
 }
 \references{
-TODO
+Maumy, M., Bertrand, F. (2023). PLS models and their extension for big data.
+Joint Statistical Meetings (JSM 2023), Toronto, ON, Canada.
+
+Maumy, M., Bertrand, F. (2023). bigPLS: Fitting and cross-validating
+PLS-based Cox models to censored big data. BioC2023 — The Bioconductor
+Annual Conference, Dana-Farber Cancer Institute, Boston, MA, USA.
+Poster. https://doi.org/10.7490/f1000research.1119546.1
+
+Bastien, P., Bertrand, F., Meyer, N., and Maumy-Bertrand, M.
+(2015). Deviance residuals-based sparse PLS and sparse kernel PLS for
+binary classification and survival analysis. \emph{BMC Bioinformatics}, 16, 211.
 }
 \seealso{
 \code{\link[=big_pls_cox]{big_pls_cox()}} and \code{\link[=big_pls_cox_gd]{big_pls_cox_gd()}}

@@ -173,13 +173,15 @@ models after removing observations with missing values.
 \examples{
 data(micro.censure, package = "bigPLScox")
 surv_data <- stats::na.omit(micro.censure[, c("survyear", "DC", "sexe", "Agediag")])
+# Increase num.epoch and num.boot for real use
 fit <- bigSurvSGD.na.omit(
   survival::Surv(survyear, DC) ~ .,
   data = surv_data,
   norm.method = "standardize",
   opt.method = "adam",
-  batch.size = 16,
-  num.epoch = 2
+  batch.size = 64,
+  num.epoch = 1,
+  num.boot = 100
 )
 
 }

@@ -26,8 +26,10 @@ LinkingTo:
     RcppArmadillo,
     bigmemory
 Suggests:
+    bench,
     knitr,
     plsRcox,
+    readr,
     rmarkdown,
     testthat (>= 3.0.0)
 Title: Partial Least Squares for Cox Models with Big Matrices 

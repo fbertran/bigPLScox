@@ -84,7 +84,12 @@ Y_DR <- computeDR(Y_train_micro,C_train_micro,plot=TRUE)
 
 }
 \references{
-TODO
+Bastien, P., Bertrand, F., Meyer, N., and Maumy-Bertrand, M.
+(2015). Deviance residuals-based sparse PLS and sparse kernel PLS for
+binary classification and survival analysis. \emph{BMC Bioinformatics}, 16, 211.
+
+Therneau, T.M., Grambsch, P.M. (2000). \emph{Modeling Survival Data: Extending the
+Cox Model}. Springer.
 }
 \seealso{
 \code{\link[survival]{coxph}}

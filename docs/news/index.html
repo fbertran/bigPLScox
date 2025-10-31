@@ -15,7 +15,14 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/bigPLScox.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/bigPLScox-benchmarking.html">Benchmarking bigPLScox</a></li>
+    <li><a class="dropdown-item" href="../articles/bigPLScox-overview.html">Overview of bigPLScox</a></li>
+    <li><a class="dropdown-item" href="../articles/getting-started.html">Getting started with bigPLScox</a></li>
+  </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -33,25 +40,40 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.0" id="bigplscox-050">bigPLScox 0.5.0<a class="anchor" aria-label="anchor" href="#bigplscox-050"></a></h2>
+<ul><li>Added reproducible benchmarking utilities under <code>inst/benchmarks</code> comparing <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> against <code><a href="https://fbertran.github.io/plsRcox/reference/plsRcox.html" class="external-link">plsRcox::plsRcox()</a></code> on in-memory and file-backed matrices.</li>
+<li>Published two package vignettes that cover introductory workflows and large-scale analyses with <code>bigmemory</code>.</li>
+<li>Added an introductory vignette covering the core Cox-PLS workflow.</li>
+<li>Refreshed the README and website copy to highlight core functionality and to demonstrate working examples without warnings.</li>
+<li>Refreshed the README with guidance on learning materials and benchmarking.</li>
+<li>Completed package-level documentation with bibliographic references.</li>
+<li>Updated package metadata to list optional dependencies used in docs and benchmarks.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.0" id="bigplscox-040">bigPLScox 0.4.0<a class="anchor" aria-label="anchor" href="#bigplscox-040"></a></h2>
-<ul><li>Maintainer email update</li>
-<li>Added unit tests</li>
+<ul><li>Updated maintainer contact details in <code>DESCRIPTION</code>.</li>
+<li>Added unit tests for <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> and <code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code> stability checks.</li>
+<li>Added unit tests covering the new C++-accelerated Cox PLS implementation and cross-validation utilities.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="bigplscox-030">bigPLScox 0.3.0<a class="anchor" aria-label="anchor" href="#bigplscox-030"></a></h2>
-<ul><li>Code update</li>
+<ul><li>Improved <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> numerical stability and added support for additional convergence diagnostics in the gradient-descent solver.</li>
+<li>Refactored stochastic gradient solvers to better integrate with <code>bigmemory</code> file-backed matrices.</li>
+<li>Improved numerical stability of the deviance residual computations.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="bigplscox-020">bigPLScox 0.2.0<a class="anchor" aria-label="anchor" href="#bigplscox-020"></a></h2>
-<ul><li>Improving code and help pages</li>
+<ul><li>Expanded documentation examples for deviance residuals and Cox model utilities.</li>
+<li>Added dataset documentation for <code>micro.censure</code> and simulated Cox examples.</li>
+<li>Added pkgdown site configuration and continuous integration workflows.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="bigplscox-010">bigPLScox 0.1.0<a class="anchor" aria-label="anchor" href="#bigplscox-010"></a></h2>
-<ul><li>Implementing gpls, sgpls based models</li>
+<ul><li>Introduced gPLS and sgPLS model families with support for grouped predictors and deviance residual pipelines with cross-validation support.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.1" id="bigplscox-001">bigPLScox 0.0.1<a class="anchor" aria-label="anchor" href="#bigplscox-001"></a></h2>
-<ul><li>Package creation</li>
+<ul><li>Initial package skeleton with core data objects and helper routines.</li>
 </ul></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

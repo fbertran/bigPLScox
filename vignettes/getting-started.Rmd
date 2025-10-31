@@ -1,0 +1,181 @@
+---
+title: "Getting started with bigPLScox"
+shorttitle: "Getting started with bigPLScox"
+author:
+- name: "Frédéric Bertrand"
+  affiliation: 
+  - Cedric, Cnam, Paris
+  email: frederic.bertrand@lecnam.net
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+  toc: true
+vignette: >
+  %\VignetteIndexEntry{Getting started with bigPLScox}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4,
+  dpi = 150
+)
+```
+
+The **bigPLScox** package provides tools to fit Partial Least Squares (PLS)
+models tailored to the Cox proportional hazards setting, together with
+cross-validation helpers and diagnostic utilities that work on both classical
+in-memory matrices and `bigmemory` objects. This vignette walks through the core
+workflow on a small real dataset shipped with the package.
+
+## Loading the data
+
+```{r load-data}
+library(bigPLScox)
+
+data(micro.censure)
+Y_train_micro <- micro.censure$survyear[1:80]
+C_train_micro <- micro.censure$DC[1:80]
+
+data(Xmicro.censure_compl_imp)
+X_train_micro <- apply(
+  as.matrix(Xmicro.censure_compl_imp),
+  MARGIN = 2,
+  FUN = as.numeric
+)[1:80, ]
+X_train_micro_df <- data.frame(X_train_micro)
+```
+
+The package also exposes the original factor-based design matrix. You can
+retrieve it with:
+
+```{r original-design}
+X_train_micro_orig <- Xmicro.censure_compl_imp[1:80, ]
+X_train_micro_orig_df <- data.frame(X_train_micro_orig)
+```
+
+## Deviance residuals
+
+The `computeDR()` helper obtains deviance residuals from a null Cox model. This
+is often a first diagnostic step before fitting a PLS model.
+
+```{r deviance-residuals}
+dev_res <- computeDR(Y_train_micro, C_train_micro, plot = FALSE)
+head(dev_res)
+```
+
+Setting `plot = TRUE` produces a Kaplan-Meier plot of the survival function.
+
+## Building Cox PLS models
+
+With deviance residuals available, you can fit Cox PLS models using either a
+formula or matrix interface. Below we illustrate the formula-based approach that
+produces the design matrix as part of the computation.
+
+```{r model-matrix}
+coxgpls(~ ., Y_train_micro, C_train_micro,
+        ncomp = 6,
+        trace = TRUE,
+        model_matrix = TRUE,
+        dataXplan = X_train_micro_orig_df,
+        ind.block.x = c(3, 10, 20))[1:10, 1:6]
+```
+
+```{r coxgpls-fits}
+cox_gpls_fit <- coxgpls(
+  X_train_micro,
+  Y_train_micro,
+  C_train_micro,
+  ncomp = 6,
+  ind.block.x = c(3, 10, 15)
+)
+cox_gpls_fit
+```
+
+```{r coxgpls-formula}
+cox_gpls_fit_formula <- coxgpls(
+  ~ X_train_micro,
+  Y_train_micro,
+  C_train_micro,
+  ncomp = 6,
+  ind.block.x = c(3, 10, 15)
+)
+cox_gpls_fit_formula
+```
+
+## Cross-validation utilities
+
+Repeated cross-validation helps determine the appropriate number of latent
+components. The helpers in **bigPLScox** accept either a matrix or a list with
+`x`, `time`, and `status` components.
+
+```{r cv-coxgpls}
+set.seed(123456)
+cv_coxgpls_res <- cv.coxgpls(
+  list(x = X_train_micro, time = Y_train_micro, status = C_train_micro),
+  nt = 10,
+  ind.block.x = c(3, 10, 15)
+)
+cv_coxgpls_res
+```
+
+## Deviance-residual based models
+
+The package also provides variants that refit the model on deviance residuals.
+
+```{r coxgplsdr}
+cox_gplsDR_fit <- coxgplsDR(
+  X_train_micro,
+  Y_train_micro,
+  C_train_micro,
+  ncomp = 6,
+  ind.block.x = c(3, 10, 15)
+)
+cox_gplsDR_fit
+```
+
+```{r cv-coxgplsdr}
+set.seed(123456)
+cv_coxgplsDR_res <- cv.coxgplsDR(
+  list(x = X_train_micro, time = Y_train_micro, status = C_train_micro),
+  nt = 10,
+  ind.block.x = c(3, 10, 15)
+)
+cv_coxgplsDR_res
+```
+
+## DK-splines extension
+
+For flexible baseline hazards, **bigPLScox** implements DK-splines augmented
+models. They accept the same inputs as the classical PLS Cox fits.
+
+```{r coxdkgplsdr}
+cox_DKsplsDR_fit <- coxDKgplsDR(
+  X_train_micro,
+  Y_train_micro,
+  C_train_micro,
+  ncomp = 6,
+  validation = "CV",
+  ind.block.x = c(3, 10, 15),
+  verbose = FALSE
+)
+cox_DKsplsDR_fit
+```
+
+```{r cv-coxdkgplsdr}
+set.seed(123456)
+cv_coxDKgplsDR_res <- cv.coxDKgplsDR(
+  list(x = X_train_micro, time = Y_train_micro, status = C_train_micro),
+  nt = 10,
+  ind.block.x = c(3, 10, 15)
+)
+cv_coxDKgplsDR_res
+```
+
+Further sections explore sparse and group-sparse extensions as well as
+big-memory workflows. For a deeper dive into massive datasets and parallel
+execution, continue with the "Big-memory workflows with bigPLScox" vignette.
