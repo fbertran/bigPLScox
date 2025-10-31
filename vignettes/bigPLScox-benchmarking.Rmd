@@ -141,24 +141,21 @@ test_time <- cox_data$time[test_idx]
 train_status <- cox_data$status[train_idx]
 test_status <- cox_data$status[test_idx]
 
-gpls_fit <- coxgpls(train_x, train_time, train_status, ncomp = 5, ind.block.x = c(3, 10))
 big_fit <- big_pls_cox(bigmemory::as.big.matrix(train_x), train_time, train_status, ncomp = 5)
 gd_fit <- big_pls_cox_gd(bigmemory::as.big.matrix(train_x), train_time, train_status, ncomp = 5, max_iter = 120)
 pls_fit <- plsRcox::plsRcox(train_x, train_time, train_status, nt = 5, verbose = FALSE)
 
-lp_gpls <- predict(gpls_fit, newdata = test_x, type = "lp")
 lp_big <- predict(big_fit, newdata = test_x, type = "link")
 lp_gd <- predict(gd_fit, newdata = test_x, type = "link")
-lp_pls <- as.numeric(test_x %*% pls_fit$CoeffC[, 1:5])
+lp_pls <- predict(pls_fit, newdata = test_x)
 
 surv_test <- survival::Surv(test_time, test_status)
 acc_results <- data.frame(
-  method = c("coxgpls", "big_pls_cox", "big_pls_cox_gd", "plsRcox"),
+  method = c("big_pls_cox", "big_pls_cox_gd", "plsRcox"),
   c_index = c(
-    survival::survConcordance(surv_test ~ lp_gpls)$concordance,
-    survival::survConcordance(surv_test ~ lp_big)$concordance,
-    survival::survConcordance(surv_test ~ lp_gd)$concordance,
-    survival::survConcordance(surv_test ~ lp_pls)$concordance
+    survival::concordance(surv_test ~ lp_big)$concordance,
+    survival::concordance(surv_test ~ lp_gd)$concordance,
+    survival::concordance(surv_test ~ lp_pls)$concordance
   )
 )
 acc_results
@@ -178,7 +175,7 @@ components, sparsity constraints, or the dataset dimensions.
 if (!dir.exists("inst/benchmarks/results")) {
   dir.create("inst/benchmarks/results", recursive = TRUE)
 }
-write.csv(bench_res, file = "inst/benchmarks/results/benchmarking-demo.csv", row.names = FALSE)
+write.csv(bench_res[,1:9], file = "inst/benchmarks/results/benchmarking-demo.csv", row.names = FALSE)
 ```
 
 # Reusing the benchmarking scripts

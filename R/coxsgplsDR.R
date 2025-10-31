@@ -276,8 +276,8 @@ coxsgplsDR.default <-
       if (mf2$ncomp > 0) {
         for (iii in 1:ncomp) {
           mf2b <- match.call(expand.dots = TRUE)
-          m2b <- match(c(head(names(as.list(args(survival::coxph))), 
-                              -2), head(names(as.list(args(survival::coxph.control))), 
+          m2b <- match(c(head(names(as.list(args(survival::coxph))),
+                              -2), head(names(as.list(args(survival::coxph.control))),
                                         -1)), names(mf2b), 0L)
           mf2b <- mf2b[c(1L, m2b)]
           mf2b$formula <- as.formula(YCsurv ~ .)
@@ -285,11 +285,15 @@ coxsgplsDR.default <-
           mf2b[[1L]] <- as.name("coxph")
           cox_sgplsDR <- eval(mf2b, parent.frame())
           cox_sgplsDR$call$data <- as.name("tt_sgplsDR")
-          CoeffCFull[, iii] <- c(cox_sgplsDR$coefficients, 
+          CoeffCFull[, iii] <- c(cox_sgplsDR$coefficients,
                                  rep(NA, ncomp - iii))
         }
       }
-      return(list(tt_sgplsDR = tt_sgplsDR, cox_sgplsDR = cox_sgplsDR, sgplsDR_mod = sgplsDR_mod, 
-                  XplanScal = XplanScal, XplanCent = XplanCent, CoeffCFull = CoeffCFull))
+      res <- list(tt_sgplsDR = tt_sgplsDR, cox_sgplsDR = cox_sgplsDR, sgplsDR_mod = sgplsDR_mod,
+                  XplanScal = XplanScal, XplanCent = XplanCent,
+                  CoeffCFull = CoeffCFull)
+      res$XplanTrain <- as.matrix(Xplan)
+      class(res) <- c("coxsgplsDR", "cox_pls_legacy")
+      return(res)
     }
   }

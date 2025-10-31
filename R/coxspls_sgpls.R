@@ -268,8 +268,8 @@ coxspls_sgpls.default <-
       if (mf2$ncomp > 0) {
         for (iii in 1:ncomp) {
           mf2b <- match.call(expand.dots = TRUE)
-          m2b <- match(c(head(names(as.list(args(survival::coxph))), 
-                              -2), head(names(as.list(args(survival::coxph.control))), 
+          m2b <- match(c(head(names(as.list(args(survival::coxph))),
+                              -2), head(names(as.list(args(survival::coxph.control))),
                                         -1)), names(mf2b), 0L)
           mf2b <- mf2b[c(1L, m2b)]
           mf2b$formula <- as.formula(YCsurv ~ .)
@@ -277,12 +277,16 @@ coxspls_sgpls.default <-
           mf2b[[1L]] <- as.name("coxph")
           cox_spls_sgpls <- eval(mf2b, parent.frame())
           cox_spls_sgpls$call$data <- as.name("tt_spls_sgpls")
-          CoeffCFull[, iii] <- c(cox_spls_sgpls$coefficients, 
+          CoeffCFull[, iii] <- c(cox_spls_sgpls$coefficients,
                                  rep(NA, ncomp - iii))
         }
       }
-      return(list(tt_spls_sgpls = tt_spls_sgpls, cox_spls_sgpls = cox_spls_sgpls, 
-                  spls_sgpls_mod = spls_sgpls_mod, 
-                  XplanScal = XplanScal, XplanCent = XplanCent, CoeffCFull = CoeffCFull))
+      res <- list(tt_spls_sgpls = tt_spls_sgpls, cox_spls_sgpls = cox_spls_sgpls,
+                  spls_sgpls_mod = spls_sgpls_mod,
+                  XplanScal = XplanScal, XplanCent = XplanCent,
+                  CoeffCFull = CoeffCFull)
+      res$XplanTrain <- as.matrix(Xplan)
+      class(res) <- c("coxspls_sgpls", "cox_pls_legacy")
+      return(res)
     }
   }

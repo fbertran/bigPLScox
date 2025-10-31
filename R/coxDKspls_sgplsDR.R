@@ -344,8 +344,8 @@ coxDKspls_sgplsDR.default <-
       if (mf2$ncomp > 0) {
         for (iii in 1:ncomp) {
           mf2b <- match.call(expand.dots = TRUE)
-          m2b <- match(c(head(names(as.list(args(survival::coxph))), 
-                              -2), head(names(as.list(args(survival::coxph.control))), 
+          m2b <- match(c(head(names(as.list(args(survival::coxph))),
+                              -2), head(names(as.list(args(survival::coxph.control))),
                                         -1)), names(mf2b), 0L)
           mf2b <- mf2b[c(1L, m2b)]
           mf2b$formula <- as.formula(YCsurv ~ .)
@@ -353,13 +353,16 @@ coxDKspls_sgplsDR.default <-
           mf2b[[1L]] <- as.name("coxph")
           cox_DKspls_sgplsDR <- eval(mf2b, parent.frame())
           cox_DKspls_sgplsDR$call$data <- as.name("tt_DKspls_sgplsDR")
-          CoeffCFull[, iii] <- c(cox_DKspls_sgplsDR$coefficients, 
+          CoeffCFull[, iii] <- c(cox_DKspls_sgplsDR$coefficients,
                                  rep(NA, ncomp - iii))
         }
       }
-      return(list(tt_DKspls_sgplsDR = tt_DKspls_sgplsDR, cox_DKspls_sgplsDR = cox_DKspls_sgplsDR, 
-                  DKspls_sgplsDR_mod = DKspls_sgplsDR_mod, 
-                  XplanScal = XplanScal, XplanCent = XplanCent, CoeffCFull = CoeffCFull, 
-                  kernDKspls_sgplsDR_mod=kernDKspls_sgplsDR_mod))
+      res <- list(tt_DKspls_sgplsDR = tt_DKspls_sgplsDR, cox_DKspls_sgplsDR = cox_DKspls_sgplsDR,
+                  DKspls_sgplsDR_mod = DKspls_sgplsDR_mod,
+                  XplanScal = XplanScal, XplanCent = XplanCent, CoeffCFull = CoeffCFull,
+                  kernDKspls_sgplsDR_mod = kernDKspls_sgplsDR_mod)
+      res$XplanTrain <- as.matrix(Xplan)
+      class(res) <- c("coxDKspls_sgplsDR", "cox_pls_legacy")
+      return(res)
     }
   }

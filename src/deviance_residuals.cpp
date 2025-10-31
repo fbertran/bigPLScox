@@ -5,6 +5,7 @@
 #include <numeric>
 #include <vector>
 #include <cmath>
+#include <limits>
 
 using namespace Rcpp;
 
@@ -12,6 +13,40 @@ using namespace Rcpp;
 // [[Rcpp::depends(Rcpp, bigmemory)]]
 
 namespace {
+
+inline bool times_equal(double a, double b) {
+  const double diff = std::fabs(a - b);
+  const double scale = std::max(std::fabs(a), std::fabs(b));
+  const double eps = std::numeric_limits<double>::epsilon();
+  return diff <= eps * (1.0 + scale);
+}
+
+std::vector<std::size_t> make_cox_order(const NumericVector& time,
+                                        const NumericVector& status) {
+  const std::size_t n = static_cast<std::size_t>(time.size());
+  std::vector<std::size_t> order(n);
+  std::iota(order.begin(), order.end(), static_cast<std::size_t>(0));
+  std::stable_sort(order.begin(), order.end(), [&](std::size_t lhs, std::size_t rhs) {
+    const double time_lhs = time[lhs];
+    const double time_rhs = time[rhs];
+    if (time_lhs < time_rhs - std::numeric_limits<double>::epsilon()) {
+      return true;
+    }
+    if (time_lhs > time_rhs + std::numeric_limits<double>::epsilon()) {
+      return false;
+    }
+    const double status_lhs = status[lhs];
+    const double status_rhs = status[rhs];
+    if (status_lhs > status_rhs) {
+      return true;
+    }
+    if (status_lhs < status_rhs) {
+      return false;
+    }
+    return lhs < rhs;
+  });
+  return order;
+}
 
 struct DevianceResult {
   NumericVector deviance;
@@ -34,27 +69,20 @@ DevianceResult compute_deviance_core(const NumericVector& time,
     exp_eta[i] = std::exp(eta[i]);
   }
   
-  std::vector<std::size_t> order(n);
-  std::iota(order.begin(), order.end(), 0);
-  std::stable_sort(order.begin(), order.end(), [&](std::size_t lhs, std::size_t rhs) {
-    if (time[lhs] == time[rhs]) {
-      return status[lhs] > status[rhs];
-    }
-    return time[lhs] < time[rhs];
-  });
+  const std::vector<std::size_t> order = make_cox_order(time, status);
   
   double risk_sum = std::accumulate(exp_eta.begin(), exp_eta.end(), 0.0);
   NumericVector cum_base(n);
   double baseline_cum = 0.0;
   std::size_t idx = 0;
-  
+
   while (idx < n) {
     const double current_time = time[order[idx]];
     double event_count = 0.0;
     double event_risk = 0.0;
     std::vector<std::size_t> block;
     
-    while (idx < n && time[order[idx]] == current_time) {
+    while (idx < n && times_equal(time[order[idx]], current_time)) {
       const std::size_t id = order[idx];
       block.push_back(id);
       if (status[id] > 0.0) {
@@ -88,7 +116,7 @@ DevianceResult compute_deviance_core(const NumericVector& time,
     for (std::size_t id : block) {
       cum_base[id] = baseline_cum;
     }
-    
+  
     for (std::size_t id : block) {
       risk_sum -= exp_eta[id];
     }
@@ -223,52 +251,78 @@ CoxDevianceResult compute_deviance_impl(const NumericVector& time,
   std::vector<double> martingale(n, 0.0);
   std::vector<double> deviance(n, 0.0);
   
-  const std::vector<std::size_t> order = order_desc(time);
+  const std::vector<std::size_t> order = make_cox_order(time, status);
   
-  double risk_sum = 0.0;
-  double cumulative_hazard = 0.0;
+  std::vector<double> time_sorted(n);
+  std::vector<double> status_sorted(n);
+  std::vector<double> weight_sorted(n);
+  for (std::size_t i = 0; i < n; ++i) {
+    const std::size_t idx = order[i];
+    time_sorted[i] = time[idx];
+    status_sorted[i] = status[idx];
+    weight_sorted[i] = weights[idx];
+  }
   
-  std::size_t idx = 0;
-  while (idx < n) {
-    const double current_time = time[order[idx]];
-    double block_weight_sum = 0.0;
-    double block_event_sum = 0.0;
-    std::vector<std::size_t> block_indices;
-    while (idx < n && time[order[idx]] == current_time) {
-      const std::size_t obs = order[idx];
-      const double w = weights[obs];
-      block_weight_sum += w;
-      if (status[obs] > 0.0) {
-        block_event_sum += w;
+  std::vector<double> risk_suffix(n);
+  double running = 0.0;
+  for (std::size_t i = n; i-- > 0;) {
+    running += weight_sorted[i];
+    risk_suffix[i] = running;
+  }
+  
+  std::vector<double> baseline_sorted(n, 0.0);
+  double baseline = 0.0;
+  std::size_t pos = 0;
+  while (pos < n) {
+    const std::size_t start = pos;
+    const double current_time = time_sorted[pos];
+    while (pos < n && times_equal(time_sorted[pos], current_time)) {
+      ++pos;
+    }
+    const std::size_t end = pos;
+    double block_event_weight = 0.0;
+    for (std::size_t i = start; i < end; ++i) {
+      if (status_sorted[i] > 0.0) {
+        block_event_weight += weight_sorted[i];
       }
-      block_indices.push_back(obs);
-      ++idx;
     }
     
-    const double risk_with_block = risk_sum + block_weight_sum;
-    const double hazard_increment = (risk_with_block > 0.0) ? block_event_sum / risk_with_block : 0.0;
-    cumulative_hazard += hazard_increment;
-    for (const auto obs : block_indices) {
-      cumhaz[obs] = cumulative_hazard;
+    const double risk_total = risk_suffix[start];
+    double hazard_increment = 0.0;
+    if (block_event_weight > 0.0) {
+      if (risk_total <= 0.0) {
+        stop("Risk set sum became non-positive while computing deviance residuals.");
+      }
+      hazard_increment = block_event_weight / risk_total;
     }
-    risk_sum += block_weight_sum;
+    baseline += hazard_increment;
+    for (std::size_t i = start; i < end; ++i) {
+      baseline_sorted[i] = baseline;
+    }
+  }
+
+  std::vector<double> baseline_original(n, 0.0);
+  for (std::size_t i = 0; i < n; ++i) {
+    baseline_original[order[i]] = baseline_sorted[i];
   }
   
   const double eps = 1e-12;
   for (std::size_t i = 0; i < n; ++i) {
     const double delta = status[i];
     const double w = weights[i];
-    const double hz = cumhaz[i];
-    const double mart = w * (delta - hz);
+    const double hz = baseline_original[i] * w;
+    cumhaz[i] = hz;
+    const double mart = delta - hz;
     martingale[i] = mart;
+    double dev = 0.0;
     if (delta > 0.0) {
-      const double term = std::max(hz, eps);
-      deviance[i] = std::copysign(std::sqrt(std::max(0.0, -2.0 * (mart + w * std::log(term)))), mart);
+      const double arg = std::max(eps, delta - mart);
+      dev = -2.0 * (mart + delta * std::log(arg));
     } else {
-      deviance[i] = std::copysign(std::sqrt(std::max(0.0, -2.0 * mart)), mart);
+      dev = -2.0 * mart;
     }
   }
-  
+
   return {cumhaz, martingale, deviance};
 }
 

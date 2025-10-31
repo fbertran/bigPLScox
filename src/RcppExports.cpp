@@ -191,6 +191,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cox_partial_loglik_cpp
+SEXP cox_partial_loglik_cpp(NumericMatrix X, NumericVector time, NumericVector status, NumericMatrix beta, std::string method, bool return_all);
+RcppExport SEXP _bigPLScox_cox_partial_loglik_cpp(SEXP XSEXP, SEXP timeSEXP, SEXP statusSEXP, SEXP betaSEXP, SEXP methodSEXP, SEXP return_allSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type status(statusSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< bool >::type return_all(return_allSEXP);
+    rcpp_result_gen = Rcpp::wrap(cox_partial_loglik_cpp(X, time, status, beta, method, return_all));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_bigPLScox_big_pls_cox_col_stats_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_col_stats_cpp, 1},
@@ -205,6 +221,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_bigPLScox_cox_deviance_details_cpp", (DL_FUNC) &_bigPLScox_cox_deviance_details_cpp, 3},
     {"_bigPLScox_cox_deviance_residuals_big_cpp", (DL_FUNC) &_bigPLScox_cox_deviance_residuals_big_cpp, 4},
     {"_bigPLScox_cox_partial_deviance_big_cpp", (DL_FUNC) &_bigPLScox_cox_partial_deviance_big_cpp, 4},
+    {"_bigPLScox_cox_partial_loglik_cpp", (DL_FUNC) &_bigPLScox_cox_partial_loglik_cpp, 6},
     {NULL, NULL, 0}
 };
 

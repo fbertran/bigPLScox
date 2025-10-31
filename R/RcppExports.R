@@ -49,3 +49,7 @@ cox_partial_deviance_big_cpp <- function(xpMat, coef, time, status) {
     .Call(`_bigPLScox_cox_partial_deviance_big_cpp`, xpMat, coef, time, status)
 }
 
+cox_partial_loglik_cpp <- function(X, time, status, beta, method, return_all) {
+    .Call(`_bigPLScox_cox_partial_loglik_cpp`, X, time, status, beta, method, return_all)
+}
+
