@@ -4,6 +4,10 @@
 \alias{ust}
 \alias{spls.dv}
 \alias{correctp.cox}
+\alias{getIndic}
+\alias{getIndicCV}
+\alias{getIndicCViAUCSH}
+\alias{getIndicCViAUCSurvROCTest}
 \title{Internal bigPLScox functions}
 \description{
 These are not to be called by the user.
