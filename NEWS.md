@@ -1,3 +1,6 @@
+# bigPLScox 0.6.0
+
+
 # bigPLScox 0.5.0
 
 * Added reproducible benchmarking utilities under `inst/benchmarks` comparing
