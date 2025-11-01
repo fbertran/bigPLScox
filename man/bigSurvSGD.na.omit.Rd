@@ -181,7 +181,7 @@ fit <- bigSurvSGD.na.omit(
   norm.method = "standardize",
   opt.method = "adam",
   batch.size = 16,
-  num.epoch = 5,
+  num.epoch = 2,
 )
 }
 

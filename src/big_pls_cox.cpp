@@ -8,7 +8,6 @@
 
 using namespace Rcpp;
 
-// [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::depends(Rcpp, bigmemory)]]
 
 // Compute column-wise means and standard deviations without loading the whole matrix

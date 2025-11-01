@@ -9,7 +9,6 @@
 
 using namespace Rcpp;
 
-// [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::depends(Rcpp, bigmemory)]]
 
 namespace {

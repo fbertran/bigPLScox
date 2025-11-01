@@ -1,8 +1,8 @@
 Package: bigPLScox
 Type: Package
 Version: 0.6.0
-Date: 2025-10-31
-Depends: R (>= 3.5.0)
+Date: 2025-11-01
+Depends: R (>= 4.0.0)
 biocViews:
 Imports: 
     bigmemory, 
@@ -49,4 +49,4 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-SystemRequirements: C++11
+SystemRequirements: C++17

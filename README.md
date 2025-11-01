@@ -50,6 +50,15 @@ Standalone benchmarking scripts that complement the vignette live under
 The documentation website and examples are maintained by Frédéric
 Bertrand and Myriam Maumy.
 
+> **Conference highlight.** Maumy, M. and Bertrand, F. (2023). 
+*"PLS models and their extension for big data"*. Conference presentation at the 
+Joint Statistical Meetings (JSM 2023), Toronto, Ontario, Canada, Aug 5–10, 2023.
+
+> **Conference highlight.** Maumy, M. and Bertrand, F. (2023). 
+*"bigPLS: Fitting and cross-validating PLS-based Cox models to censored big data"*. 
+Poster at BioC2023: The Bioconductor Annual Conference, Dana-Farber Cancer Institute, 
+Boston, MA, USA, Aug 2–4, 2023. doi:10.7490/f1000research.1119546.1.
+
 ## Key features
 
 * **Scalable Cox-PLS solvers** (`coxgpls()`, `coxgplsDR()`) that operate on big

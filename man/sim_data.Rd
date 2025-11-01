@@ -36,6 +36,16 @@ rm(X_sim_data_train,C_sim_data_train,X_sim_data_test,C_sim_data_test)
 
 }
 \references{
-TODO.\cr
+Maumy, M., Bertrand, F. (2023). PLS models and their extension for big data.
+Joint Statistical Meetings (JSM 2023), Toronto, ON, Canada.
+
+Maumy, M., Bertrand, F. (2023). bigPLS: Fitting and cross-validating
+PLS-based Cox models to censored big data. BioC2023 — The Bioconductor
+Annual Conference, Dana-Farber Cancer Institute, Boston, MA, USA.
+Poster. https://doi.org/10.7490/f1000research.1119546.1
+
+Bastien, P., Bertrand, F., Meyer, N., and Maumy-Bertrand, M.
+(2015). Deviance residuals-based sparse PLS and sparse kernel PLS for
+binary classification and survival analysis. \emph{BMC Bioinformatics}, 16, 211.
 }
 \keyword{datasets}

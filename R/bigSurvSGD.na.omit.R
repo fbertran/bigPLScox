@@ -104,7 +104,7 @@
 #'   norm.method = "standardize",
 #'   opt.method = "adam",
 #'   batch.size = 16,
-#'   num.epoch = 5,
+#'   num.epoch = 2,
 #' )
 #' }
 #' 
@@ -632,9 +632,29 @@ partialbigSurvSGDv0 <-
            bigmemory.flag = FALSE,
            parallel.flag = FALSE,
            inf.mth = "none") {
+    time.col <- NULL
+    status.col <- NULL
+    if (!is.null(resBigscale$col.names)) {
+      if (!is.null(resBigscale$time.indices) &&
+          length(resBigscale$time.indices) >= 1) {
+        time.col <- resBigscale$col.names[resBigscale$time.indices[1]]
+      }
+      if (!is.null(resBigscale$cens.indices) &&
+          length(resBigscale$cens.indices) >= 1) {
+        status.col <- resBigscale$col.names[resBigscale$cens.indices[1]]
+      }
+    }
+    if (is.null(time.col) || is.na(time.col)) {
+      time.col <- "time"
+    }
+    if (is.null(status.col) || is.na(status.col)) {
+      status.col <- "status"
+    }
+    feature.terms <- paste(sprintf("`%s`", name.col), collapse = " + ")
+    surv.term <- sprintf("survival::Surv(`%s`, `%s`)", time.col, status.col)
+    
     form.name.col <-
-      as.formula(paste("survival::Surv(time, status)~", paste(name.col, collapse = "+"), sep =
-                         ""))
+      stats::as.formula(sprintf("%s ~ %s", surv.term, feature.terms))
     coefres <-
       bigSurvSGD.na.omit(
         formula = form.name.col,

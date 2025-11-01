@@ -38,6 +38,7 @@ expect_true(is.list(sel))
 expect_true(all(c("summary", "criterion", "opt_ncomp") %in% names(sel)))
 
 # Cross-validation handles big.matrix inputs
-cv_fit <- suppressWarnings(cv.coxgpls(list(x = X_big, time = time, status = status), nt = 2))
+cv_fit <- suppressWarnings(cv.coxgpls(list(x = X_big, time = time, status = status), 
+                                      nt = 2,plot.it = FALSE))
 expect_true(is.list(cv_fit))
 })
