@@ -158,9 +158,10 @@
 #' 
 #' #Should be run with a higher value of nt (at least 10)
 #' \donttest{
-#' (cv.coxDKsgplsDR.res=cv.coxDKsgplsDR(list(x=X_train_micro,
+#' cv.coxDKsgplsDR.res=cv.coxDKsgplsDR(list(x=X_train_micro,
 #' time=Y_train_micro,status=C_train_micro),ind.block.x=c(3,10,15), 
-#' alpha.x = rep(0.95, 6),nt=3))
+#' alpha.x = rep(0.95, 6),nt=3,plot.it = FALSE)
+#' cv.coxDKsgplsDR.res
 #' }
 #' 
 #' @export cv.coxDKsgplsDR
