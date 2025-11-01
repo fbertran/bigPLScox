@@ -268,8 +268,8 @@ predict.coxDKsgplsDR <- function(object, newdata = NULL,
                                  comps = NULL, coef = NULL, ...) {
   type <- match.arg(type)
   legacy_predict_cox(object, newdata, type, comps, coef,
-                     score_name = "tt_sgplsDR", cox_name = "cox_sgplsDR",
-                     mod_name = "sgplsDR_mod", predict_fun = predict.gPLS,
+                     score_name = "tt_DKsgplsDR", cox_name = "cox_DKsgplsDR",
+                     mod_name = "DKsgplsDR_mod", predict_fun = predict.gPLS,
                      kernel_slot = "kernDKsgplsDR_mod")
 }
 

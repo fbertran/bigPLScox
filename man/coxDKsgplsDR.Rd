@@ -195,9 +195,9 @@ are used to calculate a good sigma value from the data.}
 \item{verbose}{Should some details be displayed ?}
 }
 \value{
-If \code{allres=FALSE} : \item{cox_sgplsDR}{Final Cox-model.} If
-\code{allres=TRUE} : \item{tt_sgplsDR}{PLSR components.} \item{cox_sgplsDR}{Final
-Cox-model.} \item{sgplsDR_mod}{The PLSR model.}
+If \code{allres=FALSE} : \item{cox_DKsgplsDR}{Final Cox-model.} If
+\code{allres=TRUE} : \item{tt_DKsgplsDR}{PLSR components.} \item{cox_DKsgplsDR}{Final
+Cox-model.} \item{DKsgplsDR_mod}{The PLSR model.}
 }
 \description{
 This function computes the Cox Model based on PLSR components computed model
@@ -229,7 +229,7 @@ ncomp=6,ind.block.x=c(3,10,15), alpha.x = rep(0.95, 6)))
 (coxDKsgplsDR_fit=coxDKsgplsDR(~.,Y_train_micro,C_train_micro,ncomp=6,
 dataXplan=X_train_micro_df,ind.block.x=c(3,10,15), alpha.x = rep(0.95, 6)))
 
-rm(X_train_micro,Y_train_micro,C_train_micro,cox_sgplsDR_sgfit)
+rm(X_train_micro,Y_train_micro,C_train_micro,coxDKsgplsDR_fit)
 
 }
 \references{

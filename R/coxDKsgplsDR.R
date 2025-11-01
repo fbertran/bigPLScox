@@ -109,9 +109,9 @@
 #' are used to calculate a good sigma value from the data.
 #' @param verbose Should some details be displayed ?
 #' @param \dots Arguments to be passed on to \code{survival::coxph}.
-#' @return If \code{allres=FALSE} : \item{cox_sgplsDR}{Final Cox-model.} If
-#' \code{allres=TRUE} : \item{tt_sgplsDR}{PLSR components.} \item{cox_sgplsDR}{Final
-#' Cox-model.} \item{sgplsDR_mod}{The PLSR model.}
+#' @return If \code{allres=FALSE} : \item{cox_DKsgplsDR}{Final Cox-model.} If
+#' \code{allres=TRUE} : \item{tt_DKsgplsDR}{PLSR components.} \item{cox_DKsgplsDR}{Final
+#' Cox-model.} \item{DKsgplsDR_mod}{The PLSR model.}
 #' @author Frédéric Bertrand\cr
 #' \email{frederic.bertrand@@lecnam.net}\cr
 #' \url{https://fbertran.github.io/homepage/}
@@ -143,7 +143,7 @@
 #' (coxDKsgplsDR_fit=coxDKsgplsDR(~.,Y_train_micro,C_train_micro,ncomp=6,
 #' dataXplan=X_train_micro_df,ind.block.x=c(3,10,15), alpha.x = rep(0.95, 6)))
 #' 
-#' rm(X_train_micro,Y_train_micro,C_train_micro,cox_sgplsDR_sgfit)
+#' rm(X_train_micro,Y_train_micro,C_train_micro,coxDKsgplsDR_fit)
 #' 
 #' @export coxDKsgplsDR
 coxDKsgplsDR <- function (Xplan, ...) UseMethod("coxDKsgplsDR")
@@ -284,7 +284,7 @@ coxDKsgplsDR.default <-
     m2 <- match(c("ncomp"), names(mf2), 0L)
     mf2 <- mf2[c(1L, m2)]
     mf2$ncomp <- eval.parent(mf2$ncomp)
-    mf2$X <- eval.parent(Xplan)
+    mf2$X <- eval.parent(Xplan_kernDKgplsDR_mod)
     mf2$Y <- eval.parent(DR_coxph)
     mf2$mode <- eval.parent(modepls)
     mf2$ind.block.x <- eval.parent(ind.block.x)
@@ -294,14 +294,14 @@ coxDKsgplsDR.default <-
     mf2$scale = FALSE
     mf2[[1L]] <- as.name("sgPLS")
     if (mf2$ncomp == 0) {
-      sgplsDR_mod <- NULL
+      DKsgplsDR_mod <- NULL
     }
     else {
-      sgplsDR_mod <- eval(mf2)
+      DKsgplsDR_mod <- eval(mf2)
     }
-    tt_sgplsDR <- data.frame(sgplsDR_mod$variates$X)
+    tt_DKsgplsDR <- data.frame(DKsgplsDR_mod$variates$X)
     if (mf2$ncomp > 0) {
-      colnames(tt_sgplsDR) <- paste("dim", 1:ncol(tt_sgplsDR), sep = ".")
+      colnames(tt_DKsgplsDR) <- paste("dim", 1:ncol(tt_DKsgplsDR), sep = ".")
     }
     if (mf2$ncomp == 0) {
       mf2b <- match.call(expand.dots = TRUE)
@@ -310,10 +310,10 @@ coxDKsgplsDR.default <-
                    names(mf2b), 0L)
       mf2b <- mf2b[c(1L, m2b)]
       mf2b$formula <- as.formula(YCsurv ~ 1)
-      mf2b$data <- tt_sgplsDR
+      mf2b$data <- tt_DKsgplsDR
       mf2b[[1L]] <- as.name("coxph")
-      cox_sgplsDR <- eval(mf2b, parent.frame())
-      cox_sgplsDR$call$data <- as.name("tt_sgplsDR")
+      cox_DKsgplsDR <- eval(mf2b, parent.frame())
+      cox_DKsgplsDR$call$data <- as.name("tt_DKsgplsDR")
     }
     else {
       mf2b <- match.call(expand.dots = TRUE)
@@ -322,13 +322,13 @@ coxDKsgplsDR.default <-
                    names(mf2b), 0L)
       mf2b <- mf2b[c(1L, m2b)]
       mf2b$formula <- as.formula(YCsurv ~ .)
-      mf2b$data <- tt_sgplsDR
+      mf2b$data <- tt_DKsgplsDR
       mf2b[[1L]] <- as.name("coxph")
-      cox_sgplsDR <- eval(mf2b, parent.frame())
-      cox_sgplsDR$call$data <- as.name("tt_sgplsDR")
+      cox_DKsgplsDR <- eval(mf2b, parent.frame())
+      cox_DKsgplsDR$call$data <- as.name("tt_DKsgplsDR")
     }
     if (!allres) {
-      return(cox_sgplsDR)
+      return(cox_DKsgplsDR)
     }
     else {
       CoeffCFull = matrix(NA, nrow = ncomp, ncol = ncomp)
@@ -340,15 +340,15 @@ coxDKsgplsDR.default <-
                                         -1)), names(mf2b), 0L)
           mf2b <- mf2b[c(1L, m2b)]
           mf2b$formula <- as.formula(YCsurv ~ .)
-          mf2b$data <- tt_sgplsDR[, 1:iii, drop = FALSE]
+          mf2b$data <- tt_DKsgplsDR[, 1:iii, drop = FALSE]
           mf2b[[1L]] <- as.name("coxph")
-          cox_sgplsDR <- eval(mf2b, parent.frame())
-          cox_sgplsDR$call$data <- as.name("tt_sgplsDR")
-          CoeffCFull[, iii] <- c(cox_sgplsDR$coefficients,
+          cox_DKsgplsDR <- eval(mf2b, parent.frame())
+          cox_DKsgplsDR$call$data <- as.name("tt_DKsgplsDR")
+          CoeffCFull[, iii] <- c(cox_DKsgplsDR$coefficients,
                                  rep(NA, ncomp - iii))
         }
       }
-      res <- list(tt_sgplsDR = tt_sgplsDR, cox_sgplsDR = cox_sgplsDR, sgplsDR_mod = sgplsDR_mod,
+      res <- list(tt_DKsgplsDR = tt_DKsgplsDR, cox_DKsgplsDR = cox_DKsgplsDR, DKsgplsDR_mod = DKsgplsDR_mod,
                   XplanScal = XplanScal, XplanCent = XplanCent,
                   CoeffCFull = CoeffCFull, kernDKsgplsDR_mod = kernDKgplsDR_mod)
       res$XplanTrain <- as.matrix(Xplan)
