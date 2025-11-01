@@ -6,6 +6,9 @@
   `big_pls_cox()` and `big_pls_cox_gd()`.
 * Enabled naive sparsity control in `big_pls_cox()` and exposed survival model
   objects for downstream predictions.
+* Added cross-validation helpers `cv.big_pls_cox()` and `cv.big_pls_cox_gd()`
+  mirroring the `plsRcox` criteria, including the recommended survivalROC
+  iAUC metric by default.
 * Extended unit test coverage for the new deviance and prediction features.
 * Fixed `cv.coxgpls()` to accept `big.matrix` predictors without coercion
   errors.
