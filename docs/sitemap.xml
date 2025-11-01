@@ -33,6 +33,7 @@
 <url><loc>https://fbertran.github.io/bigPLScox/reference/coxsgplsDR.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/coxspls_sgpls.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/coxspls_sgplsDR.html</loc></url>
+<url><loc>https://fbertran.github.io/bigPLScox/reference/cv.big_pls_cox.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/cv.coxDKgplsDR.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/cv.coxDKsgplsDR.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/cv.coxDKspls_sgplsDR.html</loc></url>
@@ -44,10 +45,6 @@
 <url><loc>https://fbertran.github.io/bigPLScox/reference/cv.coxspls_sgplsDR.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/dCox_sim.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/dataCox.html</loc></url>
-<url><loc>https://fbertran.github.io/bigPLScox/reference/getIndic.html</loc></url>
-<url><loc>https://fbertran.github.io/bigPLScox/reference/getIndicCV.html</loc></url>
-<url><loc>https://fbertran.github.io/bigPLScox/reference/getIndicCViAUCSH.html</loc></url>
-<url><loc>https://fbertran.github.io/bigPLScox/reference/getIndicCViAUCSurvROCTest.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/index.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/internal-bigPLS.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/internal-bigPLScox.html</loc></url>
@@ -57,7 +54,8 @@
 <url><loc>https://fbertran.github.io/bigPLScox/reference/pls.cox.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/pls_big.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/predict.big_pls_cox.html</loc></url>
-<url><loc>https://fbertran.github.io/bigPLScox/reference/predict.pls.cox.html</loc></url>
+<url><loc>https://fbertran.github.io/bigPLScox/reference/predict_cox_pls.html</loc></url>
+<url><loc>https://fbertran.github.io/bigPLScox/reference/predict_pls_latent.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/sim_data.html</loc></url>
 <url><loc>https://fbertran.github.io/bigPLScox/reference/spls.cox.html</loc></url>
 </urlset>

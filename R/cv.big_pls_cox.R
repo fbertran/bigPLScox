@@ -36,7 +36,6 @@
 #'
 #' @return A list containing cross-validation summaries. When `allCVcrit =
 #'   FALSE`, the list holds
-#'   \itemize{
 #'     \item{`nt`}{Number of components assessed.}
 #'     \item{`cv.error10`}{Mean iAUC of \pkg{survivalROC} across folds for 0 to
 #'       `nt` components.}
@@ -45,7 +44,6 @@
 #'     \item{`lambda.min10`}{Component minimising the cross-validated error.}
 #'     \item{`lambda.1se10`}{Largest component within one standard error of the
 #'       optimum.}
-#'   }
 #'   When `allCVcrit = TRUE`, the full set of 14 criteria (log partial
 #'   likelihood, iAUC variants and Brier scores) is returned together with their
 #'   associated standard errors and one-standard-error selections.

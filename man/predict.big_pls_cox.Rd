@@ -49,3 +49,23 @@ matrix of component scores.
 \description{
 Predict method for big-memory PLS-Cox models
 }
+\references{
+Maumy, M., Bertrand, F. (2023). PLS models and their extension for big data.
+Joint Statistical Meetings (JSM 2023), Toronto, ON, Canada.
+
+Maumy, M., Bertrand, F. (2023). bigPLS: Fitting and cross-validating
+PLS-based Cox models to censored big data. BioC2023 — The Bioconductor
+Annual Conference, Dana-Farber Cancer Institute, Boston, MA, USA.
+Poster. https://doi.org/10.7490/f1000research.1119546.1
+
+Bastien, P., Bertrand, F., Meyer, N., & Maumy-Bertrand, M. (2015).
+Deviance residuals-based sparse PLS and sparse kernel PLS for censored
+data. \emph{Bioinformatics}, 31(3), 397–404. \url{doi:10.1093/bioinformatics/btu660}
+
+Bertrand, F., Bastien, P., Meyer, N., & Maumy-Bertrand, M. (2014). PLS
+models for censored data. In \emph{Proceedings of UseR! 2014} (p. 152).
+}
+\seealso{
+\code{\link[=big_pls_cox]{big_pls_cox()}}, \code{\link[=big_pls_cox_gd]{big_pls_cox_gd()}}, \code{\link[=select_ncomp]{select_ncomp()}},
+\code{\link[=computeDR]{computeDR()}}.
+}

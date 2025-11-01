@@ -29,6 +29,7 @@ Suggests:
     bench,
     knitr,
     plsRcox,
+    mvtnorm,
     readr,
     rmarkdown,
     testthat (>= 3.0.0)

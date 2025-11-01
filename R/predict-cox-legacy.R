@@ -133,6 +133,68 @@ legacy_predict_cox <- function(object, newdata, type, comps, coef,
          response = exp(eta))
 }
 
+#' Predict survival summaries from legacy Cox-PLS fits
+#'
+#' These methods extend [stats::predict()] for Cox models fitted with the
+#' original PLS engines exposed by [coxgpls()], [coxsgpls()], and their
+#' deviance-residual or kernel variants. They provide access to latent component
+#' scores alongside linear predictors and risk estimates, ensuring consistent
+#' behaviour with the newer big-memory solvers.
+#'
+#' @param object A fitted model returned by [coxgpls()], [coxsgpls()],
+#'   [coxspls_sgpls()], or any of their deviance-residual/kernel counterparts
+#'   with `allres = TRUE`.
+#' @param newdata Optional matrix or data frame of predictors. When `NULL`, the
+#'   training components stored in `object` are reused.
+#' @param type Type of prediction requested: `"link"` for linear predictors,
+#'   `"risk"`/`"response"` for exponentiated scores, or `"components"` to return
+#'   latent PLS scores.
+#' @param comps Optional integer vector specifying which latent components to
+#'   retain. Defaults to all available components.
+#' @param coef Optional coefficient vector overriding the Cox model
+#'   coefficients stored in `object`.
+#' @param ... Unused arguments for future extensions.
+#'
+#' @return When `type` is `"components"`, a matrix of latent scores; otherwise a
+#'   numeric vector containing the requested prediction with names inherited from
+#'   the supplied data.
+#'
+#' @seealso [coxgpls()], [coxsgpls()], [coxspls_sgpls()],
+#'   [coxDKgplsDR()], [predict.big_pls_cox()], [computeDR()].
+#'
+#' @references
+#'   Bastien, P., Bertrand, F., Meyer, N., & Maumy-Bertrand, M. (2015).
+#'   Deviance residuals-based sparse PLS and sparse kernel PLS for censored
+#'   data. *Bioinformatics*, 31(3), 397–404. <doi:10.1093/bioinformatics/btu660>
+#'
+#'   Bertrand, F., Bastien, P., & Maumy-Bertrand, M. (2018).
+#'   Cross validating extensions of kernel, sparse or regular partial least
+#'   squares regression models to censored data. <https://arxiv.org/abs/1810.01005>.
+#'
+#' @examples
+#' if (requireNamespace("survival", quietly = TRUE)) {
+#'   data(micro.censure, package = "bigPLScox")
+#'   data(Xmicro.censure_compl_imp, package = "bigPLScox")
+#'
+#'   X <- as.matrix(Xmicro.censure_compl_imp[1:60, 1:10])
+#'   time <- micro.censure$survyear[1:60]
+#'   status <- micro.censure$DC[1:60]
+#'
+#'   set.seed(321)
+#'   fit <- coxgpls(
+#'     Xplan = X,
+#'     time = time,
+#'     status = status,
+#'     ncomp = 2,
+#'     allres = TRUE
+#'   )
+#'
+#'   predict(fit, newdata = X[1:5, ], type = "risk")
+#'   head(predict(fit, type = "components"))
+#' }
+#'
+#' @name predict_cox_pls
+#' @rdname predict_cox_pls
 #' @export
 predict.coxgpls <- function(object, newdata = NULL,
                             type = c("link", "risk", "response", "components"),
@@ -143,6 +205,7 @@ predict.coxgpls <- function(object, newdata = NULL,
                      mod_name = "gpls_mod", predict_fun = predict.gPLS)
 }
 
+#' @rdname predict_cox_pls
 #' @export
 predict.coxgplsDR <- function(object, newdata = NULL,
                               type = c("link", "risk", "response", "components"),
@@ -153,6 +216,7 @@ predict.coxgplsDR <- function(object, newdata = NULL,
                      mod_name = "gplsDR_mod", predict_fun = predict.gPLS)
 }
 
+#' @rdname predict_cox_pls
 #' @export
 predict.coxsgpls <- function(object, newdata = NULL,
                              type = c("link", "risk", "response", "components"),
@@ -163,6 +227,7 @@ predict.coxsgpls <- function(object, newdata = NULL,
                      mod_name = "sgpls_mod", predict_fun = predict.gPLS)
 }
 
+#' @rdname predict_cox_pls
 #' @export
 predict.coxsgplsDR <- function(object, newdata = NULL,
                                type = c("link", "risk", "response", "components"),
@@ -173,6 +238,7 @@ predict.coxsgplsDR <- function(object, newdata = NULL,
                      mod_name = "sgplsDR_mod", predict_fun = predict.gPLS)
 }
 
+#' @rdname predict_cox_pls
 #' @export
 predict.coxspls_sgpls <- function(object, newdata = NULL,
                                   type = c("link", "risk", "response", "components"),
@@ -183,6 +249,7 @@ predict.coxspls_sgpls <- function(object, newdata = NULL,
                      mod_name = "spls_sgpls_mod", predict_fun = predict.gPLS)
 }
 
+#' @rdname predict_cox_pls
 #' @export
 predict.coxDKgplsDR <- function(object, newdata = NULL,
                                 type = c("link", "risk", "response", "components"),
@@ -194,6 +261,7 @@ predict.coxDKgplsDR <- function(object, newdata = NULL,
                      kernel_slot = "kernDKgplsDR_mod")
 }
 
+#' @rdname predict_cox_pls
 #' @export
 predict.coxDKsgplsDR <- function(object, newdata = NULL,
                                  type = c("link", "risk", "response", "components"),
@@ -205,6 +273,7 @@ predict.coxDKsgplsDR <- function(object, newdata = NULL,
                      kernel_slot = "kernDKsgplsDR_mod")
 }
 
+#' @rdname predict_cox_pls
 #' @export
 predict.coxDKspls_sgplsDR <- function(object, newdata = NULL,
                                       type = c("link", "risk", "response", "components"),

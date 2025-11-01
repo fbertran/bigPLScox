@@ -34,7 +34,7 @@
 #'
 #' \code{Generating survival times to simulate Cox proportional hazards models}, 2005 by Ralf Bender, Thomas Augustin, Maria Blettner.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' x <- matrix(sample(0:1, size = 20000, replace = TRUE), ncol = 2)
 #' dCox <- dataCox(10^4, lambda = 3, rho = 2, x,
 #' beta = c(1,3), cens.rate = 5) 

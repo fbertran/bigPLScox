@@ -92,6 +92,16 @@ devtools::install_github("fbertran/bigPLScox")
 * Run the benchmarking scripts in `inst/benchmarks/` to compare solver
   performance on simulated data.
 
+## Release highlights
+
+The full changelog lives in [`NEWS.md`](NEWS.md). Recent releases include:
+
+- **0.6.0** — C++ deviance residuals with benchmarking helpers, prediction
+  wrappers for `big_pls_cox()`/`big_pls_cox_gd()`, and new component selection
+  utilities.
+- **0.5.0** — pkgdown documentation refresh, reproducible benchmarking
+  scripts, and expanded vignettes covering large-scale workflows.
+  
 # Quick start
 
 The following example demonstrates the typical workflow on a subset of the

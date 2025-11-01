@@ -596,7 +596,7 @@ bigSurvSGD.na.omit <- function (formula = survival::Surv(time = time, status = s
 #' @seealso [bigscale()], [bigSurvSGD.na.omit()] and \link[bigSurvSGD]{bigSurvSGD}.
 #' 
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' continued <- partialbigSurvSGDv0(
 #'   name.col = c("age", "sex"),
 #'   datapath = tempfile(),

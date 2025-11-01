@@ -41,9 +41,12 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.0" id="bigplscox-060">bigPLScox 0.6.0<a class="anchor" aria-label="anchor" href="#bigplscox-060"></a></h2>
+<p>See the “Release highlights” section of the README for a condensed overview of these changes.</p>
 <ul><li>Added C++ implementations for Cox deviance residuals with streaming support for  matrices together with benchmarking utilities.</li>
 <li>Introduced prediction wrappers and component selection helpers (AIC/BIC) for <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> and <code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code>.</li>
 <li>Enabled naive sparsity control in <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> and exposed survival model objects for downstream predictions.</li>
+<li>Added cross-validation helpers <code><a href="../reference/cv.big_pls_cox.html">cv.big_pls_cox()</a></code> and <code><a href="../reference/cv.big_pls_cox.html">cv.big_pls_cox_gd()</a></code> mirroring the <code>plsRcox</code> criteria, including the recommended survivalROC iAUC metric by default.</li>
+<li>Documented the legacy and big-memory prediction helpers with runnable examples and cross references to diagnostic utilities.</li>
 <li>Extended unit test coverage for the new deviance and prediction features.</li>
 <li>Fixed <code><a href="../reference/cv.coxgpls.html">cv.coxgpls()</a></code> to accept <code>big.matrix</code> predictors without coercion errors.</li>
 </ul></div>
@@ -52,7 +55,7 @@
 <ul><li>Added reproducible benchmarking utilities under <code>inst/benchmarks</code> comparing <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> against <code><a href="https://fbertran.github.io/plsRcox/reference/plsRcox.html" class="external-link">plsRcox::plsRcox()</a></code> on in-memory and file-backed matrices.</li>
 <li>Published two package vignettes that cover introductory workflows and large-scale analyses with <code>bigmemory</code>.</li>
 <li>Added an introductory vignette covering the core Cox-PLS workflow.</li>
-<li>Refreshed the README and website copy to highlight core functionality and to demonstrate working examples without warnings.</li>
+<li>Refreshed the README and website copy to highlight core functionality and to demonstrate working examples without warnings, including guidance on learning materials and benchmarking resources.</li>
 <li>Refreshed the README with guidance on learning materials and benchmarking.</li>
 <li>Completed package-level documentation with bibliographic references.</li>
 <li>Updated package metadata to list optional dependencies used in docs and benchmarks.</li>

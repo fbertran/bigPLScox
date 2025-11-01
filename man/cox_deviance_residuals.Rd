@@ -41,8 +41,6 @@ benchmarking the residual computations.}
 
 \item{methods}{Optional named list of alternative residual implementations to
 compare against in \code{\link{benchmark_deviance_residuals}}.}
-
-\item{...}{Additional arguments passed to lower-level routines.}
 }
 \value{
 \itemize{

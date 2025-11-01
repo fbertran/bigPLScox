@@ -21,7 +21,7 @@
 #'   benchmarking the residual computations.
 #' @param methods Optional named list of alternative residual implementations to
 #'   compare against in [`benchmark_deviance_residuals`].
-#' @param ... Additional arguments passed to lower-level routines.
+# #' @param ... Additional arguments passed to lower-level routines.
 #'
 #' @details
 #' * [`cox_deviance_residuals()`] operates on standard R vectors and matches the

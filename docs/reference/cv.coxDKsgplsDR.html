@@ -408,11 +408,14 @@ Maumy-Bertrand, M. (2018), <a href="https://arxiv.org/abs/1810.01005" class="ext
 <span class="r-in"><span><span class="va">C_train_micro</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">DC</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">#Should be run with a higher value of nt (at least 10)</span></span></span>
-<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="op">(</span><span class="va">cv.coxDKsgplsDR.res</span><span class="op">=</span><span class="fu">cv.coxDKsgplsDR</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X_train_micro</span>,</span></span>
 <span class="r-in"><span>time<span class="op">=</span><span class="va">Y_train_micro</span>,status<span class="op">=</span><span class="va">C_train_micro</span><span class="op">)</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">6</span><span class="op">)</span>,nt<span class="op">=</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Kernel :  rbfdot </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Estimated_sigma  0.01257168 </span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in if (ncol(newdata) != p) stop("'newdata' must be a numeric matrix with ncol = ",     p, " or a vector of length = ", p, "."):</span> argument is of length zero</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

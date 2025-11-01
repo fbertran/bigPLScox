@@ -50,7 +50,7 @@ Loads a previously scaled design matrix and continues the stochastic
 gradient optimisation for a subset of variables.
 }
 \examples{
-\dontrun{
+\donttest{
 continued <- partialbigSurvSGDv0(
   name.col = c("age", "sex"),
   datapath = tempfile(),
