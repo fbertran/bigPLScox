@@ -69,11 +69,11 @@ continued <- partialbigSurvSGDv0(
   datapath = datapath,
   ncores = 1,
   resBigscale = scaled,
-  bigmemory.flag = TRUE,
+  bigmemory.flag = FALSE,
   parallel.flag = FALSE,
   inf.mth = "none"
 )
-unlink(datapath)
+# unlink(datapath)
 }
 
 }

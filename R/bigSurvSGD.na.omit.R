@@ -99,13 +99,13 @@
 #' surv_data <- stats::na.omit(micro.censure[, c("survyear", "DC", "sexe", "Agediag")])
 #' # Increase num.epoch and num.boot for real use
 #' fit <- bigSurvSGD.na.omit(
-#'   survival::Surv(survyear, DC) ~ .,
-#'   data = surv_data,
-#'   norm.method = "standardize",
-#'   opt.method = "adam",
-#'   batch.size = 16,
-#'   num.epoch = 2,
-#' )
+#'    survival::Surv(survyear, DC) ~ .,
+#'    data = surv_data,
+#'    norm.method = "standardize",
+#'    opt.method = "adam",
+#'    batch.size = 16,
+#'    num.epoch = 2,
+#'  )
 #' }
 #' 
 bigSurvSGD.na.omit <- function (formula = survival::Surv(time = time, status = status) ~ ., data, 
@@ -616,11 +616,11 @@ bigSurvSGD.na.omit <- function (formula = survival::Surv(time = time, status = s
 #'   datapath = datapath,
 #'   ncores = 1,
 #'   resBigscale = scaled,
-#'   bigmemory.flag = TRUE,
+#'   bigmemory.flag = FALSE,
 #'   parallel.flag = FALSE,
 #'   inf.mth = "none"
 #' )
-#' unlink(datapath)
+#' # unlink(datapath)
 #' }
 # 
 #' 

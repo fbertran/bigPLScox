@@ -39,7 +39,15 @@ Authors@R: c(
 	person(given = "Myriam", family= "Maumy-Bertrand", role = c("aut"), email = "myriam.maumy@ehesp.fr", comment = c(ORCID = "0000-0002-4615-1512")))
 Author: Frederic Bertrand [cre, aut] (<https://orcid.org/0000-0002-0837-8281>), Myriam Maumy-Bertrand [aut] (<https://orcid.org/0000-0002-4615-1512>)
 Maintainer: Frederic Bertrand <frederic.bertrand@lecnam.net>
-Description: Provides Partial least squares Regression and various regular, sparse or kernel, techniques for fitting Cox models for big data. Provides a Partial Least Squares (PLS) algorithm adapted to Cox proportional hazards models that works with 'bigmemory' matrices without loading the entire dataset in memory. Also implements a gradient-descent based solver for Cox proportional hazards models that works directly on 'bigmemory' matrices.
+Description: Provides Partial least squares Regression and various regular, sparse 
+    or kernel, techniques for fitting Cox models for big data. Provides a Partial 
+    Least Squares (PLS) algorithm adapted to Cox proportional hazards models that 
+    works with 'bigmemory' matrices without loading the entire dataset in memory. 
+    Also implements a gradient-descent based solver for Cox proportional hazards 
+    models that works directly on 'bigmemory' matrices.     
+    The 'bigPLScox' framework was presented by Bertrand and 'Maumy' (2023)
+    at Joint Statistical Meetings 2023 (Toronto, Canada) and 'BioC2023' (Boston,
+    USA), highlighting fitting and cross-validating PLS-based Cox models to censored big data.
 License: GPL-3
 Encoding: UTF-8
 URL: https://fbertran.github.io/bigPLScox/, https://github.com/fbertran/bigPLScox/
