@@ -46,7 +46,18 @@ classical `coxgpls()` solver, its big-memory counterparts, and the
 The examples below require a recent version of **bench** together with
 **survival**.
 
-```{r packages}
+```{r packages, include=FALSE}
+needed <- c("plsRcox","boot","survival","glmnet","bigPLScox")
+has    <- vapply(needed, requireNamespace, logical(1), quietly = TRUE)
+
+if (!all(has)) {
+  missing <- paste(needed[!has], collapse = ", ")
+  knitr::opts_chunk$set(eval = FALSE)
+  message("Note: skipping code execution because these packages are missing: ", missing)
+}
+```
+
+```{r packages_lib}
 library(bigPLScox)
 library(survival)
 library(bench)

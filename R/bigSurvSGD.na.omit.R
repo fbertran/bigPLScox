@@ -598,15 +598,29 @@ bigSurvSGD.na.omit <- function (formula = survival::Surv(time = time, status = s
 #' 
 #' @examples
 #' \donttest{
+#' data(micro.censure, package = "bigPLScox")
+#' surv_data <- stats::na.omit(
+#'   micro.censure[, c("survyear", "DC", "sexe", "Agediag")]
+#' )
+#' scaled <- bigscale(
+#'   survival::Surv(survyear, DC) ~ .,
+#'   data = surv_data,
+#'   norm.method = "standardize",
+#'   batch.size = 16
+#' )
+#' datapath <- tempfile(fileext = ".csv")
+#' utils::write.csv(surv_data, datapath, row.names = FALSE)
+#' 
 #' continued <- partialbigSurvSGDv0(
-#'   name.col = c("age", "sex"),
-#'   datapath = tempfile(),
-#'   ncores = 2,
+#'   name.col = c("Agediag", "sexe"),
+#'   datapath = datapath,
+#'   ncores = 1,
 #'   resBigscale = scaled,
 #'   bigmemory.flag = TRUE,
-#'   parallel.flag = TRUE,
-#'   inf.mth = "bootstrap"
+#'   parallel.flag = FALSE,
+#'   inf.mth = "none"
 #' )
+#' unlink(datapath)
 #' }
 # 
 #' 

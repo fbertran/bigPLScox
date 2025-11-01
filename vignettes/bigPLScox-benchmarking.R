@@ -10,7 +10,17 @@ knitr::opts_chunk$set(
   warning = FALSE
 )
 
-## ----packages-----------------------------------------------------------------
+## ----packages, include=FALSE--------------------------------------------------
+needed <- c("plsRcox","boot","survival","glmnet","bigPLScox")
+has    <- vapply(needed, requireNamespace, logical(1), quietly = TRUE)
+
+if (!all(has)) {
+  missing <- paste(needed[!has], collapse = ", ")
+  knitr::opts_chunk$set(eval = FALSE)
+  message("Note: skipping code execution because these packages are missing: ", missing)
+}
+
+## ----packages_lib-------------------------------------------------------------
 library(bigPLScox)
 library(survival)
 library(bench)
