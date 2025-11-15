@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,7 +37,6 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="articles/bigPLScox-benchmarking.html">Benchmarking bigPLScox</a></li>
-    <li><a class="dropdown-item" href="articles/bigPLScox-overview.html">Overview of bigPLScox</a></li>
     <li><a class="dropdown-item" href="articles/getting-started.html">Getting started with bigPLScox</a></li>
   </ul>
 </li>
@@ -65,6 +64,7 @@
 <div class="section level2">
 <h2 id="frédéric-bertrand-and-myriam-maumy-bertrand">Frédéric Bertrand and Myriam Maumy-Bertrand<a class="anchor" aria-label="anchor" href="#fr%C3%A9d%C3%A9ric-bertrand-and-myriam-maumy-bertrand"></a>
 </h2>
+<p><a href="https://doi.org/10.32614/CRAN.package.bigPLScox" class="external-link uri">https://doi.org/10.32614/CRAN.package.bigPLScox</a></p>
 <!-- badges: start -->
 
 <p><code>bigPLScox</code> provides Partial Least Squares (PLS) methods tailored for Cox proportional hazards models with large, high-dimensional feature matrices. The package works directly with <a href="https://cran.r-project.org/package=bigmemory" class="external-link"><code>bigmemory</code></a> objects, enabling native C++ accelerators and iterative algorithms to run without loading the full dataset into memory. In addition to the classical <code><a href="reference/coxgpls.html">coxgpls()</a></code> solver, the package contains accelerated variants, cross-validation helpers, and model diagnostics.</p>
@@ -284,6 +284,7 @@ plot of chunk unnamed-chunk-5
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
+<li><a href="https://doi.org/10.32614/CRAN.package.bigPLScox" class="external-link"><img src="https://img.shields.io/badge/doi-10.32614/CRAN.package.bigPLScox-blue.svg" alt="DOI"></a></li>
 <li><a href="https://github.com/fbertran/bigPLScox/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/fbertran/bigPLScox/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://github.com/fbertran/bigPLScox/actions/workflows/rhub.yaml" class="external-link"><img src="https://github.com/fbertran/bigPLScox/actions/workflows/rhub.yaml/badge.svg" alt="R-hub"></a></li>
 </ul>

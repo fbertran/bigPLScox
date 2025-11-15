@@ -2,7 +2,6 @@
 % Please edit documentation in R/predict-big_pls.R
 \name{predict.big_pls_cox}
 \alias{predict.big_pls_cox}
-\alias{predict.big_pls_cox_gd}
 \title{Predict method for big-memory PLS-Cox models}
 \usage{
 \method{predict}{big_pls_cox}(
@@ -13,8 +12,6 @@
   coef = NULL,
   ...
 )
-
-\method{predict}{big_pls_cox_gd}(object, newdata = NULL, type = c("link", "risk", "scores"), ...)
 }
 \arguments{
 \item{object}{A model fitted with \code{\link[=big_pls_cox]{big_pls_cox()}}.}

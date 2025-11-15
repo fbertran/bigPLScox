@@ -20,11 +20,13 @@ knitr::opts_chunk$set(
 # bigPLScox, PLS models and their extension for big data in R
 ## Frédéric Bertrand and Myriam Maumy-Bertrand
 
+<https://doi.org/10.32614/CRAN.package.bigPLScox>
+
 <!-- badges: start -->
+[![DOI](https://img.shields.io/badge/doi-10.32614/CRAN.package.bigPLScox-blue.svg)](https://doi.org/10.32614/CRAN.package.bigPLScox)
 [![R-CMD-check](https://github.com/fbertran/bigPLScox/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/fbertran/bigPLScox/actions/workflows/R-CMD-check.yaml)
 [![R-hub](https://github.com/fbertran/bigPLScox/actions/workflows/rhub.yaml/badge.svg)](https://github.com/fbertran/bigPLScox/actions/workflows/rhub.yaml)
 <!-- badges: end -->
-
 
 `bigPLScox` provides Partial Least Squares (PLS) methods tailored for Cox
 proportional hazards models with large, high-dimensional feature matrices. The

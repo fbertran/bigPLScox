@@ -1,6 +1,11 @@
+# bigPLScox 0.8.0
+
+* Added doi of the package.
+
 # bigPLScox 0.7.0
 
 * Fixed problem in C code that led to an additionnal error during CRAN tests.
+* Added helpers for `big_pls_cox()` and `big_pls_cox_gd()`.
 
 # bigPLScox 0.6.0
 

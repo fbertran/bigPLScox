@@ -93,7 +93,7 @@ test_that("prediction helpers work for gradient descent fits", {
   fit <- big_pls_cox_gd(X, time, status, ncomp = 2, max_iter = 50)
   lp <- predict(fit, newdata=X, type = "link")
   expect_length(lp, n)
-  comps <- predict(fit, newdata=X, type = "scores")
+  comps <- predict(fit, newdata=X, type = "components")
   expect_equal(dim(comps), c(n, 2))
 })
 
@@ -118,5 +118,34 @@ test_that("GD matches PLS up to rotation", {
   expect_lt(abs(c_pls - c_gd), 1e-2)
 })
 
+test_that("GD predict reproduces training lp", {
+  data(micro.censure)
+  data(Xmicro.censure_compl_imp)
+  
+  Y_all <- micro.censure$survyear[1:80]
+  status_all <- micro.censure$DC[1:80]
+  X_all <- apply(
+    as.matrix(Xmicro.censure_compl_imp),
+    MARGIN = 2,
+    FUN = as.numeric
+  )[1:80, ]
+  
+  set.seed(2024)
+  train_id <- 1:60
+  test_id <- 61:80
+  
+  X_train <- X_all[train_id, ]
+  Y_train <- Y_all[train_id]
+  status_train <- status_all[train_id]
+
+  X_big_train <- bigmemory::as.big.matrix(X_train)
+
+  gd <- big_pls_cox_gd(X_big_train, Y_train, status_train, ncomp = 4, max_iter = 2000)
+  
+  lp_train   <- drop(gd$scores %*% gd$cox_fit$coefficients)
+  lp_predict <- drop(predict(gd, newdata = X_big_train, type = "link"))
+  
+  expect_gt(cor(lp_train, lp_predict), 0.999)
+})
 
 

@@ -36,10 +36,12 @@
 #'   models for censored data. In *Proceedings of UseR! 2014* (p. 152).
 #'   
 #' @export
+#' @export
 predict.big_pls_cox <- function(object, newdata = NULL,
                                 type = c("link", "risk", "response", "components"),
                                 comps = NULL, coef = NULL, ...) {
   type <- match.arg(type)
+
   total_comp <- ncol(object$scores)
   if (is.null(comps)) {
     comps <- seq_len(total_comp)
@@ -53,11 +55,11 @@ predict.big_pls_cox <- function(object, newdata = NULL,
   }
   
   scores <- compute_big_pls_scores(object, newdata, comps)
-  
+
   if (type == "components") {
     return(scores)
   }
-  
+
   if (is.null(coef)) {
     coef <- object$cox_fit$coefficients
     if (is.null(coef)) {
@@ -95,44 +97,6 @@ compute_big_pls_scores <- function(object, newdata, comps) {
                                object$weights, object$loadings, comps)
 }
 
-#' @rdname predict.big_pls_cox
-#' @export
-predict.big_pls_cox_gd <- function(object, newdata = NULL,
-                                   type = c("link", "risk", "response", "components"),
-                                   comps = NULL, coef = NULL, ...) {
-  type <- match.arg(type)
-  total_comp <- ncol(object$scores)
-  if (is.null(comps)) {
-    comps <- seq_len(total_comp)
-  }
-  comps <- as.integer(comps)
-  if (length(comps) == 0L) {
-    stop("`comps` must contain at least one component")
-  }
-  if (any(comps < 1L) || any(comps > total_comp)) {
-    stop("`comps` indices are out of bounds")
-  }
-  
-  scores <- compute_big_pls_scores(object, newdata, comps)
-  if (type == "components") {
-    return(scores)
-  }
-  
-  if (is.null(coef)) {
-    coef <- object$coefficients
-    if (is.null(coef)) {
-      stop("Coefficients are not stored in the gradient-descent fit; supply them via `coef`")
-    }
-  }
-  coef <- as.numeric(coef)
-  if (length(coef) < max(comps)) {
-    stop("`coef` must have at least max(comps) entries")
-  }
-  eta <- as.numeric(scores %*% coef[comps])
-  switch(type,
-         link = eta,
-         risk = exp(eta),
-         response = exp(eta))
-}
+
 
 

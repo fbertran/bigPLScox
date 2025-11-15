@@ -3,10 +3,9 @@ pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   bigPLScox-benchmarking: bigPLScox-benchmarking.html
-  bigPLScox-overview: bigPLScox-overview.html
   bigPLScox: bigPLScox.html
   getting-started: getting-started.html
-last_built: 2025-10-31T23:04Z
+last_built: 2025-11-15T16:30Z
 urls:
   reference: https://fbertran.github.io/bigPLScox/reference
   article: https://fbertran.github.io/bigPLScox/articles

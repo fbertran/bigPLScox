@@ -17,7 +17,7 @@ fit."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,7 +30,6 @@ fit."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/bigPLScox-benchmarking.html">Benchmarking bigPLScox</a></li>
-    <li><a class="dropdown-item" href="../articles/bigPLScox-overview.html">Overview of bigPLScox</a></li>
     <li><a class="dropdown-item" href="../articles/getting-started.html">Getting started with bigPLScox</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -385,14 +384,14 @@ doi:10.1093/bioinformatics/btu660.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> coxph(formula = YCsurv ~ ., data = tt_DKspls_sgplsDR)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            coef exp(coef)  se(coef)     z        p</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.1 3.334e+00 2.804e+01 1.238e+00 2.692 0.007095</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.2 9.578e+00 1.444e+04 2.865e+00 3.343 0.000829</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.3 7.886e+00 2.659e+03 2.891e+00 2.728 0.006377</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.4 1.369e+01 8.842e+05 4.470e+00 3.063 0.002188</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.5 4.028e+00 5.615e+01 2.151e+00 1.873 0.061074</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.6 6.562e+00 7.074e+02 2.831e+00 2.318 0.020448</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.1 3.595e+00 3.643e+01 1.303e+00 2.759 0.005800</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.2 1.014e+01 2.537e+04 3.047e+00 3.328 0.000875</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.3 8.615e+00 5.511e+03 3.136e+00 2.747 0.006011</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.4 1.426e+01 1.565e+06 4.641e+00 3.074 0.002115</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.5 4.642e+00 1.037e+02 2.267e+00 2.047 0.040625</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.6 6.228e+00 5.067e+02 2.715e+00 2.294 0.021812</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=66.14  on 6 df, p=2.526e-12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=67.76  on 6 df, p=1.174e-12</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> n= 80, number of events= 17 </span>
 <span class="r-in"><span><span class="op">(</span><span class="va">cox_DKspls_sgplsDR_fit</span><span class="op">=</span><span class="fu">coxDKspls_sgplsDR</span><span class="op">(</span><span class="op">~</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,</span></span>
 <span class="r-in"><span><span class="va">C_train_micro</span>,ncomp<span class="op">=</span><span class="fl">6</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, alpha.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
@@ -400,14 +399,14 @@ doi:10.1093/bioinformatics/btu660.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> coxph(formula = YCsurv ~ ., data = tt_DKspls_sgplsDR)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            coef exp(coef)  se(coef)     z        p</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.1 3.302e+00 2.718e+01 1.232e+00 2.680 0.007352</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.2 9.661e+00 1.570e+04 2.895e+00 3.337 0.000846</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.3 8.212e+00 3.684e+03 2.952e+00 2.782 0.005409</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.4 1.422e+01 1.495e+06 4.648e+00 3.059 0.002220</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.5 4.073e+00 5.873e+01 2.193e+00 1.857 0.063244</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.6 7.077e+00 1.185e+03 2.954e+00 2.395 0.016603</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.1 3.256e+00 2.594e+01 1.225e+00 2.659 0.007847</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.2 9.555e+00 1.412e+04 2.855e+00 3.347 0.000818</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.3 7.948e+00 2.831e+03 2.856e+00 2.783 0.005386</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.4 1.404e+01 1.258e+06 4.579e+00 3.067 0.002160</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.5 4.028e+00 5.615e+01 2.173e+00 1.854 0.063745</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.6 7.231e+00 1.382e+03 3.030e+00 2.387 0.016993</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=66.48  on 6 df, p=2.15e-12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=66.1  on 6 df, p=2.567e-12</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> n= 80, number of events= 17 </span>
 <span class="r-in"><span><span class="op">(</span><span class="va">cox_DKspls_sgplsDR_fit</span><span class="op">=</span><span class="fu">coxDKspls_sgplsDR</span><span class="op">(</span><span class="op">~</span><span class="va">.</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,</span></span>
 <span class="r-in"><span>ncomp<span class="op">=</span><span class="fl">6</span>,dataXplan<span class="op">=</span><span class="va">X_train_micro_df</span>,ind.block.x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">10</span>,<span class="fl">15</span><span class="op">)</span>, </span></span>
@@ -416,14 +415,14 @@ doi:10.1093/bioinformatics/btu660.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> coxph(formula = YCsurv ~ ., data = tt_DKspls_sgplsDR)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            coef exp(coef)  se(coef)     z        p</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.1 3.300e+00 2.711e+01 1.233e+00 2.676 0.007450</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.2 9.647e+00 1.548e+04 2.885e+00 3.344 0.000825</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.3 8.074e+00 3.209e+03 2.901e+00 2.783 0.005386</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.4 1.414e+01 1.389e+06 4.609e+00 3.069 0.002148</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.5 4.100e+00 6.036e+01 2.188e+00 1.874 0.060979</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> dim.6 7.143e+00 1.266e+03 2.991e+00 2.389 0.016913</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.1 3.207e+00 2.469e+01 1.170e+00 2.739 0.006153</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.2 9.160e+00 9.506e+03 2.728e+00 3.357 0.000787</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.3 6.938e+00 1.030e+03 2.434e+00 2.850 0.004368</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.4 1.364e+01 8.376e+05 4.398e+00 3.101 0.001928</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.5 3.808e+00 4.507e+01 2.219e+00 1.716 0.086097</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> dim.6 7.262e+00 1.425e+03 3.073e+00 2.363 0.018125</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=66.38  on 6 df, p=2.256e-12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=64.67  on 6 df, p=5.029e-12</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> n= 80, number of events= 17 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">X_train_micro</span>,<span class="va">Y_train_micro</span>,<span class="va">C_train_micro</span>,<span class="va">cox_DKspls_sgplsDR_fit</span><span class="op">)</span></span></span>

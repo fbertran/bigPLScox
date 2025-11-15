@@ -145,42 +145,6 @@ print.big_pls_cox_gd <- function(x, ...) {
   invisible(x)
 }
 
-
-
-
-#' @export
-predict.big_pls_cox_gd <- function(object, newdata = NULL,
-                                   type = c("link", "risk", "scores"),
-                                   ...) {
-  type <- match.arg(type)
-  
-  if (is.null(newdata)) {
-    scores <- object$scores
-  } else {
-    scores <- big_pls_cox_transform(
-      X        = newdata,
-      means    = object$center,
-      sds      = object$scale,
-      weights  = object$weights,
-      loadings = object$loadings,
-      comps    = seq_len(ncol(object$weights))
-    )
-  }
-  
-  if (type == "scores") {
-    return(scores)
-  }
-  
-  beta <- object$coefficients
-  lp <- as.numeric(scores %*% beta)
-  
-  if (type == "link") {
-    lp
-  } else {
-    exp(lp)
-  }
-}
-
 #' @noRd
 print.summary.big_pls_cox_gd <- function(x, ...) {
   cat("bigPLScox GD model\n")

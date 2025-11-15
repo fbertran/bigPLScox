@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +35,6 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/bigPLScox-benchmarking.html">Benchmarking bigPLScox</a></li>
-    <li><a class="dropdown-item" href="../articles/bigPLScox-overview.html">Overview of bigPLScox</a></li>
     <li><a class="dropdown-item" href="../articles/getting-started.html">Getting started with bigPLScox</a></li>
   </ul>
 </li>
@@ -76,17 +75,34 @@ Paris<br><a class="author_email" href="mailto:#"></a><a href="mailto:frederic.be
     
     
 <div class="section level2">
-<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+<h2 id="why-bigplscox">Why bigPLScox?<a class="anchor" aria-label="anchor" href="#why-bigplscox"></a>
 </h2>
-<p>The <strong>bigPLScox</strong> package provides tools to fit Partial
-Least Squares (PLS) models tailored to the Cox proportional hazards
-setting. It includes cross-validation helpers, diagnostic utilities, and
-interfaces that work with both in-memory matrices and
-<code>bigmemory</code> objects. This vignette walks through a core
-workflow on the allelotyping dataset bundled with the package.</p>
+<p><strong>bigPLScox</strong> implements Partial Least Squares (PLS)
+extensions of the Cox proportional hazards model that remain stable in
+high-dimensional survival settings. The package now ships with three
+complementary engines:</p>
+<ul>
+<li>
+<code><a href="../reference/coxgpls.html">coxgpls()</a></code> – the classical matrix-based estimator with
+optional sparse and grouped variants (e.g. <code><a href="../reference/coxsgpls.html">coxsgpls()</a></code>,
+<code><a href="../reference/coxspls_sgpls.html">coxspls_sgpls()</a></code>).</li>
+<li>
+<code><a href="../reference/big_pls_cox_fast.html">big_pls_cox_fast()</a></code> – the new Armadillo backend that
+produces variance-one components and supports both dense matrices and
+<code><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">bigmemory::big.matrix</a></code> objects through the same
+interface.</li>
+<li>
+<code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code> – a stochastic gradient descent solver
+that streams data from disk and converges quickly even when only a
+subset of predictors remains active at each step.</li>
+</ul>
+<p>Together with the deviance-residual solvers and cross-validation
+helpers, these functions cover the most common modelling workflows. This
+vignette walks through those workflows using the bundled allelotyping
+dataset.</p>
 </div>
 <div class="section level2">
-<h2 id="loading-the-data">Loading the data<a class="anchor" aria-label="anchor" href="#loading-the-data"></a>
+<h2 id="loading-the-example-data">Loading the example data<a class="anchor" aria-label="anchor" href="#loading-the-example-data"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fbertran.github.io/bigPLScox/">bigPLScox</a></span><span class="op">)</span></span>
@@ -112,18 +128,19 @@ workflow on the allelotyping dataset bundled with the package.</p>
 <span><span class="va">Y_test</span> <span class="op">&lt;-</span> <span class="va">Y_all</span><span class="op">[</span><span class="va">test_id</span><span class="op">]</span></span>
 <span><span class="va">status_train</span> <span class="op">&lt;-</span> <span class="va">status_all</span><span class="op">[</span><span class="va">train_id</span><span class="op">]</span></span>
 <span><span class="va">status_test</span> <span class="op">&lt;-</span> <span class="va">status_all</span><span class="op">[</span><span class="va">test_id</span><span class="op">]</span></span></code></pre></div>
-<p>The original factor-based design matrix is also available should you
-prefer to work with categorical predictors directly.</p>
+<p>The original factor-based design matrix is also available if you wish
+to leverage the formula interface.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">X_train_raw</span> <span class="op">&lt;-</span> <span class="va">Xmicro.censure_compl_imp</span><span class="op">[</span><span class="va">train_id</span>, <span class="op">]</span></span>
 <span><span class="va">X_test_raw</span> <span class="op">&lt;-</span> <span class="va">Xmicro.censure_compl_imp</span><span class="op">[</span><span class="va">test_id</span>, <span class="op">]</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="exploring-deviance-residuals">Exploring deviance residuals<a class="anchor" aria-label="anchor" href="#exploring-deviance-residuals"></a>
+<h2 id="inspecting-deviance-residuals">Inspecting deviance residuals<a class="anchor" aria-label="anchor" href="#inspecting-deviance-residuals"></a>
 </h2>
-<p><code><a href="../reference/computeDR.html">computeDR()</a></code> extracts deviance residuals from a null Cox
-model. Inspecting them before fitting the PLS components helps detect
-anomalies in the survival outcomes.</p>
+<p>Deviance residuals can reveal problematic observations before any
+components are extracted. The helper <code><a href="../reference/computeDR.html">computeDR()</a></code> exposes
+both an R and a C++ engine; the latter is substantially faster and
+powers the new fast PLS routines.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">residuals_overview</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeDR.html">computeDR</a></span><span class="op">(</span><span class="va">Y_train</span>, <span class="va">status_train</span>, plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figures/getting-started-deviance-residuals-1.png" width="1050"></p>
@@ -145,8 +162,8 @@ anomalies in the survival outcomes.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 6</span></span></span>
 <span><span class="co">#&gt;   expression      min   median `itr/sec` mem_alloc `gc/sec`</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;bch:expr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:byt&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> survival    830.5µs    851µs     <span style="text-decoration: underline;">1</span>145.     169KB        0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> cpp          93.3µs    100µs     <span style="text-decoration: underline;">8</span>788.     162KB        0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> survival    837.6µs    892µs     <span style="text-decoration: underline;">1</span>052.     169KB        0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> cpp          89.6µs     95µs     <span style="text-decoration: underline;">9</span>305.     163KB        0</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="../reference/computeDR.html">computeDR</a></span><span class="op">(</span><span class="va">Y_train</span>, <span class="va">status_train</span>, engine <span class="op">=</span> <span class="st">"survival"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -156,11 +173,12 @@ anomalies in the survival outcomes.</p>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="fitting-cox-pls-models">Fitting Cox PLS models<a class="anchor" aria-label="anchor" href="#fitting-cox-pls-models"></a>
+<h2 id="matrix-based-plscox-models">Matrix-based PLS–Cox models<a class="anchor" aria-label="anchor" href="#matrix-based-plscox-models"></a>
 </h2>
-<p>The matrix interface to <code><a href="../reference/coxgpls.html">coxgpls()</a></code> mirrors
-<code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">survival::coxph()</a></code> while adding latent components that
-stabilise estimation in high dimensions.</p>
+<p>The matrix interface mimics <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">survival::coxph()</a></code> while
+augmenting the predictor space with latent components. Most users start
+with <code><a href="../reference/coxgpls.html">coxgpls()</a></code> and the cross-validation helper
+<code><a href="../reference/cv.coxgpls.html">cv.coxgpls()</a></code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">cox_pls_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
@@ -168,7 +186,7 @@ stabilise estimation in high dimensions.</p>
 <span>  time <span class="op">=</span> <span class="va">Y_train</span>,</span>
 <span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
 <span>  ncomp <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>    ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
+<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cox_pls_fit</span></span>
 <span><span class="co">#&gt; Call:</span></span>
@@ -184,8 +202,8 @@ stabilise estimation in high dimensions.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Likelihood ratio test=60.94  on 6 df, p=2.906e-11</span></span>
 <span><span class="co">#&gt; n= 60, number of events= 60</span></span></code></pre></div>
-<p>A formula interface is also available when working with data frames
-that include both predictors and survival outcomes.</p>
+<p>The formula interface accepts data frames containing the predictors
+along with survival outcomes.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cox_pls_fit_formula</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
 <span>  <span class="op">~</span> <span class="va">.</span>, <span class="va">Y_train</span>, <span class="va">status_train</span>,</span>
@@ -207,13 +225,12 @@ that include both predictors and survival outcomes.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Likelihood ratio test=19.59  on 6 df, p=0.00328</span></span>
 <span><span class="co">#&gt; n= 60, number of events= 11</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="cross-validation-utilities">Cross-validation utilities<a class="anchor" aria-label="anchor" href="#cross-validation-utilities"></a>
-</h2>
-<p>Repeated cross-validation helps determine the appropriate number of
-latent components. Provide either a matrix or a list with
-<code>x</code>, <code>time</code>, and <code>status</code> entries.</p>
+<div class="section level3">
+<h3 id="cross-validation">Cross-validation<a class="anchor" aria-label="anchor" href="#cross-validation"></a>
+</h3>
+<p>Repeated cross-validation stabilises the choice of latent components.
+The returned object records the optimal number of components and
+diagnostic curves.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
 <span><span class="va">cv_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="../reference/cv.coxgpls.html">cv.coxgpls</a></span><span class="op">(</span></span>
@@ -260,9 +277,8 @@ latent components. Provide either a matrix or a list with
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $lambda.1se10</span></span>
 <span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
-<p>The selected number of components is stored under
-<code>cv_results$opt_nt</code>. Use it to refit the model with the
-deviance residual solver for comparison.</p>
+<p>Use the selected number of components to refit with the
+deviance-residual solver for a robustness check.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123456</span><span class="op">)</span></span>
 <span><span class="va">cox_pls_dr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxgplsDR.html">coxgplsDR</a></span><span class="op">(</span></span>
@@ -286,104 +302,103 @@ deviance residual solver for comparison.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Likelihood ratio test=63.84  on 6 df, p=7.442e-12</span></span>
 <span><span class="co">#&gt; n= 60, number of events= 60</span></span></code></pre></div>
+<p>Sparse and structured sparse variants (<code><a href="../reference/coxsgpls.html">coxsgpls()</a></code>,
+<code><a href="../reference/coxspls_sgpls.html">coxspls_sgpls()</a></code>) share the same workflow with additional
+arguments that control the number of selected predictors per component
+(<code>keepX</code>) or penalty strength.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="dk-splines-extension">DK-splines extension<a class="anchor" aria-label="anchor" href="#dk-splines-extension"></a>
+<h2 id="fast-solvers-for-medium-sized-data">Fast solvers for medium-sized data<a class="anchor" aria-label="anchor" href="#fast-solvers-for-medium-sized-data"></a>
 </h2>
-<p>For flexible baseline hazards the <code><a href="../reference/coxDKgplsDR.html">coxDKgplsDR()</a></code>
-estimator augments the PLS components with DK-splines. The interface
-mirrors the previous functions.</p>
+<p>The new <code><a href="../reference/big_pls_cox_fast.html">big_pls_cox_fast()</a></code> routine exposes identical
+arguments for dense matrices and <code>big.matrix</code> objects. On
+moderate data it serves as a drop-in replacement for the original R
+implementation <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code>.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cox_DKsplsDR_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxDKgplsDR.html">coxDKgplsDR</a></span><span class="op">(</span></span>
-<span>  Xplan <span class="op">=</span> <span class="va">X_train</span>,</span>
+<code class="sourceCode R"><span><span class="va">fast_fit_dense</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox_fast.html">big_pls_cox_fast</a></span><span class="op">(</span></span>
+<span>  X <span class="op">=</span> <span class="va">X_train</span>,</span>
 <span>  time <span class="op">=</span> <span class="va">Y_train</span>,</span>
 <span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
-<span>  ncomp <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  validation <span class="op">=</span> <span class="st">"CV"</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  ncomp <span class="op">=</span> <span class="fl">4</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">cox_DKsplsDR_fit</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fast_fit_dense</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $n</span></span>
+<span><span class="co">#&gt; [1] 60</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $p</span></span>
+<span><span class="co">#&gt; [1] 40</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $ncomp</span></span>
+<span><span class="co">#&gt; [1] 4</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $keepX</span></span>
+<span><span class="co">#&gt; [1] 0 0 0 0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $center</span></span>
+<span><span class="co">#&gt;  [1]  0.4666667  0.4500000  0.4166667  0.5333333  0.5000000  0.5166667</span></span>
+<span><span class="co">#&gt;  [7]  0.4833333  0.4000000  0.3833333  0.4500000  0.5166667  0.5166667</span></span>
+<span><span class="co">#&gt; [13]  0.5500000  0.3666667  0.4333333  0.5333333  0.4833333  0.5166667</span></span>
+<span><span class="co">#&gt; [19]  0.5500000  0.5166667  0.4333333  0.5666667  0.4000000  0.3833333</span></span>
+<span><span class="co">#&gt; [25]  0.5166667  0.5166667  0.5666667  0.5333333  0.4666667  0.4500000</span></span>
+<span><span class="co">#&gt; [31]  0.5500000  0.5500000  0.4500000  0.6333333 62.4622365  1.6833333</span></span>
+<span><span class="co">#&gt; [37]  2.3833333  0.5166667  0.2500000  2.2666667</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $scale</span></span>
+<span><span class="co">#&gt;  [1]  0.5030977  0.5016921  0.4971671  0.5030977  0.5042195  0.5039393</span></span>
+<span><span class="co">#&gt;  [7]  0.5039393  0.4940322  0.4903014  0.5016921  0.5039393  0.5039393</span></span>
+<span><span class="co">#&gt; [13]  0.5016921  0.4859611  0.4997174  0.5030977  0.5039393  0.5039393</span></span>
+<span><span class="co">#&gt; [19]  0.5016921  0.5039393  0.4997174  0.4997174  0.4940322  0.4903014</span></span>
+<span><span class="co">#&gt; [25]  0.5039393  0.5039393  0.4997174  0.5030977  0.5030977  0.5016921</span></span>
+<span><span class="co">#&gt; [31]  0.5016921  0.5016921  0.5016921  0.4859611 14.6024282  0.7008873</span></span>
+<span><span class="co">#&gt; [37]  0.9404591  0.7917299  0.4366669  1.2604367</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $cox</span></span>
 <span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_DKgplsDR)</span></span>
+<span><span class="co">#&gt; survival::coxph(formula = survival::Surv(time, status) ~ ., data = scores_df, </span></span>
+<span><span class="co">#&gt;     ties = "efron", x = FALSE)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           coef exp(coef) se(coef)     z        p</span></span>
-<span><span class="co">#&gt; dim.1   4.8792  131.5255   0.7348 6.640 3.14e-11</span></span>
-<span><span class="co">#&gt; dim.2   4.3106   74.4853   0.8523 5.058 4.25e-07</span></span>
-<span><span class="co">#&gt; dim.3   4.3799   79.8304   1.0374 4.222 2.42e-05</span></span>
-<span><span class="co">#&gt; dim.4   3.1313   22.9036   0.9043 3.463 0.000535</span></span>
-<span><span class="co">#&gt; dim.5   1.9561    7.0716   0.7031 2.782 0.005400</span></span>
-<span><span class="co">#&gt; dim.6   1.9467    7.0054   0.7344 2.651 0.008031</span></span>
+<span><span class="co">#&gt;   n= 60, number of events= 11 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=77.54  on 6 df, p=1.151e-14</span></span>
-<span><span class="co">#&gt; n= 60, number of events= 60</span></span></code></pre></div>
-<p>Cross-validation is available for the DK-splines estimator as
-well.</p>
+<span><span class="co">#&gt;          coef exp(coef) se(coef)      z Pr(&gt;|z|)   </span></span>
+<span><span class="co">#&gt; comp1 -1.4836    0.2268   0.5002 -2.966  0.00301 **</span></span>
+<span><span class="co">#&gt; comp2  1.3937    4.0299   0.5081  2.743  0.00609 **</span></span>
+<span><span class="co">#&gt; comp3 -1.4271    0.2400   0.6997 -2.040  0.04138 * </span></span>
+<span><span class="co">#&gt; comp4  0.9357    2.5490   0.5119  1.828  0.06755 . </span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;       exp(coef) exp(-coef) lower .95 upper .95</span></span>
+<span><span class="co">#&gt; comp1    0.2268     4.4088    0.0851    0.6045</span></span>
+<span><span class="co">#&gt; comp2    4.0299     0.2481    1.4887   10.9090</span></span>
+<span><span class="co">#&gt; comp3    0.2400     4.1668    0.0609    0.9458</span></span>
+<span><span class="co">#&gt; comp4    2.5490     0.3923    0.9347    6.9518</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Concordance= 0.962  (se = 0.015 )</span></span>
+<span><span class="co">#&gt; Likelihood ratio test= 40.45  on 4 df,   p=3e-08</span></span>
+<span><span class="co">#&gt; Wald test            = 15.58  on 4 df,   p=0.004</span></span>
+<span><span class="co">#&gt; Score (logrank) test = 38.25  on 4 df,   p=1e-07</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; attr(,"class")</span></span>
+<span><span class="co">#&gt; [1] "summary.big_pls_cox"</span></span></code></pre></div>
+<p>Predictions rely on the same <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> interface used by
+the classical function.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2468</span><span class="op">)</span></span>
-<span><span class="va">cv_coxDKgplsDR_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="../reference/cv.coxDKgplsDR.html">cv.coxDKgplsDR</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">X_train</span>, time <span class="op">=</span> <span class="va">Y_train</span>, status <span class="op">=</span> <span class="va">status_train</span><span class="op">)</span>,</span>
-<span>  nt <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01258323 </span></span>
-<span><span class="co">#&gt; CV Fold 1 </span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01471071 </span></span>
-<span><span class="co">#&gt; CV Fold 2 </span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.0127949 </span></span>
-<span><span class="co">#&gt; CV Fold 3 </span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.0122611 </span></span>
-<span><span class="co">#&gt; CV Fold 4 </span></span>
-<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
-<span><span class="co">#&gt; Estimated_sigma  0.01289496 </span></span>
-<span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
-<p><img src="figures/getting-started-cv-dk-splines-1.png" width="1050"></p>
+<code class="sourceCode R"><span><span class="va">linear_predictor_fast</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fast_fit_dense</span>, newdata <span class="op">=</span> <span class="va">X_test</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">linear_predictor_fast</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1]  3.3499156 -0.8685314  8.6594617 -6.5718861  2.0102711 -2.1990051</span></span></code></pre></div>
+<p>For comparison, the legacy solver is still available. The C++ backend
+usually reduces runtime by an order of magnitude while delivering
+components scaled to variance one.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cv_coxDKgplsDR_res</span></span>
-<span><span class="co">#&gt; $nt</span></span>
-<span><span class="co">#&gt; [1] 6</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $cv.error10</span></span>
-<span><span class="co">#&gt; [1] 0.5000000 0.5658906 0.6356608 0.6374963 0.6100371 0.6307320 0.5694802</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $cv.se10</span></span>
-<span><span class="co">#&gt; [1] 0.00000000 0.02591444 0.03982352 0.03646931 0.03407857 0.04124367 0.03676530</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds</span></span>
-<span><span class="co">#&gt; $folds$`1`</span></span>
-<span><span class="co">#&gt;  [1] 44 16 27 26 55 20 49 14  6 47 18  7</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`2`</span></span>
-<span><span class="co">#&gt;  [1] 58  8  2 17  3 15 52 43 56 11 29 59</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`3`</span></span>
-<span><span class="co">#&gt;  [1] 51 13 57 46 45 32 19  5 36 33 10 28</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`4`</span></span>
-<span><span class="co">#&gt;  [1] 21 50 38 60 53 42 23 31 12 24  1 25</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $folds$`5`</span></span>
-<span><span class="co">#&gt;  [1] 22 39 35 54  4 30 34 48 37 40  9 41</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $lambda.min10</span></span>
-<span><span class="co">#&gt; [1] 3</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $lambda.1se10</span></span>
-<span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Unified prediction comparison</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bigmemory"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaneplusplus/bigmemory" class="external-link">bigmemory</a></span><span class="op">)</span></span>
-<span>  <span class="va">X_big_train</span> <span class="op">&lt;-</span> <span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">X_train</span><span class="op">)</span></span>
-<span>  <span class="va">X_big_test</span> <span class="op">&lt;-</span> <span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">X_test</span><span class="op">)</span></span>
-<span>  <span class="va">big_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox.html">big_pls_cox</a></span><span class="op">(</span><span class="va">X_train</span>, <span class="va">Y_train</span>, <span class="va">status_train</span>, ncomp <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
-<span>  <span class="va">big_fit</span><span class="op">$</span><span class="va">cox_fit</span></span>
-<span><span class="op">}</span></span>
+<code class="sourceCode R"><span><span class="va">legacy_fit_dense</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox.html">big_pls_cox</a></span><span class="op">(</span></span>
+<span>  X <span class="op">=</span> <span class="va">X_train</span>,</span>
+<span>  time <span class="op">=</span> <span class="va">Y_train</span>,</span>
+<span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
+<span>  ncomp <span class="op">=</span> <span class="fl">4</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">legacy_fit_dense</span><span class="op">$</span><span class="va">cox_fit</span></span>
 <span><span class="co">#&gt; $coefficients</span></span>
 <span><span class="co">#&gt; [1]  6.200427  3.171981 -2.748535  1.293296</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -451,29 +466,39 @@ well.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $class</span></span>
 <span><span class="co">#&gt; [1] "coxph"</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+</div>
+<div class="section level2">
+<h2 id="scaling-up-with-big-memory-matrices">Scaling up with big-memory matrices<a class="anchor" aria-label="anchor" href="#scaling-up-with-big-memory-matrices"></a>
+</h2>
+<p>When the dataset exceeds RAM capacity, convert it to a
+<code><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">bigmemory::big.matrix</a></code>. The fast backend natively operates
+on the resulting pointer without copying the data.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bigmemory"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">gd_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span><span class="va">X_big_train</span>, <span class="va">Y_train</span>, <span class="va">status_train</span>, ncomp <span class="op">=</span> <span class="fl">4</span>, max_iter <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span>
-<span>  <span class="va">gd_fit</span><span class="op">$</span><span class="va">cox_fit</span></span>
-<span><span class="op">}</span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; survival::coxph(formula = survival::Surv(time, status) ~ fit$scores, </span></span>
-<span><span class="co">#&gt;     ties = "efron", x = FALSE)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;                coef exp(coef) se(coef)      z      p</span></span>
-<span><span class="co">#&gt; fit$scores1  3.3931   29.7580   1.3591  2.497 0.0125</span></span>
-<span><span class="co">#&gt; fit$scores2  3.3543   28.6253   1.2437  2.697 0.0070</span></span>
-<span><span class="co">#&gt; fit$scores3 -2.1863    0.1123   0.8624 -2.535 0.0112</span></span>
-<span><span class="co">#&gt; fit$scores4  0.9503    2.5865   0.4536  2.095 0.0362</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=55.4  on 4 df, p=2.682e-11</span></span>
-<span><span class="co">#&gt; n= 60, number of events= 11</span></span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bigmemory"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaneplusplus/bigmemory" class="external-link">bigmemory</a></span><span class="op">)</span></span>
+<span>  <span class="va">X_big_train</span> <span class="op">&lt;-</span> <span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">X_train</span><span class="op">)</span></span>
+<span>  <span class="va">X_big_test</span> <span class="op">&lt;-</span> <span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">X_test</span><span class="op">)</span></span>
+<span></span>
+<span>  <span class="va">fast_fit_big</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox_fast.html">big_pls_cox_fast</a></span><span class="op">(</span></span>
+<span>    X <span class="op">=</span> <span class="va">X_big_train</span>,</span>
+<span>    time <span class="op">=</span> <span class="va">Y_train</span>,</span>
+<span>    status <span class="op">=</span> <span class="va">status_train</span>,</span>
+<span>    ncomp <span class="op">=</span> <span class="fl">4</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span>  <span class="va">gd_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span></span>
+<span>    X <span class="op">=</span> <span class="va">X_big_train</span>,</span>
+<span>    time <span class="op">=</span> <span class="va">Y_train</span>,</span>
+<span>    status <span class="op">=</span> <span class="va">status_train</span>,</span>
+<span>    ncomp <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>    max_iter <span class="op">=</span> <span class="fl">2000</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
 <span>  <span class="va">risk_table</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    subject <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">test_id</span><span class="op">)</span>,</span>
-<span>    big_pls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">big_fit</span>, newdata <span class="op">=</span> <span class="va">X_test</span>, type <span class="op">=</span> <span class="st">"link"</span>, comps <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>,</span>
-<span>    big_pls_gd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">gd_fit</span>, newdata <span class="op">=</span> <span class="va">X_big_test</span>, type <span class="op">=</span> <span class="st">"link"</span>, comps <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span></span>
+<span>    fast_dense <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fast_fit_dense</span>, newdata <span class="op">=</span> <span class="va">X_test</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span>,</span>
+<span>    fast_big <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fast_fit_big</span>, newdata <span class="op">=</span> <span class="va">X_big_test</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span>,</span>
+<span>    gd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">gd_fit</span>, newdata <span class="op">=</span> <span class="va">X_big_test</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span></span>
@@ -484,23 +509,147 @@ well.</p>
 <span>    <span class="op">}</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">#&gt;    big_pls big_pls_gd </span></span>
-<span><span class="co">#&gt;  0.3023256  0.2093023</span></span></code></pre></div>
+<span><span class="co">#&gt; fast_dense   fast_big         gd </span></span>
+<span><span class="co">#&gt;  0.4418605  0.4418605  0.2790698</span></span></code></pre></div>
+<p><code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code> is particularly useful for streamed
+data or when the number of active predictors per component is restricted
+via <code>keepX</code>.</p>
+</div>
+<div class="section level2">
+<h2 id="predictions-and-evaluation">Predictions and evaluation<a class="anchor" aria-label="anchor" href="#predictions-and-evaluation"></a>
+</h2>
+<p>All solvers return latent scores and loadings that can be reused for
+plotting or external validation. Use
+<code>predict(..., type = "components")</code> to extract the scores
+directly.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/exists.html" class="external-link">exists</a></span><span class="op">(</span><span class="st">"fast_fit_dense"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">component_scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fast_fit_dense</span>, newdata <span class="op">=</span> <span class="va">X_test</span>, type <span class="op">=</span> <span class="st">"components"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">component_scores</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co">#&gt;             [,1]        [,2]       [,3]       [,4]</span></span>
+<span><span class="co">#&gt; [1,] -0.61328247  1.45903382 -0.2024545  0.1256753</span></span>
+<span><span class="co">#&gt; [2,] -0.14585655 -0.89077212 -0.3630109 -0.3863126</span></span>
+<span><span class="co">#&gt; [3,] -2.49681489  1.07906464 -1.7437503  1.0288135</span></span>
+<span><span class="co">#&gt; [4,] -0.01412341 -2.48245825  1.7023219 -0.7517977</span></span>
+<span><span class="co">#&gt; [5,] -0.56984205 -0.10012954 -1.0183793 -0.1591913</span></span>
+<span><span class="co">#&gt; [6,]  0.49642902 -0.09180402  0.5767821 -0.5465379</span></span></code></pre></div>
+<p>The concordance index provides a quick check of predictive ability on
+the test set.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/exists.html" class="external-link">exists</a></span><span class="op">(</span><span class="st">"fast_fit_dense"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">concordance_fast</span> <span class="op">&lt;-</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/concordance.html" class="external-link">concordance</a></span><span class="op">(</span></span>
+<span>    <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">Y_test</span>, <span class="va">status_test</span><span class="op">)</span> <span class="op">~</span> <span class="va">linear_predictor_fast</span></span>
+<span>  <span class="op">)</span><span class="op">$</span><span class="va">concordance</span></span>
+<span>  <span class="va">concordance_fast</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co">#&gt; [1] 0.4418605</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="dk-splines-extension">DK-splines extension<a class="anchor" aria-label="anchor" href="#dk-splines-extension"></a>
+</h2>
+<p>For flexible baseline hazards the <code><a href="../reference/coxDKgplsDR.html">coxDKgplsDR()</a></code>
+estimator augments the PLS components with DK-splines. The interface
+mirrors the previous functions.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cox_DKsplsDR_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/coxDKgplsDR.html">coxDKgplsDR</a></span><span class="op">(</span></span>
+<span>  Xplan <span class="op">=</span> <span class="va">X_train</span>,</span>
+<span>  time <span class="op">=</span> <span class="va">Y_train</span>,</span>
+<span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
+<span>  ncomp <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  validation <span class="op">=</span> <span class="st">"CV"</span>,</span>
+<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">cox_DKsplsDR_fit</span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_DKgplsDR)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;           coef exp(coef) se(coef)     z        p</span></span>
+<span><span class="co">#&gt; dim.1   4.8792  131.5255   0.7348 6.640 3.14e-11</span></span>
+<span><span class="co">#&gt; dim.2   4.3106   74.4853   0.8523 5.058 4.25e-07</span></span>
+<span><span class="co">#&gt; dim.3   4.3799   79.8304   1.0374 4.222 2.42e-05</span></span>
+<span><span class="co">#&gt; dim.4   3.1313   22.9036   0.9043 3.463 0.000535</span></span>
+<span><span class="co">#&gt; dim.5   1.9561    7.0716   0.7031 2.782 0.005400</span></span>
+<span><span class="co">#&gt; dim.6   1.9467    7.0054   0.7344 2.651 0.008031</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Likelihood ratio test=77.54  on 6 df, p=1.151e-14</span></span>
+<span><span class="co">#&gt; n= 60, number of events= 60</span></span></code></pre></div>
+<p>Cross-validation is available for the DK-splines estimator as
+well.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2468</span><span class="op">)</span></span>
+<span><span class="va">cv_coxDKgplsDR_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="../reference/cv.coxDKgplsDR.html">cv.coxDKgplsDR</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">X_train</span>, time <span class="op">=</span> <span class="va">Y_train</span>, status <span class="op">=</span> <span class="va">status_train</span><span class="op">)</span>,</span>
+<span>  nt <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
+<span><span class="co">#&gt; Estimated_sigma  0.01258323 </span></span>
+<span><span class="co">#&gt; CV Fold 1 </span></span>
+<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
+<span><span class="co">#&gt; Estimated_sigma  0.01471071 </span></span>
+<span><span class="co">#&gt; CV Fold 2 </span></span>
+<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
+<span><span class="co">#&gt; Estimated_sigma  0.0127949 </span></span>
+<span><span class="co">#&gt; CV Fold 3 </span></span>
+<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
+<span><span class="co">#&gt; Estimated_sigma  0.0122611 </span></span>
+<span><span class="co">#&gt; CV Fold 4 </span></span>
+<span><span class="co">#&gt; Kernel :  rbfdot </span></span>
+<span><span class="co">#&gt; Estimated_sigma  0.01289496 </span></span>
+<span><span class="co">#&gt; CV Fold 5</span></span></code></pre></div>
+<p><img src="figures/getting-started-cv-dk-splines-1.png" width="1050"></p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cv_coxDKgplsDR_res</span></span>
+<span><span class="co">#&gt; $nt</span></span>
+<span><span class="co">#&gt; [1] 6</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $cv.error10</span></span>
+<span><span class="co">#&gt; [1] 0.5000000 0.5658906 0.6356608 0.6374963 0.6100371 0.6307320 0.5694802</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $cv.se10</span></span>
+<span><span class="co">#&gt; [1] 0.00000000 0.02591444 0.03982352 0.03646931 0.03407857 0.04124367 0.03676530</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $folds</span></span>
+<span><span class="co">#&gt; $folds$`1`</span></span>
+<span><span class="co">#&gt;  [1] 44 16 27 26 55 20 49 14  6 47 18  7</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $folds$`2`</span></span>
+<span><span class="co">#&gt;  [1] 58  8  2 17  3 15 52 43 56 11 29 59</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $folds$`3`</span></span>
+<span><span class="co">#&gt;  [1] 51 13 57 46 45 32 19  5 36 33 10 28</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $folds$`4`</span></span>
+<span><span class="co">#&gt;  [1] 21 50 38 60 53 42 23 31 12 24  1 25</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $folds$`5`</span></span>
+<span><span class="co">#&gt;  [1] 22 39 35 54  4 30 34 48 37 40  9 41</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $lambda.min10</span></span>
+<span><span class="co">#&gt; [1] 3</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $lambda.1se10</span></span>
+<span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="next-steps">Next steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>
 </h2>
 <ul>
 <li>
-<code><a href="../articles/bigPLScox-overview.html">vignette("bigPLScox-overview", package = "bigPLScox")</a></code>
-summarises the main modelling functions and their big-memory
-counterparts.</li>
+<code><a href="../articles/bigPLScox.html">vignette("bigPLScox", package = "bigPLScox")</a></code> dives
+deeper into the fast big-memory backends and shows how to reconcile the
+dense and streaming implementations.</li>
 <li>
 <code><a href="../articles/bigPLScox-benchmarking.html">vignette("bigPLScox-benchmarking", package = "bigPLScox")</a></code>
-explains how to reproduce performance comparisons with the scripts under
-<code>inst/benchmarks/</code>.</li>
-<li>The README and package website provide further references and data
-preparation tips for large-scale studies.</li>
+demonstrates a reproducible benchmarking workflow that contrasts the
+classical, fast, and gradient-descent solvers against
+<code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">survival::coxph()</a></code>.</li>
+<li>The reference documentation (<code><a href="../reference/big_pls_cox_fast.html">help("big_pls_cox_fast")</a></code>,
+etc.) details every argument and return value for the modelling
+functions discussed above.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

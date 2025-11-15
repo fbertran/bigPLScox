@@ -1,0 +1,4 @@
+"expression","min","median","itr/sec","mem_alloc","gc/sec","n_itr","n_gc","total_time"
+"big_pls_fast", 37.1ms, 37.7ms,26.3502775136134,3.41MB,0.721925411331875,73,2, 2.77s
+"big_pls",346.3ms,381.5ms,2.63059809633897,4.27MB,0,75,0,28.51s
+"big_pls_gd", 55.1ms, 55.6ms,17.8866067359237,6.34MB,1.27761476685169,70,5, 3.91s

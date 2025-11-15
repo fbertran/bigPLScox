@@ -1,6 +1,6 @@
 #' @rdname predict_pls_latent
 #' @exportS3Method stats::predict
-predict.pls.cox=function(object, newdata, scale.X=TRUE, scale.Y=TRUE,...)
+predict.pls.cox=function(object, newdata, scale.X=TRUE, scale.Y=TRUE, ...)
 {
   if (missing(newdata))
     stop("No new data available.")

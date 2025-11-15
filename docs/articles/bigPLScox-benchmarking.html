@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +35,6 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/bigPLScox-benchmarking.html">Benchmarking bigPLScox</a></li>
-    <li><a class="dropdown-item" href="../articles/bigPLScox-overview.html">Overview of bigPLScox</a></li>
     <li><a class="dropdown-item" href="../articles/getting-started.html">Getting started with bigPLScox</a></li>
   </ul>
 </li>
@@ -78,31 +77,34 @@ Paris<br><a class="author_email" href="mailto:#"></a><a href="mailto:frederic.be
 <div class="section level2">
 <h2 id="motivation">Motivation<a class="anchor" aria-label="anchor" href="#motivation"></a>
 </h2>
-<p>High-dimensional survival datasets can be computationally demanding.
-<strong>bigPLScox</strong> implements algorithms that scale to large
-numbers of predictors and observations via component-based models,
-sparse penalties, and stochastic gradient descent routines. This
-vignette demonstrates how to benchmark the package against baseline
-approaches using the <a href="https://bench.r-lib.org" class="external-link"><code>bench</code></a> package.</p>
-<p>We focus on simulated data to illustrate reproducible comparisons
-between the classical <code><a href="../reference/coxgpls.html">coxgpls()</a></code> solver, other big-memory
-counterparts, and the <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">survival::coxph()</a></code> implementation.</p>
+<p>The <strong>bigPLScox</strong> package now provides three distinct
+engines for extracting PLS components in Cox regression: the original
+matrix-based solver (<code>big_pls_cox</code>), the new Armadillo
+backend (<code>big_pls_cox_fast</code>), and the stochastic gradient
+descent routine (<code>big_pls_cox_gd</code>). This vignette shows how
+to benchmark those implementations against <code><a href="../reference/coxgpls.html">coxgpls()</a></code> and
+the standard <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">survival::coxph()</a></code> fit.</p>
+<p>We rely on the <a href="https://bench.r-lib.org" class="external-link"><code>bench</code></a> package to collect
+timing and memory statistics. All chunks are wrapped in the
+<code>LOCAL</code> flag so that CRAN builds can skip the heavier
+computations.</p>
 </div>
 <div class="section level2">
-<h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
+<h2 id="dependencies">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies"></a>
 </h2>
-<p>The examples below require a recent version of <strong>bench</strong>
-together with <strong>survival</strong>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fbertran.github.io/bigPLScox/">bigPLScox</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival" class="external-link">survival</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bench.r-lib.org/" class="external-link">bench</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaneplusplus/bigmemory" class="external-link">bigmemory</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fbertran.github.io/plsRcox/" class="external-link">plsRcox</a></span><span class="op">)</span></span></code></pre></div>
-<p>The helper <code><a href="../reference/dataCox.html">dataCox()</a></code> simulates survival outcomes with
-right censoring. We work with a moderately sized problem here, but
-larger values for <code>n</code> and <code>p</code> can be used to
-stress test performance.</p>
+</div>
+<div class="section level2">
+<h2 id="simulated-data">Simulated data<a class="anchor" aria-label="anchor" href="#simulated-data"></a>
+</h2>
+<p>We reuse the helper <code><a href="../reference/dataCox.html">dataCox()</a></code> to generate survival
+outcomes with right censoring. Adjust <code>n</code> and <code>p</code>
+to stress-test the solvers on larger problems.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
 <span><span class="va">sim_design</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/dataCox.html">dataCox</a></span><span class="op">(</span></span>
@@ -119,92 +121,127 @@ stress test performance.</p>
 <span>  time <span class="op">=</span> <span class="va">sim_design</span><span class="op">$</span><span class="va">time</span>,</span>
 <span>  status <span class="op">=</span> <span class="va">sim_design</span><span class="op">$</span><span class="va">status</span></span>
 <span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">X_big</span> <span class="op">&lt;-</span> <span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">cox_data</span><span class="op">$</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="running-the-benchmark">Running the benchmark<a class="anchor" aria-label="anchor" href="#running-the-benchmark"></a>
 </h2>
-<p>We compare the classical Cox proportional hazards model with
-<code><a href="../reference/coxgpls.html">coxgpls()</a></code> and the two <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> solvers.
-The <code><a href="https://bench.r-lib.org/reference/mark.html" class="external-link">bench::mark()</a></code> helper executes the estimators multiple
-times and records timing statistics alongside memory usage
-information.</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Dense matrix scenario</strong> – compares the classical
+<code><a href="../reference/coxgpls.html">coxgpls()</a></code> workflow and the dense variants of the big-memory
+solvers against <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">survival::coxph()</a></code>.</li>
+<li>
+<strong>Big-memory scenario</strong> – evaluates
+<code><a href="../reference/big_pls_cox_fast.html">big_pls_cox_fast()</a></code> and <code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code>
+directly on a <code>big.matrix</code>, illustrating the benefit of the
+shared-memory interface.</li>
+</ol>
+<p>The number of iterations can be increased for more stable
+measurements when running locally.</p>
+</div>
+<div class="section level2">
+<h2 id="dense-matrix-comparison">Dense matrix comparison<a class="anchor" aria-label="anchor" href="#dense-matrix-comparison"></a>
+</h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bench_res</span> <span class="op">&lt;-</span> <span class="fu">bench</span><span class="fu">::</span><span class="fu"><a href="https://bench.r-lib.org/reference/mark.html" class="external-link">mark</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">bench_dense</span> <span class="op">&lt;-</span> <span class="fu">bench</span><span class="fu">::</span><span class="fu"><a href="https://bench.r-lib.org/reference/mark.html" class="external-link">mark</a></span><span class="op">(</span></span>
 <span>  coxgpls <span class="op">=</span> <span class="fu"><a href="../reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
 <span>    <span class="va">cox_data</span><span class="op">$</span><span class="va">x</span>,</span>
 <span>    <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>,</span>
 <span>    <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>,</span>
-<span>    ncomp <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>    ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span><span class="op">)</span></span>
+<span>    ncomp <span class="op">=</span> <span class="fl">5</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  big_pls <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox.html">big_pls_cox</a></span><span class="op">(</span><span class="va">cox_data</span><span class="op">$</span><span class="va">x</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
-<span>  big_pls_gd <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span><span class="va">X_big</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span>, max_iter <span class="op">=</span> <span class="fl">200</span><span class="op">)</span>,</span>
-<span>  survival <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">cox_data</span><span class="op">$</span><span class="va">x</span>, ties <span class="op">=</span> <span class="st">"breslow"</span><span class="op">)</span>,</span>
-<span>  iterations <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  big_pls_fast <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox_fast.html">big_pls_cox_fast</a></span><span class="op">(</span><span class="va">cox_data</span><span class="op">$</span><span class="va">x</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  big_pls_gd <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span><span class="va">X_big</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  coxph <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">cox_data</span><span class="op">$</span><span class="va">x</span>, ties <span class="op">=</span> <span class="st">"breslow"</span><span class="op">)</span>,</span>
+<span>  iterations <span class="op">=</span> <span class="fl">75</span>,</span>
 <span>  check <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">bench_res</span><span class="op">$</span><span class="va">expression</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">bench_res</span><span class="op">$</span><span class="va">expression</span><span class="op">)</span></span>
-<span><span class="va">bench_res</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 6</span></span></span>
-<span><span class="co">#&gt;   expression      min   median `itr/sec` mem_alloc `gc/sec`</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:byt&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> coxgpls      19.4ms   20.7ms     48.0    30.97MB    480. </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls     130.1ms    144ms      6.96    4.34MB      0  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_gd     14ms   14.4ms     68.1     6.41MB     13.9</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> survival     27.5ms     28ms     35.6    13.39MB     24.8</span></span></code></pre></div>
+<span><span class="va">bench_dense</span><span class="op">$</span><span class="va">expression</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">bench_dense</span><span class="op">$</span><span class="va">expression</span><span class="op">)</span></span>
+<span><span class="va">bench_dense</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"expression"</span>, <span class="st">"median"</span>, <span class="st">"itr/sec"</span>, <span class="st">"mem_alloc"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 4</span></span></span>
+<span><span class="co">#&gt;   expression     median `itr/sec` mem_alloc</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:byt&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> coxgpls       20.61ms     47.9    31.06MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls       136.9ms      7.24    4.34MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_fast   8.62ms    116.      5.42MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> big_pls_gd    14.24ms     69.7     6.41MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> coxph         28.34ms     35.2    13.39MB</span></span></code></pre></div>
+<p>A higher <code>itr/sec</code> value indicates faster throughput. The
+fast backend should provide the best compromise between speed and
+accuracy in the dense setting.</p>
+</div>
+<div class="section level2">
+<h2 id="big-memory-comparison">Big-memory comparison<a class="anchor" aria-label="anchor" href="#big-memory-comparison"></a>
+</h2>
+<p>The next experiment reuses the <code>big.matrix</code> version of the
+predictors and adds the SGD solver. Because <code><a href="../reference/coxgpls.html">coxgpls()</a></code>
+requires an in-memory matrix, it is not included in this round.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bench_summary</span> <span class="op">&lt;-</span> <span class="va">bench_res</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"expression"</span>, <span class="st">"median"</span>, <span class="st">"itr/sec"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">bench_summary</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 3</span></span></span>
-<span><span class="co">#&gt;   expression   median `itr/sec`</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> coxgpls      20.7ms     48.0 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls       144ms      6.96</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_gd   14.4ms     68.1 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> survival       28ms     35.6</span></span></code></pre></div>
-<p>The resulting tibble reports elapsed time, memory allocations, and
-garbage collection statistics for each estimator. The
-<code>itr/sec</code> column is often the most useful indicator when
-comparing multiple implementations. The <code>bench_summary</code>
-object summarises the median runtime and iterations per second.</p>
+<code class="sourceCode R"><span><span class="va">bench_big</span> <span class="op">&lt;-</span> <span class="fu">bench</span><span class="fu">::</span><span class="fu"><a href="https://bench.r-lib.org/reference/mark.html" class="external-link">mark</a></span><span class="op">(</span></span>
+<span>  big_pls_fast <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox_fast.html">big_pls_cox_fast</a></span><span class="op">(</span><span class="va">X_big</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  big_pls <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox.html">big_pls_cox</a></span><span class="op">(</span><span class="va">cox_data</span><span class="op">$</span><span class="va">x</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  big_pls_gd <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span><span class="va">X_big</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span>, max_iter <span class="op">=</span> <span class="fl">300</span><span class="op">)</span>,</span>
+<span>  iterations <span class="op">=</span> <span class="fl">75</span>,</span>
+<span>  check <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">bench_big</span><span class="op">$</span><span class="va">expression</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">bench_big</span><span class="op">$</span><span class="va">expression</span><span class="op">)</span></span>
+<span><span class="va">bench_big</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"expression"</span>, <span class="st">"median"</span>, <span class="st">"itr/sec"</span>, <span class="st">"mem_alloc"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 4</span></span></span>
+<span><span class="co">#&gt;   expression     median `itr/sec` mem_alloc</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:byt&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> big_pls_fast   7.25ms    137.      3.41MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls      142.74ms      6.89    4.25MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_gd    14.77ms     66.5     6.34MB</span></span></code></pre></div>
+<p>The classical solver is still run on the dense matrix for reference,
+but only the fast and SGD routines operate on the
+<code>big.matrix</code> without copying. Expect the fast backend to
+dominate runtime while SGD maintains scalability for out-of-memory
+workflows.</p>
 </div>
 <div class="section level2">
 <h2 id="visualising-the-results">Visualising the results<a class="anchor" aria-label="anchor" href="#visualising-the-results"></a>
 </h2>
-<p><code>bench</code> provides ggplot-based helpers to visualise the
-distributions of elapsed and memory usage.</p>
+<p><code>bench</code> includes <code>autoplot()</code> and
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> helpers for visual inspection of the timing
+distribution.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bench_res</span>, type <span class="op">=</span> <span class="st">"jitter"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figures/benchmarking-bench-plot-1.png" width="1050"></p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bench_dense</span>, type <span class="op">=</span> <span class="st">"ridge"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figures/benchmarking-dense-plot-1.png" width="1050"></p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bench_big</span>, type <span class="op">=</span> <span class="st">"ridge"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figures/benchmarking-big-plot-1.png" width="1050"></p>
 <p>Additional geometries, such as ridge plots, are available via
-<code>autoplot(bench_res, type = "ridge")</code>.</p>
+<code>autoplot(bench_res, type = "jitter")</code>.</p>
 </div>
 <div class="section level2">
-<h2 id="exporting-benchmark-results">Exporting benchmark results<a class="anchor" aria-label="anchor" href="#exporting-benchmark-results"></a>
+<h2 id="exporting-benchmark-tables">Exporting benchmark tables<a class="anchor" aria-label="anchor" href="#exporting-benchmark-tables"></a>
 </h2>
-<p>Use the function <code><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv()</a></code> to store the benchmarking
-table as part of a reproducible pipeline. For larger studies consider
-varying the number of latent components, sparsity constraints, or the
-dataset dimensions.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<p>To integrate the benchmark with automated pipelines, store the
+results under the <code>inst/benchmarks/</code> directory. Each run can
+include meta-data such as dataset parameters, number of iterations, or
+git commit identifiers.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.exists</a></span><span class="op">(</span><span class="st">"inst/benchmarks/results"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="st">"inst/benchmarks/results"</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">bench_res</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">9</span><span class="op">]</span>, file <span class="op">=</span> <span class="st">"inst/benchmarks/results/benchmarking-demo.csv"</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">bench_dense</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">9</span><span class="op">]</span>, file <span class="op">=</span> <span class="st">"inst/benchmarks/results/benchmark-dense.csv"</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">bench_big</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">9</span><span class="op">]</span>, file <span class="op">=</span> <span class="st">"inst/benchmarks/results/benchmark-big.csv"</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="reusing-the-benchmarking-scripts">Reusing the benchmarking scripts<a class="anchor" aria-label="anchor" href="#reusing-the-benchmarking-scripts"></a>
+<h2 id="additional-scripts">Additional scripts<a class="anchor" aria-label="anchor" href="#additional-scripts"></a>
 </h2>
 <p>The package also ships with standalone scripts under
 <code>inst/benchmarks/</code> that mirror this vignette while exposing
 additional configuration points. Run them from the repository root
 as:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox-benchmark.R</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/benchmark_bigPLScox.R</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox_pls_benchmark.R</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox-benchmark.R</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/benchmark_bigPLScox.R</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox_pls_benchmark.R</span></code></pre></div>
 <p>Each script accepts environment variables to adjust the problem size
-and stores results under <code>inst/benchmarks/results/</code> with
+and stores results in <code>inst/benchmarks/results/</code> with
 time-stamped filenames.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -33,23 +33,20 @@ LOCAL <- identical(Sys.getenv("LOCAL"), "TRUE")
 
 # Motivation
 
-High-dimensional survival datasets can be computationally demanding. **bigPLScox**
-implements algorithms that scale to large numbers of predictors and observations
-via component-based models, sparse penalties, and stochastic gradient descent
-routines. This vignette demonstrates how to benchmark the package against
-baseline approaches using the [`bench`](https://bench.r-lib.org) package.
+The **bigPLScox** package now provides three distinct engines for extracting PLS
+components in Cox regression: the original matrix-based solver (`big_pls_cox`),
+the new Armadillo backend (`big_pls_cox_fast`), and the stochastic gradient
+descent routine (`big_pls_cox_gd`). This vignette shows how to benchmark those
+implementations against `coxgpls()` and the standard `survival::coxph()` fit.
 
-We focus on simulated data to illustrate reproducible comparisons between the
-classical `coxgpls()` solver, other big-memory counterparts, and the
-`survival::coxph()` implementation.
+We rely on the [`bench`](https://bench.r-lib.org) package to collect timing and
+memory statistics. All chunks are wrapped in the `LOCAL` flag so that CRAN builds
+can skip the heavier computations.
 
-# Setup
-
-The examples below require a recent version of **bench** together with
-**survival**.
+# Dependencies
 
 ```{r packages, include=FALSE}
-needed <- c("plsRcox","boot","survival","glmnet","bigPLScox")
+needed <- c("bigmemory", "bench", "survival", "plsRcox", "bigPLScox")
 has    <- vapply(needed, requireNamespace, logical(1), quietly = TRUE)
 
 if (!all(has)) {
@@ -67,9 +64,10 @@ library(bigmemory)
 library(plsRcox)
 ```
 
-The helper `dataCox()` simulates survival outcomes with right censoring. We work
-with a moderately sized problem here, but larger values for `n` and `p` can be
-used to stress test performance.
+# Simulated data
+
+We reuse the helper `dataCox()` to generate survival outcomes with right
+censoring. Adjust `n` and `p` to stress-test the solvers on larger problems.
 
 ```{r simulate-data}
 set.seed(2024)
@@ -87,71 +85,99 @@ cox_data <- list(
   time = sim_design$time,
   status = sim_design$status
 )
+
 X_big <- bigmemory::as.big.matrix(cox_data$x)
 ```
 
 # Running the benchmark
 
-We compare the classical Cox proportional hazards model with `coxgpls()` and
-the two `big_pls_cox()` solvers. The `bench::mark()` helper executes the
-estimators multiple times and records timing statistics alongside memory usage
-information.
+1. **Dense matrix scenario** – compares the classical `coxgpls()` workflow and
+   the dense variants of the big-memory solvers against `survival::coxph()`.
+2. **Big-memory scenario** – evaluates `big_pls_cox_fast()` and
+   `big_pls_cox_gd()` directly on a `big.matrix`, illustrating the benefit of the
+   shared-memory interface.
 
-```{r run-benchmarks}
-bench_res <- bench::mark(
+The number of iterations can be increased for more stable measurements when
+running locally.
+
+# Dense matrix comparison
+
+```{r dense-benchmark}
+bench_dense <- bench::mark(
   coxgpls = coxgpls(
     cox_data$x,
     cox_data$time,
     cox_data$status,
-    ncomp = 5,
-    ind.block.x = c(3, 10)
+    ncomp = 5
   ),
   big_pls = big_pls_cox(cox_data$x, cox_data$time, cox_data$status, ncomp = 5),
-  big_pls_gd = big_pls_cox_gd(X_big, cox_data$time, cox_data$status, ncomp = 5, max_iter = 200),
-  survival = coxph(Surv(cox_data$time, cox_data$status) ~ cox_data$x, ties = "breslow"),
-  iterations = 100,
+  big_pls_fast = big_pls_cox_fast(cox_data$x, cox_data$time, cox_data$status, ncomp = 5),
+  big_pls_gd = big_pls_cox_gd(X_big, cox_data$time, cox_data$status, ncomp = 5),
+  coxph = coxph(Surv(cox_data$time, cox_data$status) ~ cox_data$x, ties = "breslow"),
+  iterations = 75,
   check = FALSE
 )
-bench_res$expression <- names(bench_res$expression)
-bench_res
+bench_dense$expression <- names(bench_dense$expression)
+bench_dense[, c("expression", "median", "itr/sec", "mem_alloc")]
 ```
 
-```{r run-benchmarks2}
-bench_summary <- bench_res[, c("expression", "median", "itr/sec")]
-bench_summary
+A higher `itr/sec` value indicates faster throughput. The fast backend should
+provide the best compromise between speed and accuracy in the dense setting.
+
+# Big-memory comparison
+
+The next experiment reuses the `big.matrix` version of the predictors and adds
+the SGD solver. Because `coxgpls()` requires an in-memory matrix, it is not
+included in this round.
+
+```{r big-benchmark}
+bench_big <- bench::mark(
+  big_pls_fast = big_pls_cox_fast(X_big, cox_data$time, cox_data$status, ncomp = 5),
+  big_pls = big_pls_cox(cox_data$x, cox_data$time, cox_data$status, ncomp = 5),
+  big_pls_gd = big_pls_cox_gd(X_big, cox_data$time, cox_data$status, ncomp = 5, max_iter = 300),
+  iterations = 75,
+  check = FALSE
+)
+bench_big$expression <- names(bench_big$expression)
+bench_big[, c("expression", "median", "itr/sec", "mem_alloc")]
 ```
 
-The resulting tibble reports elapsed time, memory allocations, and garbage
-collection statistics for each estimator. The `itr/sec` column is often the most
-useful indicator when comparing multiple implementations. The `bench_summary`
-object summarises the median runtime and iterations per second.
+The classical solver is still run on the dense matrix for reference, but only the
+fast and SGD routines operate on the `big.matrix` without copying. Expect the
+fast backend to dominate runtime while SGD maintains scalability for
+out-of-memory workflows.
 
 # Visualising the results
 
-`bench` provides ggplot-based helpers to visualise the distributions of elapsed
-and memory usage.
+`bench` includes `autoplot()` and `plot()` helpers for visual inspection of the
+timing distribution.
 
-```{r bench-plot}
-plot(bench_res, type = "jitter")
+```{r dense-plot}
+plot(bench_dense, type = "ridge")
+```
+
+```{r big-plot}
+plot(bench_big, type = "ridge")
 ```
 
 Additional geometries, such as ridge plots, are available via
-`autoplot(bench_res, type = "ridge")`.
+`autoplot(bench_res, type = "jitter")`.
 
-# Exporting benchmark results
+# Exporting benchmark tables
 
-Use the function `write.csv()` to store the benchmarking table as part of a
-reproducible pipeline. For larger studies consider varying the number of latent
-components, sparsity constraints, or the dataset dimensions.
+To integrate the benchmark with automated pipelines, store the results under the
+`inst/benchmarks/` directory. Each run can include meta-data such as dataset
+parameters, number of iterations, or git commit identifiers.
 
 ```{r export-benchmark, eval = FALSE}
 if (!dir.exists("inst/benchmarks/results")) {
   dir.create("inst/benchmarks/results", recursive = TRUE)
 }
-write.csv(bench_res[,1:9], file = "inst/benchmarks/results/benchmarking-demo.csv", row.names = FALSE)
+write.csv(bench_dense[, 1:9], file = "inst/benchmarks/results/benchmark-dense.csv", row.names = FALSE)
+write.csv(bench_big[, 1:9], file = "inst/benchmarks/results/benchmark-big.csv", row.names = FALSE)
 ```
 
-# Reusing the benchmarking scripts
+# Additional scripts
 
 The package also ships with standalone scripts under `inst/benchmarks/` that
 mirror this vignette while exposing additional configuration points. Run them
@@ -164,4 +190,4 @@ Rscript inst/benchmarks/cox_pls_benchmark.R
 ```
 
 Each script accepts environment variables to adjust the problem size and stores
-results under `inst/benchmarks/results/` with time-stamped filenames.
+results in `inst/benchmarks/results/` with time-stamped filenames.
