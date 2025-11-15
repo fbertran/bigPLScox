@@ -17,8 +17,28 @@ matrix_pls_cox_transform_cpp <- function(X, means, sds, weights, loadings, comps
     .Call(`_bigPLScox_matrix_pls_cox_transform_cpp`, X, means, sds, weights, loadings, comps)
 }
 
-big_pls_cox_gd_cpp <- function(X_ptr, time, status, ncomp, max_iter, tol, learning_rate, keepX) {
-    .Call(`_bigPLScox_big_pls_cox_gd_cpp`, X_ptr, time, status, ncomp, max_iter, tol, learning_rate, keepX)
+big_pls_cox_fast_big_cpp <- function(xpMat, time, status, ncomp, means, sds, keepX) {
+    .Call(`_bigPLScox_big_pls_cox_fast_big_cpp`, xpMat, time, status, ncomp, means, sds, keepX)
+}
+
+big_pls_cox_fast_dense_cpp <- function(X, time, status, ncomp, means, sds, keepX) {
+    .Call(`_bigPLScox_big_pls_cox_fast_dense_cpp`, X, time, status, ncomp, means, sds, keepX)
+}
+
+big_pls_cox_gd_cpp <- function(X_ptr, time, status, ncomp, max_iter, learning_rate, tol, keepX) {
+    .Call(`_bigPLScox_big_pls_cox_gd_cpp`, X_ptr, time, status, ncomp, max_iter, learning_rate, tol, keepX)
+}
+
+big_pls_cox_transform_dense_cpp <- function(X, means, sds, weights, loadings, comps) {
+    .Call(`_bigPLScox_big_pls_cox_transform_dense_cpp`, X, means, sds, weights, loadings, comps)
+}
+
+big_pls_cox_transform_big_cpp <- function(xpMat, means, sds, weights, loadings, comps) {
+    .Call(`_bigPLScox_big_pls_cox_transform_big_cpp`, xpMat, means, sds, weights, loadings, comps)
+}
+
+cox_score_residuals_fast <- function(time, status, eta) {
+    .Call(`_bigPLScox_cox_score_residuals_fast`, time, status, eta)
 }
 
 deviance_residuals_cpp <- function(time, status, eta, method = "efron") {

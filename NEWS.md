@@ -1,3 +1,7 @@
+# bigPLScox 0.7.0
+
+* Fixed problem in C code that led to an additionnal error during CRAN tests.
+
 # bigPLScox 0.6.0
 
 See the "Release highlights" section of the README for a condensed overview of

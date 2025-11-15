@@ -20,6 +20,7 @@
 #' @param keepX Optional integer vector describing the number of predictors to
 #'   retain per component (naive sparsity). A value of zero keeps all
 #'   predictors.
+#' @param coxfit Optional Boolean to fit a Cox model on the extracted components.
 #'
 #' @return A list with components:
 #' * `coefficients`: Estimated Cox regression coefficients on the latent scores.
@@ -52,7 +53,6 @@
 #'   models for censored data. In *Proceedings of UseR! 2014* (p. 152).
 #'
 #' @examples
-#' \donttest{
 #' library(bigmemory)
 #' set.seed(1)
 #' n <- 50
@@ -61,10 +61,18 @@
 #' time <- rexp(n, rate = 0.1)
 #' status <- rbinom(n, 1, 0.7)
 #' fit <- big_pls_cox_gd(X, time, status, ncomp = 3, max_iter = 200)
-#' }
+#' str(fit)
+#' head(fit$scores)
 #' @export
-big_pls_cox_gd <- function(X, time, status, ncomp = NULL, max_iter = 500L,
-                           tol = 1e-6, learning_rate = 0.01, keepX = NULL) {
+big_pls_cox_gd <- function(X, 
+                           time, 
+                           status, 
+                           ncomp = NULL, 
+                           max_iter = 500L,
+                           tol = 1e-6, 
+                           learning_rate = 0.01, 
+                           keepX = NULL,
+                           coxfit = TRUE) {
   if (!inherits(X, "big.matrix")) {
     stop("`X` must be a big.matrix object", call. = FALSE)
   }
@@ -119,17 +127,21 @@ big_pls_cox_gd <- function(X, time, status, ncomp = NULL, max_iter = 500L,
       stop("`keepX` entries must be between 0 and ncol(X)", call. = FALSE)
     }
   }
-
-  result <- big_pls_cox_gd_cpp(X@address, as.numeric(time), as.numeric(status),
-                               ncomp, max_iter, tol, learning_rate, keep_vec)
-
-  result$coefficients <- as.numeric(result$coefficients)
-  result$center <- as.numeric(result$center)
-  result$scale <- as.numeric(result$scale)
-  result$keepX <- as.integer(keep_vec)
-  result$time <- as.numeric(time)
-  result$status <- as.numeric(status)
-  class(result) <- "big_pls_cox_gd"
   
-  result
+  fit <- big_pls_cox_gd_cpp(X@address, as.numeric(time), as.numeric(status),
+                            ncomp, max_iter, learning_rate, tol, keep_vec)
+  
+  if (isTRUE(coxfit)) {
+    fit$cox_fit <- survival::coxph(survival::Surv(time, status) ~ fit$scores, ties = "efron", x = FALSE)
+  }
+  
+  fit$coefficients <- as.numeric(fit$coefficients)
+  fit$center <- as.numeric(fit$center)
+  fit$scale <- as.numeric(fit$scale)
+  fit$keepX <- as.integer(keep_vec)
+  fit$time <- as.numeric(time)
+  fit$status <- as.numeric(status)
+  class(fit) <- "big_pls_cox_gd"
+  
+  fit
 }

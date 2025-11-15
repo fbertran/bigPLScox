@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -67,7 +67,7 @@ Bertrand</h4>
 Paris<br><a class="author_email" href="mailto:#"></a><a href="mailto:frederic.bertrand@lecnam.net" class="email">frederic.bertrand@lecnam.net</a>
       </address>
                   
-            <h4 data-toc-skip class="date">2025-11-01</h4>
+            <h4 data-toc-skip class="date">2025-11-15</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/fbertran/bigPLScox/blob/HEAD/vignettes/getting-started.Rmd" class="external-link"><code>vignettes/getting-started.Rmd</code></a></small>
       <div class="d-none name"><code>getting-started.Rmd</code></div>
@@ -145,8 +145,8 @@ anomalies in the survival outcomes.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 6</span></span></span>
 <span><span class="co">#&gt;   expression      min   median `itr/sec` mem_alloc `gc/sec`</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;bch:expr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:byt&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> survival    819.8µs  849.3µs     <span style="text-decoration: underline;">1</span>128.     175KB        0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> cpp          85.5µs   98.1µs     <span style="text-decoration: underline;">9</span>055.     159KB        0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> survival    830.5µs    851µs     <span style="text-decoration: underline;">1</span>145.     169KB        0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> cpp          93.3µs    100µs     <span style="text-decoration: underline;">8</span>788.     162KB        0</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="../reference/computeDR.html">computeDR</a></span><span class="op">(</span><span class="va">Y_train</span>, <span class="va">status_train</span>, engine <span class="op">=</span> <span class="st">"survival"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -374,31 +374,107 @@ well.</p>
 <span><span class="co">#&gt; [1] 3</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $lambda.1se10</span></span>
-<span><span class="co">#&gt; [1] 0</span></span>
-<span></span>
-<span><span class="co"># Unified prediction comparison</span></span>
-<span></span>
+<span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Unified prediction comparison</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bigmemory"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaneplusplus/bigmemory" class="external-link">bigmemory</a></span><span class="op">)</span></span>
 <span>  <span class="va">X_big_train</span> <span class="op">&lt;-</span> <span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">X_train</span><span class="op">)</span></span>
 <span>  <span class="va">X_big_test</span> <span class="op">&lt;-</span> <span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">X_test</span><span class="op">)</span></span>
-<span>  <span class="va">big_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox.html">big_pls_cox</a></span><span class="op">(</span><span class="va">X_big_train</span>, <span class="va">Y_train</span>, <span class="va">status_train</span>, ncomp <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
-<span>  <span class="va">gd_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span><span class="va">X_big_train</span>, <span class="va">Y_train</span>, <span class="va">status_train</span>, ncomp <span class="op">=</span> <span class="fl">4</span>, max_iter <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
-<span></span>
+<span>  <span class="va">big_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox.html">big_pls_cox</a></span><span class="op">(</span><span class="va">X_train</span>, <span class="va">Y_train</span>, <span class="va">status_train</span>, ncomp <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span>  <span class="va">big_fit</span><span class="op">$</span><span class="va">cox_fit</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co">#&gt; $coefficients</span></span>
+<span><span class="co">#&gt; [1]  6.200427  3.171981 -2.748535  1.293296</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $var</span></span>
+<span><span class="co">#&gt;           [,1]       [,2]       [,3]       [,4]</span></span>
+<span><span class="co">#&gt; [1,]  5.821149  2.4185955 -2.3040552  1.0187707</span></span>
+<span><span class="co">#&gt; [2,]  2.418596  1.6445800 -1.1764804  0.5610664</span></span>
+<span><span class="co">#&gt; [3,] -2.304055 -1.1764804  1.2404846 -0.5308908</span></span>
+<span><span class="co">#&gt; [4,]  1.018771  0.5610664 -0.5308908  0.3210964</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $loglik</span></span>
+<span><span class="co">#&gt; [1] -33.823093  -6.374114</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $score</span></span>
+<span><span class="co">#&gt; [1] 34.35164</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $iter</span></span>
+<span><span class="co">#&gt; [1] 8</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $linear.predictors</span></span>
+<span><span class="co">#&gt;  [1] -12.57620642  -0.80958795   3.92609801   2.60017390   1.76853806</span></span>
+<span><span class="co">#&gt;  [6]  -3.36295838  -1.07944356  10.31904141  -3.64756309  -2.89617173</span></span>
+<span><span class="co">#&gt; [11]  10.99977612  -3.67120048   0.19277160  -4.93349776   0.72346177</span></span>
+<span><span class="co">#&gt; [16]  -2.96898338 -11.92153226 -16.36665206   7.29677779  -6.25230861</span></span>
+<span><span class="co">#&gt; [21]  -7.44252580  -3.35748178   0.89833874  -0.03190649 -14.18767386</span></span>
+<span><span class="co">#&gt; [26]  -5.70848324  10.05566087   2.33425751   1.44427382  -9.42823092</span></span>
+<span><span class="co">#&gt; [31]  16.81484345  -8.16109725  -1.01887152   1.67809982   9.52923393</span></span>
+<span><span class="co">#&gt; [36]  -0.81577205  13.21271969   4.03431692  -8.22578371   8.37431879</span></span>
+<span><span class="co">#&gt; [41]   8.42795290   2.19412589  -1.95037872   2.94403579  -3.81221056</span></span>
+<span><span class="co">#&gt; [46]  -0.29923400 -13.50366653   1.71522979   6.77552365  -1.04786702</span></span>
+<span><span class="co">#&gt; [51]  -1.05373010   3.52071260   4.14906575  13.53253117  16.06054363</span></span>
+<span><span class="co">#&gt; [56]  -9.18209817 -14.09511037   6.91845019   0.66507554   0.70227868</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $residuals</span></span>
+<span><span class="co">#&gt;             1             2             3             4             5 </span></span>
+<span><span class="co">#&gt; -9.951099e-06 -1.028552e-05 -3.995987e-06 -2.023840e-05 -5.242897e-03 </span></span>
+<span><span class="co">#&gt;             6             7             8             9            10 </span></span>
+<span><span class="co">#&gt; -5.204999e-08 -5.106679e-07  2.996282e-01 -6.021565e-07 -1.784430e-09 </span></span>
+<span><span class="co">#&gt;            11            12            13            14            15 </span></span>
+<span><span class="co">#&gt;  9.535666e-01 -2.005207e-09 -1.822446e-06 -2.171991e-04 -6.660185e-08 </span></span>
+<span><span class="co">#&gt;            16            17            18            19            20 </span></span>
+<span><span class="co">#&gt; -1.659120e-09 -1.535926e-10 -1.172164e-13 -3.196396e-01 -5.809057e-05 </span></span>
+<span><span class="co">#&gt;            21            22            23            24            25 </span></span>
+<span><span class="co">#&gt; -1.824357e-09 -2.701177e-08 -3.690443e-06 -8.662599e-04 -2.078836e-08 </span></span>
+<span><span class="co">#&gt;            26            27            28            29            30 </span></span>
+<span><span class="co">#&gt; -1.071835e-10 -7.252299e-02 -3.214496e-05 -6.370523e-06 -6.337423e-12 </span></span>
+<span><span class="co">#&gt;            31            32            33            34            35 </span></span>
+<span><span class="co">#&gt; -5.817400e-01 -6.599430e-09 -8.343257e-06 -1.307490e-03 -1.851665e-02 </span></span>
+<span><span class="co">#&gt;            36            37            38            39            40 </span></span>
+<span><span class="co">#&gt; -3.955667e-04 -7.043898e-01 -1.305893e-03 -8.647257e-12 -5.820366e-02 </span></span>
+<span><span class="co">#&gt;            41            42            43            44            45 </span></span>
+<span><span class="co">#&gt; -1.477421e-04 -2.073589e-04 -2.137451e-07 -1.698570e-02 -7.139517e-10 </span></span>
+<span><span class="co">#&gt;            46            47            48            49            50 </span></span>
+<span><span class="co">#&gt; -1.810061e-04 -4.119846e-08 -1.730902e-05 -1.316762e-03 -1.056724e-02 </span></span>
+<span><span class="co">#&gt;            51            52            53            54            55 </span></span>
+<span><span class="co">#&gt; -8.511766e-05 -1.970571e-02 -9.524699e-05 -1.325008e-01  6.950025e-01 </span></span>
+<span><span class="co">#&gt;            56            57            58            59            60 </span></span>
+<span><span class="co">#&gt; -2.377340e-09 -2.280448e-08 -3.265394e-05 -4.494326e-05 -1.805098e-03 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $means</span></span>
+<span><span class="co">#&gt; [1]  3.330669e-17 -4.070818e-17 -4.996004e-17  3.700743e-18</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $method</span></span>
+<span><span class="co">#&gt; [1] "efron"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $class</span></span>
+<span><span class="co">#&gt; [1] "coxph"</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bigmemory"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">gd_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span><span class="va">X_big_train</span>, <span class="va">Y_train</span>, <span class="va">status_train</span>, ncomp <span class="op">=</span> <span class="fl">4</span>, max_iter <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span>
+<span>  <span class="va">gd_fit</span><span class="op">$</span><span class="va">cox_fit</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; survival::coxph(formula = survival::Surv(time, status) ~ fit$scores, </span></span>
+<span><span class="co">#&gt;     ties = "efron", x = FALSE)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;                coef exp(coef) se(coef)      z      p</span></span>
+<span><span class="co">#&gt; fit$scores1  3.3931   29.7580   1.3591  2.497 0.0125</span></span>
+<span><span class="co">#&gt; fit$scores2  3.3543   28.6253   1.2437  2.697 0.0070</span></span>
+<span><span class="co">#&gt; fit$scores3 -2.1863    0.1123   0.8624 -2.535 0.0112</span></span>
+<span><span class="co">#&gt; fit$scores4  0.9503    2.5865   0.4536  2.095 0.0362</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Likelihood ratio test=55.4  on 4 df, p=2.682e-11</span></span>
+<span><span class="co">#&gt; n= 60, number of events= 11</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bigmemory"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">risk_table</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    subject <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">test_id</span><span class="op">)</span>,</span>
-<span>    big_pls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">big_fit</span>, newdata <span class="op">=</span> <span class="va">X_big_test</span>, type <span class="op">=</span> <span class="st">"link"</span>, comps <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>,</span>
+<span>    big_pls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">big_fit</span>, newdata <span class="op">=</span> <span class="va">X_test</span>, type <span class="op">=</span> <span class="st">"link"</span>, comps <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>,</span>
 <span>    big_pls_gd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">gd_fit</span>, newdata <span class="op">=</span> <span class="va">X_big_test</span>, type <span class="op">=</span> <span class="st">"link"</span>, comps <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
-<span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"plsRcox"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">pls_fit</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">plsRcox</span><span class="fu">::</span><span class="fu"><a href="https://fbertran.github.io/plsRcox/reference/plsRcox.html" class="external-link">plsRcox</a></span><span class="op">(</span><span class="va">Y_train</span>, <span class="va">status_train</span>, <span class="va">X_train_raw</span>, nt <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>    <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">inherits</a></span><span class="op">(</span><span class="va">pls_fit</span>, <span class="st">"try-error"</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">pls_fit</span><span class="op">$</span><span class="va">Coefficients</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="va">risk_table</span><span class="op">$</span><span class="va">plsRcox</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">X_test_raw</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">pls_fit</span><span class="op">$</span><span class="va">Coefficients</span><span class="op">)</span></span>
-<span>    <span class="op">}</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="va">risk_table</span></span>
 <span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span></span>
 <span>    <span class="va">risk_table</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span>
@@ -408,9 +484,8 @@ well.</p>
 <span>    <span class="op">}</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">#&gt; ____************************************************____</span></span>
 <span><span class="co">#&gt;    big_pls big_pls_gd </span></span>
-<span><span class="co">#&gt;  0.3023256  0.3023256</span></span></code></pre></div>
+<span><span class="co">#&gt;  0.3023256  0.2093023</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="next-steps">Next steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>

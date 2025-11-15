@@ -12,7 +12,8 @@ big_pls_cox_gd(
   max_iter = 500L,
   tol = 1e-06,
   learning_rate = 0.01,
-  keepX = NULL
+  keepX = NULL,
+  coxfit = TRUE
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ coefficient vectors.}
 \item{keepX}{Optional integer vector describing the number of predictors to
 retain per component (naive sparsity). A value of zero keeps all
 predictors.}
+
+\item{coxfit}{Optional Boolean to fit a Cox model on the extracted components.}
 }
 \value{
 A list with components:
@@ -60,7 +63,6 @@ optimizer implemented in C++. The function operates directly on a
 materialising large design matrices in memory.
 }
 \examples{
-\donttest{
 library(bigmemory)
 set.seed(1)
 n <- 50
@@ -69,7 +71,8 @@ X <- bigmemory::as.big.matrix(matrix(rnorm(n * p), n, p))
 time <- rexp(n, rate = 0.1)
 status <- rbinom(n, 1, 0.7)
 fit <- big_pls_cox_gd(X, time, status, ncomp = 3, max_iter = 200)
-}
+str(fit)
+head(fit$scores)
 }
 \references{
 Maumy, M., Bertrand, F. (2023). PLS models and their extension for big data.

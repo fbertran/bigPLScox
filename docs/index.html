@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -189,7 +189,7 @@ plot of chunk unnamed-chunk-5
 <span>  <span class="va">Y_train</span>,</span>
 <span>  <span class="va">status_train</span>,</span>
 <span>  engine <span class="op">=</span> <span class="st">"cpp"</span>,</span>
-<span>  eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">cox_pls_fit</span>, type <span class="op">=</span> <span class="st">"lp"</span><span class="op">)</span></span>
+<span>  eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">cox_pls_fit</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Error: object 'cox_pls_fit' not found</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="va">residuals_overview</span>, <span class="va">cpp_residuals</span>, tolerance <span class="op">=</span> <span class="fl">1e-7</span><span class="op">)</span><span class="op">)</span></span>
@@ -252,6 +252,7 @@ plot of chunk unnamed-chunk-5
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
+<li><a href="https://cloud.r-project.org/package=bigPLScox" class="external-link">View on CRAN</a></li>
 <li><a href="https://github.com/fbertran/bigPLScox/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/fbertran/bigPLScox/issues/" class="external-link">Report a bug</a></li>
 </ul>

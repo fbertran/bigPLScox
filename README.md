@@ -167,7 +167,7 @@ cpp_residuals <- computeDR(
   Y_train,
   status_train,
   engine = "cpp",
-  eta = predict(cox_pls_fit, type = "lp")
+  eta = predict(cox_pls_fit, type = "link")
 )
 #> Error: object 'cox_pls_fit' not found
 stopifnot(all.equal(residuals_overview, cpp_residuals, tolerance = 1e-7))

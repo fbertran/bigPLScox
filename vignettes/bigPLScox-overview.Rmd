@@ -28,6 +28,8 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE
 )
+
+LOCAL <- identical(Sys.getenv("LOCAL"), "TRUE")
 ```
 
 # Introduction
@@ -76,7 +78,7 @@ The package ships with a small allelotyping dataset that we use throughout this
 vignette. The data include censoring indicators alongside a large set of
 predictors.
 
-```{r load-data}
+```{r load-data, cache=TRUE, eval=LOCAL}
 library(bigPLScox)
 
 data(micro.censure)
@@ -93,7 +95,7 @@ X_train <- Xmicro.censure_compl_imp[train_idx, -40]
 `coxgpls()` provides a matrix interface that mirrors `survival::coxph()` but
 adds latent components to stabilise estimation in high dimensions.
 
-```{r fit-coxgpls}
+```{r fit-coxgpls, cache=TRUE, eval=LOCAL}
 fit <- coxgpls(
   X_train,
   Y_train,
@@ -113,7 +115,7 @@ Cross-validation helps decide how many components should be retained. The
 `cv.coxgpls()` helper accepts either a matrix or a list containing `x`, `time`,
 and `status` elements.
 
-```{r cv-coxgpls}
+```{r cv-coxgpls, cache=TRUE, eval=LOCAL}
 set.seed(123)
 cv_res <- cv.coxgpls(
   list(x = X_train, time = Y_train, status = C_train),
@@ -132,7 +134,7 @@ Deviance-residual-based estimators provide increased robustness by iteratively
 updating residuals. Sparse variants enable feature selection in extremely
 high-dimensional designs.
 
-```{r alternative-estimators}
+```{r alternative-estimators, cache=TRUE, eval=LOCAL}
 dr_fit <- coxgplsDR(
   X_train,
   Y_train,
@@ -153,7 +155,7 @@ For extremely large problems, stochastic gradient descent routines operate on
 memory-mapped matrices created with **bigmemory**. The helper below converts a
 standard matrix to a `big.matrix` and runs a small example.
 
-```{r bigmemory-example}
+```{r bigmemory-example, cache=TRUE, eval=LOCAL}
 X_big <- bigmemory::as.big.matrix(X_train)
 big_fit <- big_pls_cox(
   X_big,

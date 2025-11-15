@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,6 +57,12 @@
         <dd>Imputed Microsat features</dd>
       </dl><dl><dt>
 
+          <code><a href="align_big_plscox.html">align_big_plscox()</a></code>
+
+        </dt>
+        <dd>Align a GD fit to a PLS fit (optional refit)</dd>
+      </dl><dl><dt>
+
           <code><a href="bigPLScox-package.html">bigPLScox-package</a></code> <code><a href="bigPLScox-package.html">bigPLScox</a></code>
 
         </dt>
@@ -75,10 +81,22 @@
         <dd>Partial Least Squares Components for Cox Models with Big Matrices</dd>
       </dl><dl><dt>
 
+          <code><a href="big_pls_cox_fast.html">big_pls_cox_fast()</a></code>
+
+        </dt>
+        <dd>Partial Least Squares Components for Cox Models (fast backend)</dd>
+      </dl><dl><dt>
+
           <code><a href="big_pls_cox_gd.html">big_pls_cox_gd()</a></code>
 
         </dt>
         <dd>Gradient-Descent Solver for Cox Models on Big Matrices</dd>
+      </dl><dl><dt>
+
+          <code><a href="big_pls_cox_transform.html">big_pls_cox_transform()</a></code>
+
+        </dt>
+        <dd>Transform new data to PLS–Cox scores</dd>
       </dl><dl><dt>
 
           <code><a href="bigmatrix-operations.html">`%*%`(<i>&lt;big.matrix&gt;</i>,<i>&lt;big.matrix&gt;</i>)</a></code> <code><a href="bigmatrix-operations.html">`%*%`(<i>&lt;matrix&gt;</i>,<i>&lt;big.matrix&gt;</i>)</a></code> <code><a href="bigmatrix-operations.html">`%*%`(<i>&lt;big.matrix&gt;</i>,<i>&lt;matrix&gt;</i>)</a></code> <code><a href="bigmatrix-operations.html">Arith(<i>&lt;big.matrix&gt;</i>,<i>&lt;big.matrix&gt;</i>)</a></code> <code><a href="bigmatrix-operations.html">Arith(<i>&lt;big.matrix&gt;</i>,<i>&lt;matrix&gt;</i>)</a></code> <code><a href="bigmatrix-operations.html">Arith(<i>&lt;matrix&gt;</i>,<i>&lt;big.matrix&gt;</i>)</a></code> <code><a href="bigmatrix-operations.html">Arith(<i>&lt;numeric&gt;</i>,<i>&lt;big.matrix&gt;</i>)</a></code> <code><a href="bigmatrix-operations.html">Arith(<i>&lt;big.matrix&gt;</i>,<i>&lt;numeric&gt;</i>)</a></code>
@@ -237,6 +255,12 @@
         <dd>Cox Proportional Hazards Model Data Generation From Weibull Distribution</dd>
       </dl><dl><dt>
 
+          <code><a href="gd_diagnostics.html">gd_diagnostics()</a></code>
+
+        </dt>
+        <dd>Extract Diagnostics from a big_pls_cox_gd Model</dd>
+      </dl><dl><dt>
+
           <code><a href="micro.censure.html">micro.censure</a></code>
 
         </dt>
@@ -249,10 +273,28 @@
         <dd>Incremental Survival Model Fitting with Pre-Scaled Data</dd>
       </dl><dl><dt>
 
+          <code><a href="plot.big_pls_cox.html">plot(<i>&lt;big_pls_cox&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot method for big_pls_cox objects</dd>
+      </dl><dl><dt>
+
+          <code><a href="plot.big_pls_cox_gd.html">plot(<i>&lt;big_pls_cox_gd&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot method for big_pls_cox_gd objects</dd>
+      </dl><dl><dt>
+
           <code><a href="predict.big_pls_cox.html">predict(<i>&lt;big_pls_cox&gt;</i>)</a></code> <code><a href="predict.big_pls_cox.html">predict(<i>&lt;big_pls_cox_gd&gt;</i>)</a></code>
 
         </dt>
         <dd>Predict method for big-memory PLS-Cox models</dd>
+      </dl><dl><dt>
+
+          <code><a href="predict.big_pls_cox_fast.html">predict(<i>&lt;big_pls_cox_fast&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Predictions for fast big PLS–Cox fits</dd>
       </dl><dl><dt>
 
           <code><a href="predict_cox_pls.html">predict(<i>&lt;coxgpls&gt;</i>)</a></code> <code><a href="predict_cox_pls.html">predict(<i>&lt;coxgplsDR&gt;</i>)</a></code> <code><a href="predict_cox_pls.html">predict(<i>&lt;coxsgpls&gt;</i>)</a></code> <code><a href="predict_cox_pls.html">predict(<i>&lt;coxsgplsDR&gt;</i>)</a></code> <code><a href="predict_cox_pls.html">predict(<i>&lt;coxspls_sgpls&gt;</i>)</a></code> <code><a href="predict_cox_pls.html">predict(<i>&lt;coxDKgplsDR&gt;</i>)</a></code> <code><a href="predict_cox_pls.html">predict(<i>&lt;coxDKsgplsDR&gt;</i>)</a></code> <code><a href="predict_cox_pls.html">predict(<i>&lt;coxDKspls_sgplsDR&gt;</i>)</a></code>
@@ -267,10 +309,46 @@
         <dd>Predict responses and latent scores from PLS fits</dd>
       </dl><dl><dt>
 
+          <code><a href="print.big_pls_cox.html">print(<i>&lt;big_pls_cox&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print method for big_pls_cox objects</dd>
+      </dl><dl><dt>
+
+          <code><a href="print.big_pls_cox_gd.html">print(<i>&lt;big_pls_cox_gd&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print method for big_pls_cox_gd objects</dd>
+      </dl><dl><dt>
+
+          <code><a href="print.summary.big_pls_cox_fast.html">print(<i>&lt;summary.big_pls_cox_fast&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print method for summary.big_pls_cox_fast objects</dd>
+      </dl><dl><dt>
+
           <code><a href="sim_data.html">sim_data</a></code>
 
         </dt>
         <dd>Simulated dataset</dd>
+      </dl><dl><dt>
+
+          <code><a href="summary.big_pls_cox.html">summary(<i>&lt;big_pls_cox&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Summary for big_pls_cox objects</dd>
+      </dl><dl><dt>
+
+          <code><a href="summary.big_pls_cox_fast.html">summary(<i>&lt;big_pls_cox_fast&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Summary for big_pls_cox objects</dd>
+      </dl><dl><dt>
+
+          <code><a href="summary.big_pls_cox_gd.html">summary(<i>&lt;big_pls_cox_gd&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Summary for big_pls_cox_gd objects</dd>
       </dl></div>
   </main></div>
 

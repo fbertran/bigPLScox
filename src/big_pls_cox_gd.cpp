@@ -2,26 +2,54 @@
 #include <bigmemory/BigMatrix.h>
 #include <limits>
 #include <cmath>
-#include <string>
-#include <algorithm>
 
 using namespace Rcpp;
 
-namespace {
+// [[Rcpp::depends(RcppArmadillo)]]
 
-arma::Mat<double> map_bigmatrix(const Rcpp::XPtr<BigMatrix>& mat_ptr) {
-  if (mat_ptr->matrix_type() != 8) {
-    throw std::runtime_error("big.matrix must be of type double");
-  }
-  const std::size_t n = mat_ptr->nrow();
-  const std::size_t p = mat_ptr->ncol();
-  double* ptr = static_cast<double*>(mat_ptr->matrix());
-  if (ptr == nullptr) {
-    throw std::runtime_error("Null pointer encountered when mapping big.matrix");
-  }
-  return arma::Mat<double>(ptr, n, p, /*copy_aux_mem =*/ false, /*strict =*/ true);
+// ----------------------------------------------------------------------------
+// Zero-copy view of big.matrix using Armadillo
+// ----------------------------------------------------------------------------
+arma::mat map_bigmatrix(const Rcpp::XPtr<BigMatrix>& bm) {
+  if (bm->matrix_type() != 8)
+    Rcpp::stop("big.matrix must be double type");
+  
+  double* ptr = static_cast<double*>(bm->matrix());
+  if (!ptr) Rcpp::stop("Null pointer in big.matrix");
+  
+  std::size_t n = bm->nrow();
+  std::size_t p = bm->ncol();
+  
+  return arma::mat(ptr, n, p, /*copy_aux_mem =*/ false, /*strict =*/ true);
 }
 
+// ----------------------------------------------------------------------------
+// Column means and sds
+// ----------------------------------------------------------------------------
+arma::vec col_means(const arma::mat& X) {
+  return arma::mean(X, 0).t();
+}
+
+arma::vec col_sds(const arma::mat& X, const arma::vec& means) {
+  arma::uword n = X.n_rows;
+  arma::uword p = X.n_cols;
+  arma::vec sds(p);
+  
+  for (arma::uword j = 0; j < p; ++j) {
+    double ss = 0.0;
+    for (arma::uword i = 0; i < n; ++i) {
+      double d = X(i,j) - means(j);
+      ss += d*d;
+    }
+    double var = (n > 1 ? ss / double(n - 1) : 0.0);
+    sds(j) = (var <= 0 || !std::isfinite(var)) ? 1.0 : std::sqrt(var);
+  }
+  return sds;
+}
+
+// ----------------------------------------------------------------------------
+// PLS EXACT (Armardillo-matching)
+// ----------------------------------------------------------------------------
 struct PLSDecomposition {
   arma::mat scores;
   arma::mat loadings;
@@ -30,305 +58,322 @@ struct PLSDecomposition {
   arma::vec scale;
 };
 
-arma::vec compute_column_means(const arma::mat& X) {
-  return arma::mean(X, 0).t();
-}
-
-arma::vec compute_column_sds(const arma::mat& X, const arma::vec& means) {
-  const std::size_t n = X.n_rows;
-  const std::size_t p = X.n_cols;
-  arma::vec sds(p, arma::fill::ones);
-  for (std::size_t j = 0; j < p; ++j) {
-    double sumsq = 0.0;
-    for (std::size_t i = 0; i < n; ++i) {
-      const double diff = X(i, j) - means[j];
-      sumsq += diff * diff;
-    }
-    double var = 0.0;
-    if (n > 1) {
-      var = sumsq / static_cast<double>(n - 1);
-    }
-    if (!std::isfinite(var) || var <= 0.0) {
-      sds[j] = 1.0;
-    } else {
-      sds[j] = std::sqrt(var);
-    }
+PLSDecomposition compute_pls_components(
+    const arma::mat& X,
+    const NumericVector& time,
+    const NumericVector& status,
+    int ncomp,
+    const IntegerVector& keepX)
+{
+  arma::uword n = X.n_rows;
+  arma::uword p = X.n_cols;
+  
+  arma::vec means = col_means(X);
+  arma::vec sds   = col_sds(X, means);
+  
+  arma::mat Xs = X;
+  for (arma::uword j = 0; j < p; ++j) {
+    Xs.col(j) -= means(j);
+    Xs.col(j) /= sds(j);
   }
-  return sds;
-}
-
-PLSDecomposition compute_pls_components(const arma::mat& X,
-                                        const Rcpp::NumericVector& time,
-                                        const Rcpp::NumericVector& status,
-                                        int ncomp,
-                                        const Rcpp::IntegerVector& keepX) {
-  const std::size_t n = X.n_rows;
-  const std::size_t p = X.n_cols;
-  if (n == 0 || p == 0) {
-    Rcpp::stop("`X` must have positive dimensions");
+  
+  arma::mat deflated = Xs;
+  arma::mat T(n, ncomp, arma::fill::zeros);
+  arma::mat P(p, ncomp, arma::fill::zeros);
+  arma::mat W(p, ncomp, arma::fill::zeros);
+  
+  // Prepare Cox residual engine
+  Environment surv = Environment::namespace_env("survival");
+  Function coxph_fit = surv["coxph.fit"];
+  Function coxph_control = surv["coxph.control"];
+  List control = coxph_control();
+  control["iter.max"] = 50;
+  
+  NumericMatrix y(n, 2);
+  for (arma::uword i = 0; i < n; ++i) {
+    y(i,0) = time[i];
+    y(i,1) = status[i];
   }
-
-  arma::vec means = compute_column_means(X);
-  arma::vec sds = compute_column_sds(X, means);
-
-  arma::mat centered = X;
-  for (std::size_t j = 0; j < p; ++j) {
-    centered.col(j) -= means[j];
-    centered.col(j) /= sds[j];
-  }
-
-  arma::mat deflated = centered;
-  arma::mat scores(n, ncomp, arma::fill::zeros);
-  arma::mat loadings(p, ncomp, arma::fill::zeros);
-  arma::mat weights(p, ncomp, arma::fill::zeros);
-
-  Rcpp::Environment survival_env = Rcpp::Environment::namespace_env("survival");
-  Rcpp::Function coxph_fit = survival_env["coxph.fit"];
-  Rcpp::Function coxph_control = survival_env["coxph.control"];
-  Rcpp::List control = coxph_control();
-  if (control.containsElementNamed("iter.max")) {
-    int iter_max = Rcpp::as<int>(control["iter.max"]);
-    if (iter_max < 50) {
-      control["iter.max"] = 50;
-    }
-  } else {
-    control["iter.max"] = 50;
-  }
-
-  Rcpp::NumericMatrix y(n, 2);
-  for (std::size_t i = 0; i < n; ++i) {
-    y(i, 0) = time[i];
-    y(i, 1) = status[i];
-  }
-  Rcpp::NumericVector strata(n, 1.0);
-  Rcpp::NumericVector offset(n, 0.0);
-  Rcpp::NumericVector weights_vec(n, 1.0);
-  Rcpp::CharacterVector rownms(n);
-  for (std::size_t i = 0; i < n; ++i) {
-    rownms[i] = std::to_string(i + 1);
-  }
-
+  
+  NumericVector strata(n, 1.0);
+  NumericVector offset(n, 0.0);
+  NumericVector weights_vec(n, 1.0);
+  CharacterVector rownames(n);
+  for (arma::uword i=0; i<n; ++i)
+    rownames[i] = std::to_string(i+1);
+  
+  arma::vec residuals(n);
+  
   for (int h = 0; h < ncomp; ++h) {
-    Rcpp::NumericMatrix current_scores(n, h);
-    for (int col = 0; col < h; ++col) {
-      for (std::size_t row = 0; row < n; ++row) {
-        current_scores(row, col) = scores(row, col);
-      }
+    
+    // -------------------------------------
+    // Step 1: Compute residuals
+    // -------------------------------------
+    if (h == 0) {
+      residuals = arma::vec(reinterpret_cast<double*>(const_cast<double*>(status.begin())),
+                            n, true, true);
+      residuals -= arma::mean(residuals);
+      
+    } else {
+      NumericMatrix Tprev(n, h);
+      for (int j = 0; j < h; ++j)
+        for (arma::uword i=0; i<n; ++i)
+          Tprev(i,j) = T(i,j);
+      
+      NumericVector init(h);
+      for (int j=0;j<h;++j) init[j] = 0.0;
+      
+      List fit = coxph_fit(
+        _["x"] = Tprev,
+        _["y"] = y,
+        _["strata"] = strata,
+        _["offset"] = offset,
+        _["init"] = init,
+        _["control"] = control,
+        _["weights"] = weights_vec,
+        _["method"] = "efron",
+        _["rownames"] = rownames
+      );
+      
+      NumericVector r = fit["residuals"];
+      residuals = arma::vec(reinterpret_cast<double*>(r.begin()), n, true, true);
+      residuals -= arma::mean(residuals);
     }
-
-    Rcpp::NumericVector init(h);
-    for (int col = 0; col < h; ++col) {
-      init[col] = 0.0;
+    
+    if (!residuals.is_finite() || arma::dot(residuals,residuals) < 1e-14) {
+      residuals = arma::vec(reinterpret_cast<double*>(const_cast<double*>(status.begin())),
+                            n, true, true);
+      residuals -= arma::mean(residuals);
     }
-
-    Rcpp::List fit = coxph_fit(Rcpp::_["x"] = current_scores,
-                               Rcpp::_["y"] = y,
-                               Rcpp::_["strata"] = strata,
-                               Rcpp::_["offset"] = offset,
-                               Rcpp::_["init"] = init,
-                               Rcpp::_["control"] = control,
-                               Rcpp::_["weights"] = weights_vec,
-                               Rcpp::_["method"] = "efron",
-                               Rcpp::_["rownames"] = rownms);
-
-    Rcpp::NumericVector residuals_r = fit["residuals"];
-    arma::vec residuals = Rcpp::as<arma::vec>(residuals_r);
-
-    arma::vec weight_vec = deflated.t() * residuals;
+    
+    // -------------------------------------
+    // Step 2: weight w = deflatedᵀ residuals
+    // -------------------------------------
+    arma::vec w = deflated.t() * residuals;
+    
     if (keepX.size() > 0) {
-      const int keep = (keepX.size() == 1) ? keepX[0] : keepX[h];
-      if (keep > 0 && keep < static_cast<int>(p)) {
-        arma::uvec order = arma::sort_index(arma::abs(weight_vec), "descend");
+      int keep = (keepX.size()==1 ? keepX[0] : keepX[h]);
+      if (keep > 0 && keep < (int)p) {
+        arma::uvec srt = arma::sort_index(arma::abs(w), "descend");
         arma::vec mask(p, arma::fill::zeros);
-        for (int idx = 0; idx < keep; ++idx) {
-          mask[order[idx]] = 1.0;
-        }
-        weight_vec %= mask;
+        for (int i = 0; i < keep; ++i) mask(srt(i)) = 1.0;
+        w %= mask;
       }
     }
-    const double weight_norm_sq = arma::dot(weight_vec, weight_vec);
-    if (weight_norm_sq <= 0.0 || !std::isfinite(weight_norm_sq)) {
-      Rcpp::stop("Unable to compute weight vector; residuals may be zero");
-    }
-    const double weight_norm = std::sqrt(weight_norm_sq);
-    weight_vec /= weight_norm;
-    weights.col(h) = weight_vec;
-
-    arma::vec score_vec = deflated * weight_vec;
-    const double score_norm_sq = arma::dot(score_vec, score_vec);
-    if (score_norm_sq <= 0.0 || !std::isfinite(score_norm_sq)) {
-      Rcpp::stop("Computed score vector has zero variance");
-    }
-    scores.col(h) = score_vec;
-
-    arma::vec loading_vec = (deflated.t() * score_vec) / score_norm_sq;
-    loadings.col(h) = loading_vec;
-
-    deflated -= score_vec * loading_vec.t();
-  }
-
-  PLSDecomposition result;
-  result.scores = scores;
-  result.loadings = loadings;
-  result.weights = weights;
-  result.center = means;
-  result.scale = sds;
-  return result;
-}
-
-arma::uvec order_desc(const arma::vec& time) {
-  arma::uvec idx = arma::sort_index(time, "descend");
-  return idx;
-}
-
-double compute_loglik(const arma::mat& X, const arma::vec& status,
-                      const arma::vec& eta) {
-  const std::size_t n = X.n_rows;
-  arma::vec exp_eta = arma::exp(eta);
-  arma::vec denom(n, arma::fill::zeros);
-  double running_denom = 0.0;
-  for (arma::uword idx = n; idx-- > 0;) {
-    running_denom += exp_eta[idx];
-    denom[idx] = running_denom;
-  }
-
-  double loglik = 0.0;
-  for (std::size_t i = 0; i < n; ++i) {
-    if (status[i] > 0.5) {
-      const double risk_sum = denom[i];
-      if (risk_sum <= 0) {
-        throw std::runtime_error("Numerical issue: risk set sum is non-positive");
+    
+    double wnorm2 = arma::dot(w,w);
+    if (wnorm2 <= 1e-20 || !std::isfinite(wnorm2)) {
+      arma::uword best=0;
+      double bestv=-1.0;
+      for (arma::uword j=0;j<p;++j) {
+        double v = std::abs(arma::dot(deflated.col(j), residuals));
+        if (v>bestv) { bestv=v; best=j; }
       }
-      loglik += eta[i] - std::log(risk_sum);
+      w.zeros();
+      w(best)=1.0;
+      wnorm2=1.0;
     }
+    
+    w /= std::sqrt(wnorm2);
+    W.col(h) = w;
+    
+    // -------------------------------------
+    // Step 3: Score t = deflated w
+    // -------------------------------------
+    arma::vec t = deflated * w;
+    
+    // Armadillo PLS: center only, no variance normalization
+    t -= arma::mean(t);
+    
+    // -------------------------------------
+    // Step 4: Loading p = (deflatedᵀ t) / (tᵀ t)
+    // -------------------------------------
+    double tTt = arma::dot(t,t);
+    if (tTt <= 1e-20) tTt = 1.0;
+    
+    arma::vec pvec = (deflated.t() * t) / tTt;
+    
+    T.col(h) = t;
+    P.col(h) = pvec;
+    
+    // -------------------------------------
+    // Step 5: Deterministic sign convention
+    // -------------------------------------
+    arma::uword jmax = arma::index_max(arma::abs(pvec));
+    if (pvec(jmax) < 0.0) {
+      T.col(h) *= -1.0;
+      W.col(h) *= -1.0;
+      P.col(h) *= -1.0;
+      t       *= -1.0;
+      pvec    *= -1.0;
+    }
+    
+    // -------------------------------------
+    // Step 6: Deflation
+    // -------------------------------------
+    deflated -= t * pvec.t();
   }
-  return loglik;
+  
+  PLSDecomposition res;
+  res.scores = T;
+  res.loadings = P;
+  res.weights = W;
+  res.center = means;
+  res.scale = sds;
+  return res;
 }
 
-arma::vec compute_gradient(const arma::mat& X, const arma::vec& status,
-                           const arma::vec& eta) {
-  const std::size_t n = X.n_rows;
-  const std::size_t p = X.n_cols;
-  arma::vec grad(p, arma::fill::zeros);
+// ----------------------------------------------------------------------------
+// Cox loglik and gradient
+// ----------------------------------------------------------------------------
+double compute_loglik(const arma::mat& X, const arma::vec& status, const arma::vec& eta)
+{
+  arma::uword n = X.n_rows;
   arma::vec exp_eta = arma::exp(eta);
-  arma::vec denom(n, arma::fill::zeros);
-  arma::mat cum_x(n, p, arma::fill::zeros);
-
-  double running_denom = 0.0;
-  arma::vec running_x(p, arma::fill::zeros);
-  for (arma::uword idx = n; idx-- > 0;) {
-    const double w = exp_eta[idx];
-    running_denom += w;
-    running_x += X.row(idx).t() * w;
-    denom[idx] = running_denom;
-    cum_x.row(idx) = running_x.t();
+  
+  arma::vec denom(n);
+  double run = 0.0;
+  for (arma::sword i = n - 1; i >= 0; --i) {
+    run += exp_eta(i);
+    denom(i) = run;
   }
+  
+  double ll = 0.0;
+  for (arma::uword i=0;i<n;++i)
+    if (status(i) > 0.5)
+      ll += eta(i) - std::log(denom(i));
+    
+    return ll;
+}
 
-  for (std::size_t i = 0; i < n; ++i) {
-    if (status[i] > 0.5) {
+arma::vec compute_gradient(const arma::mat& X, const arma::vec& status, const arma::vec& eta)
+{
+  arma::uword n = X.n_rows;
+  arma::uword k = X.n_cols;
+  
+  arma::vec grad(k, arma::fill::zeros);
+  arma::vec exp_eta = arma::exp(eta);
+  
+  arma::vec denom(n);
+  arma::mat cumX(n, k);
+  
+  double run = 0.0;
+  arma::vec runx(k, arma::fill::zeros);
+  
+  for (arma::sword i = n - 1; i >= 0; --i) {
+    double w = exp_eta(i);
+    run  += w;
+    runx += X.row(i).t() * w;
+    denom(i) = run;
+    cumX.row(i) = runx.t();
+  }
+  
+  for (arma::uword i=0;i<n;++i) {
+    if (status(i) > 0.5) {
       grad += X.row(i).t();
-      grad -= cum_x.row(i).t() / denom[i];
+      grad -= cumX.row(i).t() / denom(i);
     }
   }
+  
   return grad;
 }
 
-} // namespace
+// ----------------------------------------------------------------------------
+// Main function with stable backtracking line search
+// ----------------------------------------------------------------------------
 
-// [[Rcpp::export(name = "big_pls_cox_gd_cpp")]]
-Rcpp::List big_pls_cox_gd_cpp(SEXP X_ptr, Rcpp::NumericVector time,
-                              Rcpp::NumericVector status, int ncomp,
-                              int max_iter, double tol, double learning_rate,
-                              Rcpp::IntegerVector keepX) {
-  if (max_iter <= 0) {
-    Rcpp::stop("`max_iter` must be positive");
-  }
-  if (tol <= 0) {
-    Rcpp::stop("`tol` must be positive");
-  }
-  if (learning_rate <= 0) {
-    Rcpp::stop("`learning_rate` must be positive");
-  }
+// [[Rcpp::export(name="big_pls_cox_gd_cpp")]]
+List big_pls_cox_gd_cpp(SEXP X_ptr,
+                        NumericVector time,
+                        NumericVector status,
+                        int ncomp,
+                        int max_iter,
+                        double learning_rate,
+                        double tol,
+                        IntegerVector keepX)
+{
+  Rcpp::XPtr<BigMatrix> xp(X_ptr);
+  arma::mat X = map_bigmatrix(xp);
   
-  Rcpp::XPtr<BigMatrix> mat_ptr(X_ptr);
-  arma::Mat<double> Xfull = map_bigmatrix(mat_ptr);
-  const std::size_t n = Xfull.n_rows;
-  const std::size_t p = Xfull.n_cols;
-  if (n == 0 || p == 0) {
-    Rcpp::stop("`X` must have positive dimensions");
-  }
-  if (time.size() != static_cast<int>(n) || status.size() != static_cast<int>(n)) {
-    Rcpp::stop("Length of `time` and `status` must equal number of rows of `X`");
-  }
+  arma::uword n = X.n_rows;
+  if (time.size() != n || status.size() != n)
+    stop("time/status length mismatch with X");
   
-  if (ncomp < 1 || ncomp > static_cast<int>(p)) {
-    Rcpp::stop("`ncomp` must be between 1 and ncol(X)");
-  }
-  const arma::uword k = static_cast<arma::uword>(ncomp);
+  // Extract EXACT PLS components
+  PLSDecomposition pls = compute_pls_components(X, time, status, ncomp, keepX);
   
-  arma::vec time_vec(time.begin(), time.size(), false);
-  arma::vec status_vec(status.begin(), status.size(), false);
+  // Order rows by decreasing time
+  arma::vec time_v(reinterpret_cast<double*>(time.begin()), n, true, true);
+  arma::vec status_v(reinterpret_cast<double*>(status.begin()), n, true, true);
   
-  arma::uvec ord = order_desc(time_vec);
-  PLSDecomposition pls = compute_pls_components(Xfull, time, status, ncomp, keepX);
-
-  arma::mat scores_ord = pls.scores.rows(ord);
-  arma::vec status_ord = status_vec.elem(ord);
-
-  arma::vec beta = arma::zeros<arma::vec>(k);
-  double prev_loglik = -std::numeric_limits<double>::infinity();
-  bool converged = false;
-  arma::vec grad(k);
-  double loglik = prev_loglik;
-
-  for (int iter = 0; iter < max_iter; ++iter) {
-    arma::vec eta = scores_ord * beta;
-    grad = compute_gradient(scores_ord, status_ord, eta);
-    arma::vec beta_new = beta + learning_rate * grad;
-    loglik = compute_loglik(scores_ord, status_ord, scores_ord * beta_new);
-    if (iter > 0 && std::abs(loglik - prev_loglik) < tol) {
-      converged = true;
-      beta = beta_new;
-      prev_loglik = loglik;
-      return Rcpp::List::create(
-          Rcpp::Named("coefficients") = beta,
-          Rcpp::Named("loglik") = loglik,
-          Rcpp::Named("iterations") = iter + 1,
-          Rcpp::Named("converged") = converged,
-          Rcpp::Named("scores") = pls.scores,
-          Rcpp::Named("loadings") = pls.loadings,
-          Rcpp::Named("weights") = pls.weights,
-          Rcpp::Named("center") = pls.center,
-          Rcpp::Named("scale") = pls.scale);
+  arma::uvec ord = arma::sort_index(time_v, "descend");
+  arma::mat T_ord = pls.scores.rows(ord);
+  arma::vec status_ord = status_v.elem(ord);
+  
+  // Gradient descent with backtracking
+  arma::uword k = pls.scores.n_cols;
+  arma::vec beta = arma::zeros(k);
+  double prev_ll = -std::numeric_limits<double>::infinity();
+  bool conv = false;
+  
+  std::vector<double> loglik_trace;
+  std::vector<double> gradnorm_trace;
+  std::vector<double> step_trace;
+  std::vector< std::vector<double> > coef_trace;
+  std::vector< std::vector<double> > eta_trace;
+  
+  for (int it = 0; it < max_iter; ++it) {
+    
+    arma::vec eta = T_ord * beta;
+    arma::vec grad = compute_gradient(T_ord, status_ord, eta);
+    
+    double step = learning_rate;
+    arma::vec beta_new;
+    double ll_new = -std::numeric_limits<double>::infinity();
+    
+    while (step > 1e-20) {
+      beta_new = beta + step * grad;
+      ll_new = compute_loglik(T_ord, status_ord, T_ord * beta_new);
+      if (ll_new > prev_ll || it == 0) break;
+      step *= 0.5;
     }
-    if (arma::norm(beta_new - beta, 2) < tol) {
+    
+    if (step <= 1e-20 || std::abs(ll_new - prev_ll) < tol) {
+      conv = true;
       beta = beta_new;
-      loglik = compute_loglik(scores_ord, status_ord, scores_ord * beta);
-      converged = true;
-      prev_loglik = loglik;
-      return Rcpp::List::create(
-          Rcpp::Named("coefficients") = beta,
-          Rcpp::Named("loglik") = loglik,
-          Rcpp::Named("iterations") = iter + 1,
-          Rcpp::Named("converged") = converged,
-          Rcpp::Named("scores") = pls.scores,
-          Rcpp::Named("loadings") = pls.loadings,
-          Rcpp::Named("weights") = pls.weights,
-          Rcpp::Named("center") = pls.center,
-          Rcpp::Named("scale") = pls.scale);
+      prev_ll = ll_new;
+      break;
     }
+    
     beta = beta_new;
-    prev_loglik = loglik;
+    prev_ll = ll_new;
+    
+    loglik_trace.push_back(ll_new);
+    gradnorm_trace.push_back(arma::norm(grad, 2));
+    step_trace.push_back(step);
+    
+    coef_trace.push_back( arma::conv_to<std::vector<double>>::from(beta_new) );
+    eta_trace.push_back( arma::conv_to<std::vector<double>>::from(T_ord * beta_new) );
   }
-  arma::vec eta_final = scores_ord * beta;
-  loglik = compute_loglik(scores_ord, status_ord, eta_final);
-  return Rcpp::List::create(Rcpp::Named("coefficients") = beta,
-                            Rcpp::Named("loglik") = loglik,
-                            Rcpp::Named("iterations") = max_iter,
-                            Rcpp::Named("converged") = converged,
-                            Rcpp::Named("scores") = pls.scores,
-                            Rcpp::Named("loadings") = pls.loadings,
-                            Rcpp::Named("weights") = pls.weights,
-                            Rcpp::Named("center") = pls.center,
-                            Rcpp::Named("scale") = pls.scale);
+  
+  return List::create(
+    _["coefficients"] = beta,
+    _["loglik"] = prev_ll,
+    _["iterations"] = max_iter,
+    _["converged"] = conv,
+    _["scores"] = pls.scores,
+    _["loadings"] = pls.loadings,
+    _["weights"] = pls.weights,
+    _["center"] = pls.center,
+    _["scale"] = pls.scale,
+    _["keepX"] = keepX,
+    _["time"] = time,
+    _["status"] = status,
+    _["loglik_trace"] = loglik_trace,
+    _["gradnorm_trace"] = gradnorm_trace,
+    _["step_trace"] = step_trace,
+    _["coef_trace"] = coef_trace,
+    _["eta_trace"] = eta_trace
+  );
 }
+

@@ -71,21 +71,100 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// big_pls_cox_fast_big_cpp
+SEXP big_pls_cox_fast_big_cpp(SEXP xpMat, const arma::vec& time, const arma::vec& status, int ncomp, const arma::vec& means, const arma::vec& sds, const arma::ivec& keepX);
+RcppExport SEXP _bigPLScox_big_pls_cox_fast_big_cpp(SEXP xpMatSEXP, SEXP timeSEXP, SEXP statusSEXP, SEXP ncompSEXP, SEXP meansSEXP, SEXP sdsSEXP, SEXP keepXSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type xpMat(xpMatSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type status(statusSEXP);
+    Rcpp::traits::input_parameter< int >::type ncomp(ncompSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type means(meansSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type sds(sdsSEXP);
+    Rcpp::traits::input_parameter< const arma::ivec& >::type keepX(keepXSEXP);
+    rcpp_result_gen = Rcpp::wrap(big_pls_cox_fast_big_cpp(xpMat, time, status, ncomp, means, sds, keepX));
+    return rcpp_result_gen;
+END_RCPP
+}
+// big_pls_cox_fast_dense_cpp
+SEXP big_pls_cox_fast_dense_cpp(const arma::mat& X, const arma::vec& time, const arma::vec& status, int ncomp, const arma::vec& means, const arma::vec& sds, const arma::ivec& keepX);
+RcppExport SEXP _bigPLScox_big_pls_cox_fast_dense_cpp(SEXP XSEXP, SEXP timeSEXP, SEXP statusSEXP, SEXP ncompSEXP, SEXP meansSEXP, SEXP sdsSEXP, SEXP keepXSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type status(statusSEXP);
+    Rcpp::traits::input_parameter< int >::type ncomp(ncompSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type means(meansSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type sds(sdsSEXP);
+    Rcpp::traits::input_parameter< const arma::ivec& >::type keepX(keepXSEXP);
+    rcpp_result_gen = Rcpp::wrap(big_pls_cox_fast_dense_cpp(X, time, status, ncomp, means, sds, keepX));
+    return rcpp_result_gen;
+END_RCPP
+}
 // big_pls_cox_gd_cpp
-Rcpp::List big_pls_cox_gd_cpp(SEXP X_ptr, Rcpp::NumericVector time, Rcpp::NumericVector status, int ncomp, int max_iter, double tol, double learning_rate, Rcpp::IntegerVector keepX);
-RcppExport SEXP _bigPLScox_big_pls_cox_gd_cpp(SEXP X_ptrSEXP, SEXP timeSEXP, SEXP statusSEXP, SEXP ncompSEXP, SEXP max_iterSEXP, SEXP tolSEXP, SEXP learning_rateSEXP, SEXP keepXSEXP) {
+List big_pls_cox_gd_cpp(SEXP X_ptr, NumericVector time, NumericVector status, int ncomp, int max_iter, double learning_rate, double tol, IntegerVector keepX);
+RcppExport SEXP _bigPLScox_big_pls_cox_gd_cpp(SEXP X_ptrSEXP, SEXP timeSEXP, SEXP statusSEXP, SEXP ncompSEXP, SEXP max_iterSEXP, SEXP learning_rateSEXP, SEXP tolSEXP, SEXP keepXSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type X_ptr(X_ptrSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type time(timeSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type status(statusSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type status(statusSEXP);
     Rcpp::traits::input_parameter< int >::type ncomp(ncompSEXP);
     Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
-    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< double >::type learning_rate(learning_rateSEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type keepX(keepXSEXP);
-    rcpp_result_gen = Rcpp::wrap(big_pls_cox_gd_cpp(X_ptr, time, status, ncomp, max_iter, tol, learning_rate, keepX));
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type keepX(keepXSEXP);
+    rcpp_result_gen = Rcpp::wrap(big_pls_cox_gd_cpp(X_ptr, time, status, ncomp, max_iter, learning_rate, tol, keepX));
+    return rcpp_result_gen;
+END_RCPP
+}
+// big_pls_cox_transform_dense_cpp
+NumericMatrix big_pls_cox_transform_dense_cpp(NumericMatrix X, NumericVector means, NumericVector sds, NumericMatrix weights, NumericMatrix loadings, IntegerVector comps);
+RcppExport SEXP _bigPLScox_big_pls_cox_transform_dense_cpp(SEXP XSEXP, SEXP meansSEXP, SEXP sdsSEXP, SEXP weightsSEXP, SEXP loadingsSEXP, SEXP compsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type means(meansSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type sds(sdsSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type loadings(loadingsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type comps(compsSEXP);
+    rcpp_result_gen = Rcpp::wrap(big_pls_cox_transform_dense_cpp(X, means, sds, weights, loadings, comps));
+    return rcpp_result_gen;
+END_RCPP
+}
+// big_pls_cox_transform_big_cpp
+NumericMatrix big_pls_cox_transform_big_cpp(SEXP xpMat, NumericVector means, NumericVector sds, NumericMatrix weights, NumericMatrix loadings, IntegerVector comps);
+RcppExport SEXP _bigPLScox_big_pls_cox_transform_big_cpp(SEXP xpMatSEXP, SEXP meansSEXP, SEXP sdsSEXP, SEXP weightsSEXP, SEXP loadingsSEXP, SEXP compsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type xpMat(xpMatSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type means(meansSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type sds(sdsSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type loadings(loadingsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type comps(compsSEXP);
+    rcpp_result_gen = Rcpp::wrap(big_pls_cox_transform_big_cpp(xpMat, means, sds, weights, loadings, comps));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cox_score_residuals_fast
+arma::vec cox_score_residuals_fast(const arma::vec& time, const arma::vec& status, const arma::vec& eta);
+RcppExport SEXP _bigPLScox_cox_score_residuals_fast(SEXP timeSEXP, SEXP statusSEXP, SEXP etaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type status(statusSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type eta(etaSEXP);
+    rcpp_result_gen = Rcpp::wrap(cox_score_residuals_fast(time, status, eta));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -213,7 +292,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_bigPLScox_big_pls_cox_component_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_component_cpp, 7},
     {"_bigPLScox_big_pls_cox_transform_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_transform_cpp, 6},
     {"_bigPLScox_matrix_pls_cox_transform_cpp", (DL_FUNC) &_bigPLScox_matrix_pls_cox_transform_cpp, 6},
+    {"_bigPLScox_big_pls_cox_fast_big_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_fast_big_cpp, 7},
+    {"_bigPLScox_big_pls_cox_fast_dense_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_fast_dense_cpp, 7},
     {"_bigPLScox_big_pls_cox_gd_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_gd_cpp, 8},
+    {"_bigPLScox_big_pls_cox_transform_dense_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_transform_dense_cpp, 6},
+    {"_bigPLScox_big_pls_cox_transform_big_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_transform_big_cpp, 6},
+    {"_bigPLScox_cox_score_residuals_fast", (DL_FUNC) &_bigPLScox_cox_score_residuals_fast, 3},
     {"_bigPLScox_deviance_residuals_cpp", (DL_FUNC) &_bigPLScox_deviance_residuals_cpp, 4},
     {"_bigPLScox_matrix_deviance_residuals_cpp", (DL_FUNC) &_bigPLScox_matrix_deviance_residuals_cpp, 7},
     {"_bigPLScox_big_deviance_residuals_cpp", (DL_FUNC) &_bigPLScox_big_deviance_residuals_cpp, 7},

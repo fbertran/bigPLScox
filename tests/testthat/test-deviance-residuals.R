@@ -59,3 +59,23 @@ test_that("partial deviance from big matrices is consistent", {
   expect_equal(stats_big$loglik, loglik_ref, tolerance = 1e-6)
 })
 
+
+test_that("fast PLS-Cox works and matches", {
+  set.seed(1)
+  n <- 300; p <- 30
+  
+  X <- matrix(rnorm(n*p), n, p)
+  Xb <- bigmemory::as.big.matrix(X)
+  time <- rexp(n)
+  status <- rbinom(n, 1, 0.7)
+  
+  f1 <- big_pls_cox(X, time, status, ncomp = 3)
+  f2 <- big_pls_cox(Xb, time, status, ncomp = 3)
+  
+  expect_equal(dim(f1$scores), dim(f2$scores))
+  expect_gt(cor(f1$scores[,1], f2$scores[,1]), 0.999)
+  
+  expect_gt(cor(f1$cox_fit$linear.predictors,
+                f2$cox_fit$linear.predictors), 0.999)
+})
+

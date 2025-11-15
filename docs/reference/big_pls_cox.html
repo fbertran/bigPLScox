@@ -11,7 +11,7 @@ big.matrix from the bigmemory package."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,7 @@ big.matrix from the bigmemory package."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Partial Least Squares Components for Cox Models with Big Matrices</h1>
-      <small class="dont-index">Source: <a href="https://github.com/fbertran/bigPLScox/blob/HEAD/R/big_pls_cox.R.R" class="external-link"><code>R/big_pls_cox.R.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/fbertran/bigPLScox/blob/HEAD/R/big_pls_cox.R" class="external-link"><code>R/big_pls_cox.R</code></a></small>
       <div class="d-none name"><code>big_pls_cox.Rd</code></div>
     </div>
 
@@ -136,21 +136,21 @@ models for censored data. In <em>Proceedings of UseR! 2014</em> (p. 152).</p>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 9</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ scores  : num [1:20, 1:2] 0.315 0.28 -1.226 1.668 -0.372 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ loadings: num [1:5, 1:2] 0.6905 0.0875 0.2379 0.2205 -0.6772 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ scores  : num [1:20, 1:2] 0.275 0.244 -1.069 1.455 -0.324 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ loadings: num [1:5, 1:2] 0.792 0.1 0.273 0.253 -0.777 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ weights : num [1:5, 1:2] 0.681 0.273 0.248 0.117 -0.622 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ center  : num [1:5] 0.19052 -0.00647 0.1388 0.10174 0.11985</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ scale   : num [1:5] 0.913 0.871 0.81 1.05 0.911</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ cox_fit :List of 10</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ coefficients     : num [1:2] 0.756 0.247</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ var              : num [1:2, 1:2] 0.1286 0.0544 0.0544 0.2571</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ coefficients     : num [1:2] 0.867 0.231</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ var              : num [1:2, 1:2] 0.1691 0.0584 0.0584 0.2252</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ loglik           : num [1:2] -18.5 -15.8</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ score            : num 4.82</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ iter             : int 4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ linear.predictors: num [1:20] 0.0329 0.0502 -0.7536 1.4699 -0.5345 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ residuals        : Named num [1:20] -0.26 -0.125 -0.504 0.837 0.921 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   .. ..- attr(*, "names")= chr [1:20] "1" "2" "3" "4" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ means            : num [1:2] 7.77e-17 -3.33e-17</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ means            : num [1:2] 1.67e-17 -3.33e-17</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ method           : chr "efron"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ class            : chr "coxph"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ keepX   : int [1:2] 0 0</span>

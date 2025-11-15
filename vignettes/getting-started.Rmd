@@ -27,6 +27,8 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE
 )
+
+LOCAL <- identical(Sys.getenv("LOCAL"), "TRUE")
 ```
 
 # Introduction
@@ -39,7 +41,7 @@ core workflow on the allelotyping dataset bundled with the package.
 
 # Loading the data
 
-```{r load-data}
+```{r load-data, cache=TRUE, eval=LOCAL}
 library(bigPLScox)
 
 data(micro.censure)
@@ -68,7 +70,7 @@ status_test <- status_all[test_id]
 The original factor-based design matrix is also available should you prefer to
 work with categorical predictors directly.
 
-```{r original-design}
+```{r original-design, cache=TRUE, eval=LOCAL}
 X_train_raw <- Xmicro.censure_compl_imp[train_id, ]
 X_test_raw <- Xmicro.censure_compl_imp[test_id, ]
 ```
@@ -79,7 +81,7 @@ X_test_raw <- Xmicro.censure_compl_imp[test_id, ]
 before fitting the PLS components helps detect anomalies in the survival
 outcomes.
 
-```{r deviance-residuals}
+```{r deviance-residuals, cache=TRUE, eval=LOCAL}
 residuals_overview <- computeDR(Y_train, status_train, plot = TRUE)
 eta_null <- rep(0, length(Y_train))
 head(residuals_overview)
@@ -106,7 +108,7 @@ all.equal(
 The matrix interface to `coxgpls()` mirrors `survival::coxph()` while adding
 latent components that stabilise estimation in high dimensions.
 
-```{r fit-coxgpls}
+```{r fit-coxgpls, cache=TRUE, eval=LOCAL}
 set.seed(123)
 cox_pls_fit <- coxgpls(
   Xplan = X_train,
@@ -121,7 +123,7 @@ cox_pls_fit
 A formula interface is also available when working with data frames that include
 both predictors and survival outcomes.
 
-```{r fit-formula}
+```{r fit-formula, cache=TRUE, eval=LOCAL}
 cox_pls_fit_formula <- coxgpls(
   ~ ., Y_train, status_train,
   ncomp = 6,
@@ -137,7 +139,7 @@ Repeated cross-validation helps determine the appropriate number of latent
 components. Provide either a matrix or a list with `x`, `time`, and `status`
 entries.
 
-```{r cv-coxgpls}
+```{r cv-coxgpls, cache=TRUE, eval=LOCAL}
 set.seed(123456)
 cv_results <- suppressWarnings(cv.coxgpls(
   list(x = X_train, time = Y_train, status = status_train),
@@ -150,7 +152,7 @@ cv_results
 The selected number of components is stored under `cv_results$opt_nt`. Use it to
 refit the model with the deviance residual solver for comparison.
 
-```{r fit-coxgplsdr}
+```{r fit-coxgplsdr, cache=TRUE, eval=LOCAL}
 set.seed(123456)
 cox_pls_dr <- coxgplsDR(
   Xplan = X_train,
@@ -167,7 +169,7 @@ cox_pls_dr
 For flexible baseline hazards the `coxDKgplsDR()` estimator augments the PLS
 components with DK-splines. The interface mirrors the previous functions.
 
-```{r dk-splines}
+```{r dk-splines, cache=TRUE, eval=LOCAL}
 cox_DKsplsDR_fit <- coxDKgplsDR(
   Xplan = X_train,
   time = Y_train,
@@ -182,7 +184,7 @@ cox_DKsplsDR_fit
 
 Cross-validation is available for the DK-splines estimator as well.
 
-```{r cv-dk-splines}
+```{r cv-dk-splines, cache=TRUE, eval=LOCAL}
 set.seed(2468)
 cv_coxDKgplsDR_res <- suppressWarnings(cv.coxDKgplsDR(
   list(x = X_train, time = Y_train, status = status_train),
@@ -190,30 +192,36 @@ cv_coxDKgplsDR_res <- suppressWarnings(cv.coxDKgplsDR(
   ind.block.x = c(3, 10, 20)
 ))
 cv_coxDKgplsDR_res
+```
 
+
+```{r, cache=TRUE, eval=LOCAL}
 # Unified prediction comparison
-
 if (requireNamespace("bigmemory", quietly = TRUE)) {
   library(bigmemory)
   X_big_train <- bigmemory::as.big.matrix(X_train)
   X_big_test <- bigmemory::as.big.matrix(X_test)
-  big_fit <- big_pls_cox(X_big_train, Y_train, status_train, ncomp = 4)
-  gd_fit <- big_pls_cox_gd(X_big_train, Y_train, status_train, ncomp = 4, max_iter = 200)
+  big_fit <- big_pls_cox(X_train, Y_train, status_train, ncomp = 4)
+  big_fit$cox_fit
+}
+```
 
+
+```{r, cache=TRUE, eval=LOCAL}
+if (requireNamespace("bigmemory", quietly = TRUE)) {
+  gd_fit <- big_pls_cox_gd(X_big_train, Y_train, status_train, ncomp = 4, max_iter = 2000)
+  gd_fit$cox_fit
+}
+```
+
+
+```{r, cache=TRUE, eval=LOCAL}
+if (requireNamespace("bigmemory", quietly = TRUE)) {
   risk_table <- data.frame(
     subject = seq_along(test_id),
-    big_pls = predict(big_fit, newdata = X_big_test, type = "link", comps = 1:4),
+    big_pls = predict(big_fit, newdata = X_test, type = "link", comps = 1:4),
     big_pls_gd = predict(gd_fit, newdata = X_big_test, type = "link", comps = 1:4)
   )
-
-  if (requireNamespace("plsRcox", quietly = TRUE)) {
-    pls_fit <- try(plsRcox::plsRcox(Y_train, status_train, X_train_raw, nt = 4), silent = TRUE)
-    if (!inherits(pls_fit, "try-error") && !is.null(pls_fit$Coefficients)) {
-      risk_table$plsRcox <- as.numeric(as.matrix(X_test_raw) %*% pls_fit$Coefficients)
-    }
-  }
-
-  risk_table
 
   apply(
     risk_table[-1],

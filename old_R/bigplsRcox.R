@@ -651,7 +651,7 @@ bigplsRcoxmodel.default <- function(formula = survival::Surv(time = time, status
     rownames(res$YChapeau) <- rownames(ExpliX)
     
     ttpred <- data.frame(tt=res$ttPredictY)
-    res$Std.ValsPredictY <- predict(tempregcox,newdata=ttpred, type = "lp")
+    res$Std.ValsPredictY <- predict(tempregcox,newdata=ttpred, type = link)
     res$ValsPredictY <- predict(tempregcox,newdata=ttpred,type = "risk")
     
     res$Std.XChapeau <- res$tt%*%t(res$pp)

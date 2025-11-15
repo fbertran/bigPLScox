@@ -620,7 +620,6 @@ bigSurvSGD.na.omit <- function (formula = survival::Surv(time = time, status = s
 #'   parallel.flag = FALSE,
 #'   inf.mth = "none"
 #' )
-#' # unlink(datapath)
 #' }
 # 
 #' 

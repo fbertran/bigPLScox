@@ -28,7 +28,30 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE
 )
+
+LOCAL <- identical(Sys.getenv("LOCAL"), "TRUE")
 ```
+
+# Introduction
+
+High-dimensional survival analysis arises in genomics, imaging, and large-scale clinical studies, 
+where the number of predictors can exceed the number of events.  
+The **Partial Least Squares (PLS) Cox model** is an efficient supervised dimension‑reduction 
+method that extracts components maximally associated with the hazard signal.
+
+The `bigPLScox` package provides two implementations:
+
+1. **`big_pls_cox()`** — a fast in‑memory R/Armadillo implementation for dense matrices.  
+2. **`big_pls_cox_gd()`** — a memory‑efficient gradient‑descent implementation using `bigmemory::big.matrix`, 
+   allowing datasets too large to fit in RAM.
+
+Both implementations now:
+- use **variance‑1 component scaling**,
+- apply a **deterministic sign convention**,
+- produce comparable component spaces,
+- and support optional **variable selection** with `keepX`.
+
+This vignette introduces the workflow through a reproducible synthetic example.
 
 # Motivation
 
@@ -44,66 +67,184 @@ We simulate a moderately large design matrix and persist it to disk via
 `bigmemory::filebacked.big.matrix()`. Using file-backed storage allows models to
 train on datasets that exceed the available RAM.
 
-```{r simulate-bigmatrix}
+# Simulated Example
+
+```{r simulate-bigmatrix, cache=TRUE, eval=LOCAL}
 library(bigPLScox)
-library(bigmemory)
-
 set.seed(2024)
-n_obs <- 5000
-n_pred <- 100
 
-X_dense <- matrix(rnorm(n_obs * n_pred), nrow = n_obs)
-time <- rexp(n_obs, rate = 0.2)
-status <- rbinom(n_obs, 1, 0.7)
+n_obs  <- 5000
+n_pred <- 100
+k_true <- 3
+
+## Correlated predictor covariance (3 correlated 10x10 blocks, rest I)
+Sigma <- diag(n_pred)
+for (b in 0:2) {
+  idx <- (b * 10 + 1):(b * 10 + 10)
+  Sigma[idx, idx] <- 0.7
+  diag(Sigma[idx, idx]) <- 1
+}
+# Cholesky and simulate X ~ N(0, Sigma) with base R only
+L <- chol(Sigma)
+Z <- matrix(rnorm(n_obs * n_pred), nrow = n_obs)
+X_dense <- Z %*% L
+
+## True sparse directions (12 signal features split over 3 components)
+w1 <- numeric(n_pred); w1[1:4]   <- c( 1.0,  0.8,  0.6, -0.5)
+w2 <- numeric(n_pred); w2[5:8]   <- c(-0.7,  0.9, -0.4,  0.5)
+w3 <- numeric(n_pred); w3[9:12]  <- c( 0.6, -0.5,  0.7,  0.8)
+w1 <- w1 / sqrt(sum(w1^2))
+w2 <- w2 / sqrt(sum(w2^2))
+w3 <- w3 / sqrt(sum(w3^2))
+
+## Latent components, centered & variance=1 (uses base 'scale')
+t1 <- as.numeric(scale(drop(X_dense %*% w1), center = TRUE, scale = TRUE))
+t2 <- as.numeric(scale(drop(X_dense %*% w2), center = TRUE, scale = TRUE))
+t3 <- as.numeric(scale(drop(X_dense %*% w3), center = TRUE, scale = TRUE))
+
+## Linear predictor and event times under PH model
+beta_true <- c(1.0, 0.6, 0.3)
+eta       <- beta_true[1]*t1 + beta_true[2]*t2 + beta_true[3]*t3
+
+lambda0 <- 0.05
+u <- runif(n_obs)
+time_event <- -log(u) / (lambda0 * exp(eta))
+
+## Independent censoring; calibrate to ~35% censoring (≈ 65% events)
+target_event <- 0.65
+f <- function(lc) {
+  mean(-log(runif(n_obs)) / (lambda0 * exp(eta)) <= rexp(n_obs, rate = lc)) - target_event
+}
+lambda_c <- uniroot(f, c(1e-4, 1), tol = 1e-4)$root
+time_cens <- rexp(n_obs, rate = lambda_c)
+
+time   <- pmin(time_event, time_cens)
+status <- as.integer(time_event <= time_cens)
 
 big_dir <- tempfile("bigPLScox-")
 dir.create(big_dir)
-X_big <- filebacked.big.matrix(
-  nrow = n_obs,
-  ncol = n_pred,
+if(file.exists(paste(big_dir,"X.bin",sep="/"))){unlink(paste(big_dir,"X.bin",sep="/"))}
+if(file.exists(paste(big_dir,"X.desc",sep="/"))){unlink(paste(big_dir,"X.desc",sep="/"))}
+X_big <- bigmemory::as.big.matrix(
+  X_dense,
   backingpath = big_dir,
   backingfile = "X.bin",
   descriptorfile = "X.desc",
-  init = X_dense
 )
+X_big[1:6,1:6]
 ```
 
 The resulting `big.matrix` can be reopened in future sessions via its descriptor
 file. All big-memory modelling functions accept either an in-memory matrix or a
 `big.matrix` reference.
 
-# Fitting big-memory models
+# Fitting a PLS–Cox Model (Dense Matrix)
 
 `big_pls_cox()` runs the classical PLS-Cox algorithm while streaming data from
 disk.
 
-```{r big-pls-cox}
-fit_big <- big_pls_cox(
-  X = X_big,
+```{r big-pls-cox, cache=TRUE, eval=LOCAL}
+fit_pls <- big_pls_cox(
+  X = X_dense,
   time = time,
   status = status,
-  ncomp = 5
+  ncomp = 3
 )
-
-head(fit_big$scores)
-str(fit_big)
+str(fit_pls)
+head(fit_pls$scores)
+apply(fit_pls$scores, 2, var)
 ```
+
+The scores are scaled to sample variance 1, making components directly comparable across runs and algorithms.
+
+```{r big-pls-cox-plot, cache=TRUE, eval=LOCAL}
+plot(fit_pls$scores[,1],fit_pls$scores[,2])
+```
+
+
+```{r big-pls-cox-plot2, cache=TRUE, eval=LOCAL}
+plot(fit_pls$loadings[,1],fit_pls$loadings[,2])
+```
+
+# Fitting a PLS–Cox Model (Big Matrix + Gradient Descent)
 
 The gradient-descent variant `big_pls_cox_gd()` uses stochastic optimisation and
 is well-suited for very large datasets.
 
-```{r big-pls-cox-gd}
-fit_big_gd <- big_pls_cox_gd(
+```{r big-pls-cox-gd, cache=TRUE, eval=LOCAL}
+fit_gd <- big_pls_cox_gd(
   X = X_big,
   time = time,
   status = status,
-  ncomp = 5,
-  max_iter = 100,
-  tol = 1e-4
-  )
+  ncomp = 3,
+  max_iter = 2000,         # to ensure convergence
+  learning_rate = 0.05,    # smaller step usually helps
+  tol = 1e-8               # realistic tolerance
+)
+str(fit_gd)
+head(fit_gd$scores)
+apply(fit_gd$scores, 2, var)
+```
 
-head(fit_big$scores)
-str(fit_big)
+```{r big-pls-cox-gd-plot, cache=TRUE, eval=LOCAL}
+plot(fit_gd$scores[,1],fit_gd$scores[,2])
+```
+
+
+```{r big-pls-cox-gd-plot2, cache=TRUE, eval=LOCAL}
+plot(fit_gd$loadings[,1],fit_gd$loadings[,2])
+```
+
+PLS components are not unique: any orthogonal rotation within the latent subspace spans the same information for Cox. Raw components can be permuted/rotated/flipped and still be valid.
+
+GD and the stepwise PLS+refit choose different bases and may settle on different local optima; Procrustes + refit puts them on the same footing so predictions align, as shown below.
+
+# Comparing the Algorithms
+
+The two implementations should now produce nearly identical PLS components (up to numerical noise).
+
+```{r compare, cache=TRUE, eval=LOCAL}
+eta_pls <- drop(fit_pls$scores %*% fit_pls$cox_fit$coefficients)
+eta_gd  <- drop(fit_gd$scores  %*% fit_gd$cox_fit$coefficients)
+
+cor(eta_pls, eta_gd)
+
+c(
+  C_pls = survival::concordance(Surv(time, status) ~ eta_pls)$concordance,
+  C_gd  = survival::concordance(Surv(time, status) ~ eta_gd)$concordance
+)
+```
+
+You should observe correlation > 0.99 and nearly identical concordance values.
+This confirms both methods estimate the same risk‑relevant subspace.
+
+# Inspecting Loadings and Variable Importance
+
+```{r loadings, cache=TRUE, eval=LOCAL}
+head(fit_pls$loadings)
+plot(abs(fit_pls$loadings[,1]), type="h", main="Loading Magnitudes (Component 1)")
+```
+
+Interpretation is analogous to standard PLS regression:
+- large absolute loadings indicate predictors highly contributing to the component;
+- sparsity can be introduced via `keepX`.
+
+# Predictions on New Data
+
+```{r predict, cache=TRUE, eval=LOCAL}
+# Generate new data to transform
+X_new <- matrix(rnorm(10 * n_pred), nrow = 10)
+
+scores_new <- big_pls_cox_transform(
+  X       = X_new,
+  means   = fit_pls$center,
+  sds     = fit_pls$scale,
+  weights = fit_pls$weights,
+  loadings = fit_pls$loadings,
+  comps   = 1:3
+)
+
+scores_new
 ```
 
 Both functions return objects that expose the latent scores and loading vectors,
@@ -115,16 +256,20 @@ counterparts.
 Cross-validation for big-memory models is supported through the list interface.
 This enables streaming each fold directly from disk.
 
-```{r big-cv, eval = FALSE}
+```{r big-cv, cache=TRUE, eval=LOCAL}
 set.seed(2024)
-data_big <- list(x = X_big, time = time, status = status)
-cv_big <- cv.coxgpls(
-  data_big,
-  nt = 5,
+data_small <- list(x = X_big[1:500,], time = time[1:500], status = status[1:500])
+cv_small <- suppressWarnings(cv.coxgpls(
+  data_small,
+  nt = 3,
   ncores = 1,
   ind.block.x = c(10, 40)
-)
-cv_big$opt_nt
+))
+```
+
+
+```{r big-cv2, cache=TRUE, eval=LOCAL}
+cv_small$cv.error10
 ```
 
 For large experiments consider combining `foreach::foreach()` with
@@ -136,14 +281,22 @@ The native C++ solvers substantially reduce wall-clock time compared to fitting
 through the R interface alone. The `bench` package provides convenient
 instrumentation; the chunk below only runs when it is available.
 
-```{r big-timing}
+```{r big-timing, cache=TRUE, eval=LOCAL}
 if (requireNamespace("bench", quietly = TRUE)) {
-  bench::mark(
-    streaming = big_pls_cox(X_big, time, status, ncomp = 5, keepX = 0),
-    gd = big_pls_cox_gd(X_big, time, status, ncomp = 5, max_iter = 150),
-    iterations = 5,
+  bench_res <- bench::mark(
+    big_pls_cox = big_pls_cox(X_big, time, status, ncomp = 5, keepX = 0),
+    big_pls_cox_gd = big_pls_cox_gd(X_big, time, status, ncomp = 5, max_iter = 2000),
+    iterations = 50,
     check = FALSE
   )
+bench_res$expression <- names(bench_res$expression)
+bench_res
+}
+```
+
+```{r bench-plot, cache=TRUE, eval=LOCAL}
+if (requireNamespace("bench", quietly = TRUE)) {
+plot(bench_res, type = "jitter")
 }
 ```
 
@@ -153,9 +306,9 @@ Once a model has been fitted we can evaluate deviance residuals using the new
 C++ backend. Supplying the linear predictor avoids recomputing it in R and works
 with any matrix backend.
 
-```{r big-deviance}
-eta_big <- predict(fit_big, type = "link")
-dr_cpp <- computeDR(time, status, engine = "cpp", eta = eta_big)
+```{r big-deviance, cache=TRUE, eval=LOCAL}
+eta_pls <- predict(fit_pls, type = "link")
+dr_cpp <- computeDR(time, status, engine = "cpp", eta = eta_pls)
 max(abs(dr_cpp - computeDR(time, status)))
 ```
 
@@ -165,7 +318,7 @@ max(abs(dr_cpp - computeDR(time, status)))
 Temporary backing files can be removed after the analysis. In production
 pipelines you will typically keep the descriptor file alongside the binary data.
 
-```{r cleanup}
+```{r cleanup, cache=TRUE, eval=LOCAL}
 rm(X_big)
 file.remove(file.path(big_dir, "X.bin"))
 file.remove(file.path(big_dir, "X.desc"))
@@ -180,3 +333,11 @@ unlink(big_dir, recursive = TRUE)
   obtained with file-backed matrices.
 * Consider persisting fitted objects with `saveRDS()` to avoid recomputing large
   models when iterating on analyses.
+
+# Conclusion
+
+`bigPLScox` brings scalable, stable, and interpretable PLS‑Cox modeling to 
+high‑dimensional survival analysis. Its dual backends make it suitable for both 
+moderate-size and truly large datasets.
+
+For further examples, see the function documentation and package help pages.

@@ -5,6 +5,7 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
+#include <limits>
 
 using namespace Rcpp;
 
@@ -194,17 +195,23 @@ List big_pls_cox_component_cpp(SEXP xpMat,
     stop("Loadings matrix must have one row per predictor");
   }
   
+  // Center residuals to avoid constant-offset scores
+  double r_mean = 0.0;
+  for (std::size_t i = 0; i < n; ++i) r_mean += residuals[i];
+  r_mean /= static_cast<double>(n);
+  for (std::size_t i = 0; i < n; ++i) residuals[i] -= r_mean;
+  
   MatrixAccessor<double> accessor(*pMat);
   
   NumericVector weights(p);
   NumericVector score(n);
   NumericVector loading(p);
   
-  // Compute weights
+  // --- weights ---
   for (std::size_t j = 0; j < p; ++j) {
     double* col = accessor[j];
     const double mean = means[j];
-    const double sd = sds[j];
+    const double sd   = sds[j];
     double accum = 0.0;
     for (std::size_t i = 0; i < n; ++i) {
       double value = (col[i] - mean) / sd;
@@ -226,8 +233,28 @@ List big_pls_cox_component_cpp(SEXP xpMat,
     norm_sq += weights[j] * weights[j];
   }
   
-  if (norm_sq <= 0.0) {
-    stop("Unable to compute weight vector; residuals may be zero");
+  if (!std::isfinite(norm_sq) || norm_sq <= 1e-20) {
+    // pick strongest single predictor direction
+    std::size_t best_j = 0;
+    double best = -std::numeric_limits<double>::infinity();
+    
+    for (std::size_t j = 0; j < p; ++j) {
+      double* col = accessor[j];
+      double accum = 0.0;
+      // project (deflated) predictor j onto residuals
+      for (std::size_t i = 0; i < n; ++i) {
+        double value = (col[i] - means[j]) / sds[j];
+        for (int h = 0; h < n_prev; ++h) {
+          value -= scores_prev(i, h) * loadings_prev(j, h);
+        }
+        accum += std::abs(value * residuals[i]);
+      }
+      if (accum > best) { best = accum; best_j = j; }
+    }
+    
+    std::fill(weights.begin(), weights.end(), 0.0);
+    weights[best_j] = 1.0;
+    norm_sq = 1.0;
   }
   
   const double norm = std::sqrt(norm_sq);
@@ -235,13 +262,13 @@ List big_pls_cox_component_cpp(SEXP xpMat,
     weights[j] /= norm;
   }
   
-  // Compute the new score vector
+  // --- score: t = X_deflated w ---
   for (std::size_t i = 0; i < n; ++i) {
     double accum = 0.0;
     for (std::size_t j = 0; j < p; ++j) {
       double* col = accessor[j];
       const double mean = means[j];
-      const double sd = sds[j];
+      const double sd   = sds[j];
       double value = (col[i] - mean) / sd;
       for (int h = 0; h < n_prev; ++h) {
         value -= scores_prev(i, h) * loadings_prev(j, h);
@@ -251,19 +278,28 @@ List big_pls_cox_component_cpp(SEXP xpMat,
     score[i] = accum;
   }
   
-  double score_norm_sq = 0.0;
-  for (std::size_t i = 0; i < n; ++i) {
-    score_norm_sq += score[i] * score[i];
-  }
-  if (score_norm_sq <= 0.0) {
-    stop("Computed score vector has zero variance");
-  }
+  // --- center + variance-1 scaling (sample variance = 1) ---
+  double s_mean = 0.0;
+  for (std::size_t i = 0; i < n; ++i) s_mean += score[i];
+  s_mean /= static_cast<double>(n);
+  for (std::size_t i = 0; i < n; ++i) score[i] -= s_mean;
   
-  // Compute the loading vector
+  double ss = 0.0;
+  for (std::size_t i = 0; i < n; ++i) ss += score[i] * score[i];
+  double denom = std::sqrt(ss / static_cast<double>((n > 1) ? (n - 1) : 1));
+  if (!std::isfinite(denom) || denom <= 1e-12) denom = 1.0;
+  for (std::size_t i = 0; i < n; ++i) score[i] /= denom;
+  
+  // t^T t after normalization (≈ n-1)
+  double tTt = 0.0;
+  for (std::size_t i = 0; i < n; ++i) tTt += score[i] * score[i];
+  if (!std::isfinite(tTt) || tTt <= 1e-20) tTt = 1.0;
+  
+  // --- loadings: p = X_deflated' t / (t^T t) ---
   for (std::size_t j = 0; j < p; ++j) {
     double* col = accessor[j];
     const double mean = means[j];
-    const double sd = sds[j];
+    const double sd   = sds[j];
     double accum = 0.0;
     for (std::size_t i = 0; i < n; ++i) {
       double value = (col[i] - mean) / sd;
@@ -272,11 +308,27 @@ List big_pls_cox_component_cpp(SEXP xpMat,
       }
       accum += value * score[i];
     }
-    loading[j] = accum / score_norm_sq;
+    loading[j] = accum / tTt;
   }
   
-  return List::create(Named("weights") = weights,
-                      Named("scores") = score,
+  // --- deterministic sign convention ---
+  // Make the loading with largest absolute value positive
+  std::size_t jmax = 0;
+  double maxabs = 0.0;
+  for (std::size_t j = 0; j < p; ++j) {
+    double a = std::abs(loading[j]);
+    if (a > maxabs) { maxabs = a; jmax = j; }
+  }
+  if (loading[jmax] < 0.0) {
+    for (std::size_t i = 0; i < n; ++i) score[i] = -score[i];
+    for (std::size_t j = 0; j < p; ++j) {
+      weights[j] = -weights[j];
+      loading[j] = -loading[j];
+    }
+  }
+  
+  return List::create(Named("weights")  = weights,
+                      Named("scores")   = score,
                       Named("loadings") = loading);
 }
 

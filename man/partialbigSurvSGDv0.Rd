@@ -73,7 +73,6 @@ continued <- partialbigSurvSGDv0(
   parallel.flag = FALSE,
   inf.mth = "none"
 )
-# unlink(datapath)
 }
 
 }

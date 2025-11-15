@@ -34,12 +34,13 @@
 # #' @importClassesFrom bigSurvSGD bigSurvSGD
 # #' @importMethodsFrom bigSurvSGD plot.bigSurvSGD print.bigSurvSGD
 # #' @importFrom utils head
-#' @importFrom graphics abline axis layout legend segments
+#' @importFrom graphics abline axis barplot layout legend matplot segments
 #' @importFrom grDevices dev.new
 #' @importFrom stats as.formula 
 #' @importFrom stats is.empty.model 
 #' @importFrom stats coef
 #' @importFrom stats coefficients
+#' @importFrom stats cor
 #' @importFrom stats complete.cases
 #' @importFrom stats extractAIC
 #' @importFrom stats lm

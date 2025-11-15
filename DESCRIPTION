@@ -1,6 +1,6 @@
 Package: bigPLScox
 Type: Package
-Version: 0.6.0
+Version: 0.7.0
 Date: 2025-11-01
 Depends: R (>= 4.0.0)
 biocViews:

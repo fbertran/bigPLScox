@@ -14,14 +14,7 @@
   ...
 )
 
-\method{predict}{big_pls_cox_gd}(
-  object,
-  newdata = NULL,
-  type = c("link", "risk", "response", "components"),
-  comps = NULL,
-  coef = NULL,
-  ...
-)
+\method{predict}{big_pls_cox_gd}(object, newdata = NULL, type = c("link", "risk", "scores"), ...)
 }
 \arguments{
 \item{object}{A model fitted with \code{\link[=big_pls_cox]{big_pls_cox()}}.}

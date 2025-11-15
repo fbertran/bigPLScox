@@ -13,7 +13,7 @@ materialising large design matrices in memory."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,7 +63,8 @@ materialising large design matrices in memory.</p>
 <span>  max_iter <span class="op">=</span> <span class="fl">500L</span>,</span>
 <span>  tol <span class="op">=</span> <span class="fl">1e-06</span>,</span>
 <span>  learning_rate <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>  keepX <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  keepX <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  coxfit <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -109,6 +110,10 @@ coefficient vectors.</p></dd>
 retain per component (naive sparsity). A value of zero keeps all
 predictors.</p></dd>
 
+
+<dt id="arg-coxfit">coxfit<a class="anchor" aria-label="anchor" href="#arg-coxfit"></a></dt>
+<dd><p>Optional Boolean to fit a Cox model on the extracted components.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -144,8 +149,7 @@ models for censored data. In <em>Proceedings of UseR! 2014</em> (p. 152).</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaneplusplus/bigmemory" class="external-link">bigmemory</a></span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaneplusplus/bigmemory" class="external-link">bigmemory</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">50</span></span></span>
 <span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fl">10</span></span></span>
@@ -153,7 +157,152 @@ models for censored data. In <em>Proceedings of UseR! 2014</em> (p. 152).</p>
 <span class="r-in"><span><span class="va">time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n</span>, rate <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">status</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, <span class="fl">0.7</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">big_pls_cox_gd</span><span class="op">(</span><span class="va">X</span>, <span class="va">time</span>, <span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">3</span>, max_iter <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> List of 18</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ coefficients  : num [1:3] 0.593 0.165 0.314</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ loglik        : num -104</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ iterations    : int 200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ converged     : logi TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ scores        : num [1:50, 1:3] 0.0513 1.555 -1.1934 0.7405 -1.9847 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ loadings      : num [1:10, 1:3] 0.3689 -0.0474 0.5673 0.1476 0.4647 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ weights       : num [1:10, 1:3] 0.5334 -0.1685 0.4853 0.0962 0.3655 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ center        : num [1:10] 0.1004 0.1173 -0.1525 0.0769 -0.0313 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ scale         : num [1:10] 0.831 0.969 0.9 1.009 1.095 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ keepX         : int [1:3] 0 0 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ time          : num [1:50] 0.6162 3.6972 12.2628 0.271 0.0901 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ status        : num [1:50] 1 1 0 1 0 1 1 1 1 1 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ loglik_trace  : num [1:34] -107 -106 -105 -105 -105 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ gradnorm_trace: num [1:34] 19.64 13.12 9.08 6.5 4.8 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ step_trace    : num [1:34] 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ coef_trace    :List of 34</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.1642 0.0805 0.0716</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.277 0.127 0.121</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.356 0.153 0.156</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.413 0.167 0.184</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.455 0.174 0.207</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.486 0.177 0.225</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.51 0.177 0.24</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.528 0.177 0.253</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.541 0.176 0.263</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.552 0.175 0.272</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.56 0.174 0.279</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.567 0.172 0.285</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.572 0.171 0.29</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.576 0.17 0.295</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.579 0.17 0.298</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.582 0.169 0.301</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.584 0.168 0.303</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.586 0.168 0.305</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.587 0.167 0.307</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.588 0.167 0.308</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.589 0.167 0.309</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.59 0.166 0.31</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.59 0.166 0.311</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.591 0.166 0.311</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.591 0.166 0.312</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.592 0.166 0.312</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.592 0.166 0.313</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.592 0.166 0.313</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.592 0.166 0.313</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.592 0.166 0.313</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.592 0.165 0.313</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.592 0.165 0.314</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.593 0.165 0.314</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:3] 0.593 0.165 0.314</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ eta_trace     :List of 34</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.1661 0.1968 0.2283 0.0614 0.3025 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.268 0.324 0.354 0.105 0.503 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.326 0.406 0.414 0.138 0.64 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.358 0.458 0.435 0.163 0.737 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.373 0.492 0.434 0.183 0.808 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.378 0.514 0.423 0.198 0.861 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.377 0.529 0.407 0.21 0.902 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.373 0.537 0.389 0.219 0.933 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.367 0.543 0.371 0.226 0.958 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.361 0.546 0.355 0.232 0.977 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.355 0.548 0.341 0.236 0.992 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.35 0.55 0.328 0.24 1.005 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.345 0.55 0.317 0.243 1.015 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.34 0.55 0.307 0.245 1.023 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.337 0.55 0.299 0.247 1.029 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.333 0.55 0.293 0.249 1.035 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.33 0.55 0.287 0.25 1.039 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.328 0.55 0.282 0.251 1.042 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.326 0.549 0.278 0.252 1.045 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.324 0.549 0.275 0.252 1.047 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.323 0.549 0.272 0.253 1.049 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.322 0.549 0.27 0.253 1.051 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.321 0.549 0.268 0.254 1.052 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.32 0.548 0.267 0.254 1.053 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.319 0.548 0.266 0.254 1.054 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.319 0.548 0.265 0.255 1.055 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.318 0.548 0.264 0.255 1.055 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.318 0.548 0.263 0.255 1.056 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.317 0.548 0.262 0.255 1.056 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.317 0.548 0.262 0.255 1.056 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.317 0.548 0.262 0.255 1.057 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.317 0.548 0.261 0.255 1.057 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.317 0.548 0.261 0.255 1.057 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ : num [1:50] -0.317 0.548 0.261 0.255 1.057 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ cox_fit       :List of 19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ coefficients     : Named num [1:3] 0.376 -0.323 -0.199</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. ..- attr(*, "names")= chr [1:3] "fit$scores1" "fit$scores2" "fit$scores3"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ var              : num [1:3, 1:3] 0.03725 -0.00601 0.00358 -0.00601 0.0223 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ loglik           : num [1:2] -110 -106</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ score            : num 7.83</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ iter             : int 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ linear.predictors: num [1:50] -0.399 0.338 -1.056 1.072 -0.37 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ residuals        : Named num [1:50] 0.938 0.4757 -0.2709 0.899 -0.0117 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. ..- attr(*, "names")= chr [1:50] "1" "2" "3" "4" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ means            : Named num [1:3] -8.88e-18 8.88e-18 1.33e-17</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. ..- attr(*, "names")= chr [1:3] "fit$scores1" "fit$scores2" "fit$scores3"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ method           : chr "efron"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ n                : int 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ nevent           : num 37</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ terms            :Classes 'terms', 'formula'  language survival::Surv(time, status) ~ fit$scores</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..- attr(*, "variables")= language list(survival::Surv(time, status), fit$scores)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..- attr(*, "factors")= int [1:2, 1] 0 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. .. ..- attr(*, "dimnames")=List of 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. .. .. ..$ : chr [1:2] "survival::Surv(time, status)" "fit$scores"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. .. .. ..$ : chr "fit$scores"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..- attr(*, "term.labels")= chr "fit$scores"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..- attr(*, "specials")=Dotted pair list of 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. .. ..$ strata : NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. .. ..$ tt     : NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. .. ..$ frailty: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. .. ..$ ridge  : NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. .. ..$ pspline: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..- attr(*, "order")= int 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..- attr(*, "intercept")= num 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..- attr(*, "response")= int 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x11d198150&gt; </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..- attr(*, "predvars")= language list(survival::Surv(time, status), fit$scores)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..- attr(*, "dataClasses")= Named chr [1:2] "nmatrix.2" "nmatrix.3"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. .. ..- attr(*, "names")= chr [1:2] "survival::Surv(time, status)" "fit$scores"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ assign           :List of 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. ..$ fit$scores: int [1:3] 1 2 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ wald.test        : num 7.52</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ concordance      : Named num [1:7] 589 313 0 0 0 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. ..- attr(*, "names")= chr [1:7] "concordant" "discordant" "tied.x" "tied.y" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ y                : 'Surv' num [1:50, 1:2]  0.6162   3.6972  12.2628+  0.2710   0.0901+  1.5697   6.7861   3.0889   0.5886   2.0551  ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. ..- attr(*, "dimnames")=List of 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..$ : chr [1:50] "1" "2" "3" "4" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..$ : chr [1:2] "time" "status"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. ..- attr(*, "type")= chr "right"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ timefix          : logi TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ formula          :Class 'formula'  language survival::Surv(time, status) ~ fit$scores</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. .. ..- attr(*, ".Environment")=&lt;environment: 0x11d198150&gt; </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ call             : language survival::coxph(formula = survival::Surv(time, status) ~ fit$scores, ties = "efron",      x = FALSE)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, "class")= chr "coxph"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - attr(*, "class")= chr "big_pls_cox_gd"</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">scores</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             [,1]       [,2]       [,3]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  0.05129539  0.7550799  0.8793004</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]  1.55497806  0.3715325  0.6353775</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] -1.19340964  0.4907382  2.2626350</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,]  0.74046728 -2.1053220 -0.5759915</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] -1.98468237 -0.8043244 -0.5814998</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,]  0.42019957  1.5593684  0.5762548</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -91,9 +91,32 @@ test_that("prediction helpers work for gradient descent fits", {
   time <- rexp(n)
   status <- rbinom(n, 1, 0.5)
   fit <- big_pls_cox_gd(X, time, status, ncomp = 2, max_iter = 50)
-  lp <- predict(fit, type = "link")
+  lp <- predict(fit, newdata=X, type = "link")
   expect_length(lp, n)
-  comps <- predict(fit, type = "components")
+  comps <- predict(fit, newdata=X, type = "scores")
   expect_equal(dim(comps), c(n, 2))
 })
+
+test_that("GD matches PLS up to rotation", {
+  n <- 30
+  p <- 5
+  X <- matrix(rnorm(n * p), n, p)
+  time <- rexp(n)
+  status <- rbinom(n, 1, 0.6)
+  
+  X_big <- bigmemory::as.big.matrix(X)
+  
+  fit_pls <- big_pls_cox(X, time, status, ncomp = 3)
+  fit_gd  <- big_pls_cox_gd(X_big,  time, status, ncomp = 3,
+                            max_iter = 2000, learning_rate = 0.05, tol = 1e-8)
+  
+  eta_pls <- drop(fit_pls$scores %*% fit_pls$cox_fit$coefficients)
+  eta_gd  <- drop(fit_gd$scores %*% fit_gd$cox_fit$coefficients)
+  expect_gt(cor(eta_pls, eta_gd), 0.99)
+  c_pls <- survival::concordance(survival::Surv(time, status) ~ eta_pls)$concordance
+  c_gd  <- survival::concordance(survival::Surv(time, status) ~ eta_gd)$concordance
+  expect_lt(abs(c_pls - c_gd), 1e-2)
+})
+
+
 

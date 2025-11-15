@@ -134,3 +134,5 @@ predict.big_pls_cox_gd <- function(object, newdata = NULL,
          risk = exp(eta),
          response = exp(eta))
 }
+
+
