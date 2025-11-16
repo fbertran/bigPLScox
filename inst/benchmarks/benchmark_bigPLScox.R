@@ -94,7 +94,7 @@ summary_res$speedup_vs_survival <- as.numeric(summary_res$median[1] / summary_re
 summary_res$speedup_vs_coxgpls <- as.numeric(summary_res$median[2] / summary_res$median)
 
 ggplot2::autoplot(res)
-ggplot2::autoplot(res, "ridge")
+ggplot2::autoplot(res, "jitter")
 plot(res$mem_alloc~factor(attr(res$expression,"description")),xlab="Algorithm",ylab="Memory")
 
 print(summary_res[, c("expression", "median", "itr/sec", "mem_alloc", "gc/sec", "n_itr", "n_gc", "speedup_vs_survival", "speedup_vs_coxgpls")])

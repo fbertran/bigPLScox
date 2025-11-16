@@ -112,7 +112,8 @@ bench_dense <- bench::mark(
   ),
   big_pls = big_pls_cox(cox_data$x, cox_data$time, cox_data$status, ncomp = 5),
   big_pls_fast = big_pls_cox_fast(cox_data$x, cox_data$time, cox_data$status, ncomp = 5),
-  big_pls_gd = big_pls_cox_gd(X_big, cox_data$time, cox_data$status, ncomp = 5),
+  big_pls_bb = big_pls_cox_gd(X_big, cox_data$time, cox_data$status, ncomp = 5),
+  big_pls_gd = big_pls_cox_gd(X_big, cox_data$time, cox_data$status, ncomp = 5, method = "gd"),
   coxph = coxph(Surv(cox_data$time, cox_data$status) ~ cox_data$x, ties = "breslow"),
   iterations = 75,
   check = FALSE
@@ -153,11 +154,11 @@ out-of-memory workflows.
 timing distribution.
 
 ```{r dense-plot}
-plot(bench_dense, type = "ridge")
+plot(bench_dense, type = "jitter")
 ```
 
 ```{r big-plot}
-plot(bench_big, type = "ridge")
+plot(bench_big, type = "jitter")
 ```
 
 Additional geometries, such as ridge plots, are available via

@@ -1,9 +1,13 @@
-#' Gradient-Descent Solver for Cox Models on Big Matrices
+#' Gradient based PLS Cox for big matrices
 #'
-#' Fits a Cox proportional hazards regression model using a gradient-descent
-#' optimizer implemented in C++. The function operates directly on a
-#' [`bigmemory::big.matrix`][bigmemory::big.matrix-class] object to avoid
-#' materialising large design matrices in memory.
+#' @description
+#' Fit a PLS Cox model where the PLS components are computed once and
+#' the Cox regression in the latent space is optimised by gradient based
+#' methods.
+#'
+#' This function is intended as a faster, approximate alternative to
+#' [big_pls_cox_fast()] when many fits are required or when the design
+#' is stored as a [`bigmemory::big.matrix`].
 #'
 #' @param X A [`bigmemory::big.matrix`][bigmemory::big.matrix-class] containing
 #'   the design matrix (rows are observations).
@@ -13,16 +17,61 @@
 #'   containing the event indicators (1 for an event, 0 for censoring).
 #' @param ncomp An integer giving the number of components (columns) to use from
 #'   `X`. Defaults to `min(5, ncol(X))`.
-#' @param max_iter Maximum number of gradient-descent iterations (default 500).
-#' @param tol Convergence tolerance on the Euclidean distance between successive
-#'   coefficient vectors.
-#' @param learning_rate Step size used for the gradient-descent updates.
+#' @param max_iter Maximum number of gradient iterations.
+#' @param tol Convergence tolerance for the optimisation in the Cox space.
+#'   Both the change in log-likelihood and the Euclidean change in the
+#'   coefficient vector are monitored.
+#' @param learning_rate Initial learning rate for first order methods.
+#'   This is used by `"gd"` and as a starting scale for `"bb"` and
+#'   `"nesterov"`. It is ignored by `"bfgs"`.
 #' @param keepX Optional integer vector describing the number of predictors to
 #'   retain per component (naive sparsity). A value of zero keeps all
 #'   predictors.
 #' @param coxfit Optional Boolean to fit a Cox model on the extracted components.
+#' @param method Optimisation scheme used in the latent space. One of
+#'   \describe{
+#'     \item{`"gd"`}{Simple fixed step gradient descent. This is the most
+#'       transparent method and is useful for debugging and didactic
+#'       purposes.}
+#'     \item{`"bb"`}{Barzilai Borwein step size. Uses a diagonal
+#'       quasi-second-order update of the step size based on the last
+#'       two gradients. Often converges faster than `"gd"` at similar
+#'       computational cost.}
+#'     \item{`"nesterov"`}{Nesterov type accelerated gradient with a
+#'       fixed momentum schedule. Can yield smoother convergence in
+#'       early iterations, at the price of slightly more bookkeeping.}
+#'     \item{`"bfgs"`}{Quasi Newton update in the latent space, with a
+#'       limited memory BFGS type approximation of the Hessian. This
+#'       gives the most accurate coefficients in a small number of
+#'       iterations but requires more linear algebra per step.}
+#'   }
 #'
-#' @return A list with components:
+#'   The default is `"bb"`, which provides a good balance between speed
+#'   and robustness in most examples.
+#'
+#' @param diag Logical. If TRUE, store iteration level diagnostics.
+#' 
+#' @details
+#' The function first computes PLS components using the same procedure
+#' as [big_pls_cox_fast()], then holds these components fixed and
+#' optimises the Cox partial log-likelihood in the reduced space.
+#'
+#' The coefficients stored in `fit$coefficients` are the result of the
+#' chosen optimisation method and are approximate. The field
+#' `fit$cox_fit` contains the Cox model refitted by
+#' [survival::coxph()] on the final PLS scores. Prediction functions
+#' use the coefficients from `cox_fit` so that linear predictors are
+#' directly interpretable as Cox risk scores.
+#'
+#' The optimisation tolerances control the compromise between speed
+#' and accuracy. If you need very close agreement with the exact PLS
+#' Cox solution, use [big_pls_cox_fast()]. If you only need accurate
+#' risk rankings and want to fit many models, the gradient based
+#' method with `"bb"` or `"bfgs"` is usually sufficient.
+#'
+#' @return 
+#' 
+#' An object of class `"big_pls_cox_gd"` that contains:
 #' * `coefficients`: Estimated Cox regression coefficients on the latent scores.
 #' * `loglik`: Final partial log-likelihood value.
 #' * `iterations`: Number of gradient-descent iterations performed.
@@ -32,6 +81,13 @@
 #' * `weights`: Matrix of PLS weight vectors.
 #' * `center`: Column means used to centre the predictors.
 #' * `scale`: Column scales (standard deviations) used to standardise the predictors.
+#' * `keepX`: Vector describing the number of predictors retained per component.
+#' * `time`: Numeric vector of follow-up times.
+#' * `status`: Numeric or integer vector containing the event indicators.
+#' * `loglik_trace`: Trace of the loglik.
+#' * `step_trace`: Trace of the steps
+#' * `gradnorm_trace`: Trace of the gradnorm.
+#' * `cox_fit`: Final Cox model fitted on the components.
 #'
 #' @seealso [big_pls_cox()], [predict.big_pls_cox()], [select_ncomp()],
 #'   [computeDR()].
@@ -67,15 +123,28 @@
 big_pls_cox_gd <- function(X, 
                            time, 
                            status, 
-                           ncomp = NULL, 
-                           max_iter = 500L,
-                           tol = 1e-6, 
-                           learning_rate = 0.01, 
+                           ncomp = 2L, 
+                           max_iter = 2000L,
+                           tol = 1e-8, 
+                           learning_rate = 0.05, 
                            keepX = NULL,
-                           coxfit = TRUE) {
-  if (!inherits(X, "big.matrix")) {
-    stop("`X` must be a big.matrix object", call. = FALSE)
+                           coxfit = TRUE,
+                           method = c("gd", "bb", "nesterov", "bfgs"),
+                           diag = TRUE) {
+  if (!requireNamespace("bigmemory", quietly = TRUE)) {
+    stop("Package 'bigmemory' is required")
   }
+
+  method <- match.arg(method)
+  method_code <- match(method, c("gd", "bb", "nesterov", "bfgs")) - 1L
+  
+  if (is.matrix(X)) {
+    X <- bigmemory::as.big.matrix(X)
+  }
+  if (!inherits(X, "big.matrix")) {
+    stop("`X` must be a matrix or a big.matrix object", call. = FALSE)
+  }
+  
   if (!requireNamespace("survival", quietly = TRUE)) {
     stop("Package 'survival' is required", call. = FALSE)
   }
@@ -127,21 +196,45 @@ big_pls_cox_gd <- function(X,
       stop("`keepX` entries must be between 0 and ncol(X)", call. = FALSE)
     }
   }
-  
-  fit <- big_pls_cox_gd_cpp(X@address, as.numeric(time), as.numeric(status),
-                            ncomp, max_iter, learning_rate, tol, keep_vec)
+
+  fit <- big_pls_cox_gd_cpp(
+    X_ptr         = X@address,
+    time          = as.numeric(time),
+    status        = as.numeric(status),
+    ncomp         = as.integer(ncomp),
+    max_iter      = as.integer(max_iter),
+    tol           = tol,
+    learning_rate = learning_rate,
+    keepX         = keep_vec,
+    method_code   = method_code,
+    return_diag   = diag
+  )
   
   if (isTRUE(coxfit)) {
-    fit$cox_fit <- survival::coxph(survival::Surv(time, status) ~ fit$scores, ties = "efron", x = FALSE)
+  # optional exact Cox refit in score space
+  scores_df <- as.data.frame(fit$scores)
+  colnames(scores_df) <- paste0("comp", seq_len(ncomp))
+  scores_df$time   <- as.numeric(time)
+  scores_df$status <- as.numeric(status)
+  
+  cox_fit <- survival::coxph(
+    survival::Surv(time, status) ~ .,
+    data  = scores_df,
+    ties  = "efron",
+    x     = FALSE
+  )
   }
   
   fit$coefficients <- as.numeric(fit$coefficients)
   fit$center <- as.numeric(fit$center)
   fit$scale <- as.numeric(fit$scale)
+
   fit$keepX <- as.integer(keep_vec)
   fit$time <- as.numeric(time)
   fit$status <- as.numeric(status)
-  class(fit) <- "big_pls_cox_gd"
+
+  fit$cox_fit <- cox_fit
   
+  class(fit) <- "big_pls_cox_gd"
   fit
 }

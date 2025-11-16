@@ -278,19 +278,234 @@ arma::vec compute_gradient(const arma::mat& X, const arma::vec& status, const ar
   return grad;
 }
 
+enum OptimMethod {
+  GD_FIXED   = 0,
+  GD_BB      = 1,
+  GD_NESTEROV = 2,
+  GD_BFGS    = 3
+};
+
+struct OptimDiag {
+  arma::vec loglik_trace;
+  arma::vec step_trace;
+  arma::vec gradnorm_trace;
+  int iterations;
+  bool converged;
+};
+
+struct OptimResult {
+  arma::vec beta;
+  double loglik;
+  OptimDiag diag;
+};
+
+OptimResult optimize_cox_beta(
+    const arma::mat& X,
+    const arma::vec& status,
+    int max_iter,
+    double tol,
+    double base_lr,
+    int method_code
+) {
+  const std::size_t n = X.n_rows;
+  const std::size_t k = X.n_cols;
+  
+  OptimMethod method = static_cast<OptimMethod>(method_code);
+  
+  OptimResult res;
+  res.beta = arma::zeros<arma::vec>(k);
+  
+  arma::vec beta = arma::zeros<arma::vec>(k);
+  arma::vec beta_prev = beta;
+  
+  arma::vec eta = X * beta;
+  double ll = compute_loglik(X, status, eta);
+  arma::vec grad = compute_gradient(X, status, eta);
+  double gradnorm = arma::norm(grad, 2);
+  
+  arma::vec grad_prev = grad;
+  
+  arma::mat H;          // for BFGS inverse Hessian
+  arma::vec g_neg;      // negative gradient for BFGS
+  arma::vec g_neg_prev;
+  
+  if (method == GD_BFGS) {
+    H = arma::eye<arma::mat>(k, k);
+    g_neg = -grad;
+    g_neg_prev = g_neg;
+  }
+  
+  arma::vec loglik_trace(max_iter, arma::fill::zeros);
+  arma::vec step_trace(max_iter, arma::fill::zeros);
+  arma::vec gradnorm_trace(max_iter, arma::fill::zeros);
+  
+  const double min_step = base_lr * 1e-6;
+  const double max_step = base_lr * 100.0;
+  
+  bool converged = false;
+  int used_iter = 0;
+  
+  for (int iter = 0; iter < max_iter; ++iter) {
+    used_iter = iter + 1;
+    
+    double step = base_lr;
+    arma::vec direction(k, arma::fill::zeros);
+    arma::vec beta_trial(k, arma::fill::zeros);
+    arma::vec eta_trial(n, arma::fill::zeros);
+    double ll_trial = ll;
+    
+    if (method == GD_FIXED || method == GD_BB || method == GD_NESTEROV) {
+      
+      arma::vec y_point;
+      
+      if (method == GD_NESTEROV && iter > 0) {
+        double momentum = static_cast<double>(iter) / (iter + 3.0);
+        y_point = beta + momentum * (beta - beta_prev);
+      } else {
+        y_point = beta;
+      }
+      
+      eta = X * y_point;
+      ll = compute_loglik(X, status, eta);
+      grad = compute_gradient(X, status, eta);
+      gradnorm = arma::norm(grad, 2);
+      
+      if (gradnorm < tol) {
+        beta = y_point;
+        converged = true;
+        loglik_trace(iter) = ll;
+        step_trace(iter) = 0.0;
+        gradnorm_trace(iter) = gradnorm;
+        break;
+      }
+      
+      if (method == GD_BB && iter > 0) {
+        arma::vec s = beta - beta_prev;
+        arma::vec y = grad - grad_prev;
+        double sy = arma::dot(s, y);
+        double yy = arma::dot(y, y);
+        if (std::fabs(sy) > 1e-20 && yy > 1e-20) {
+          step = std::fabs(sy) / yy;
+          if (!std::isfinite(step)) step = base_lr;
+          if (step < min_step) step = min_step;
+          if (step > max_step) step = max_step;
+        } else {
+          step = base_lr;
+        }
+      }
+      
+      // basic backtracking to ensure non decreasing ll
+      double cur_ll = ll;
+      int bt = 0;
+      const int max_backtrack = 20;
+      while (bt < max_backtrack) {
+        beta_trial = y_point + step * grad;
+        eta_trial = X * beta_trial;
+        ll_trial = compute_loglik(X, status, eta_trial);
+        if (ll_trial >= cur_ll - 1e-10) {
+          break;
+        }
+        step *= 0.5;
+        if (step < min_step) {
+          step = min_step;
+          break;
+        }
+        ++bt;
+      }
+      
+      beta_prev = beta;
+      grad_prev = grad;
+      beta = beta_trial;
+      ll = ll_trial;
+      eta = eta_trial;
+      grad = compute_gradient(X, status, eta);
+      gradnorm = arma::norm(grad, 2);
+      
+    } else if (method == GD_BFGS) {
+      // BFGS on f = -loglik (so g_neg = -grad)
+      g_neg = -grad;
+      
+      arma::vec p = -H * g_neg;  // ascent in loglik
+      
+      // backtracking line search on loglik
+      double cur_ll = ll;
+      step = 1.0;
+      int bt = 0;
+      const int max_backtrack = 25;
+      while (bt < max_backtrack) {
+        beta_trial = beta + step * p;
+        eta_trial = X * beta_trial;
+        ll_trial = compute_loglik(X, status, eta_trial);
+        double rhs = cur_ll + 1e-4 * step * arma::dot(grad, p); // Armijo
+        if (ll_trial >= rhs) {
+          break;
+        }
+        step *= 0.5;
+        ++bt;
+      }
+      if (step < min_step) step = min_step;
+      
+      arma::vec s = beta_trial - beta;
+      arma::vec grad_new = compute_gradient(X, status, eta_trial);
+      arma::vec g_neg_new = -grad_new;
+      arma::vec y = g_neg_new - g_neg;
+      
+      double sy = arma::dot(s, y);
+      if (sy > 1e-12) {
+        arma::vec Hy = H * y;
+        double rho = 1.0 / sy;
+        
+        // BFGS update for inverse Hessian
+        H = H + ((sy + arma::dot(y, Hy)) * rho * rho) * (s * s.t())
+          - rho * (Hy * s.t() + s * Hy.t());
+      }
+      
+      beta = beta_trial;
+      eta = eta_trial;
+      ll = ll_trial;
+      grad = grad_new;
+      gradnorm = arma::norm(grad, 2);
+      g_neg_prev = g_neg;
+      g_neg = g_neg_new;
+    }
+    
+    loglik_trace(iter) = ll;
+    step_trace(iter) = step;
+    gradnorm_trace(iter) = gradnorm;
+    
+    if (gradnorm < tol) {
+      converged = true;
+      break;
+    }
+  }
+  
+  res.beta = beta;
+  res.loglik = ll;
+  
+  res.diag.iterations = used_iter;
+  res.diag.converged = converged;
+  res.diag.loglik_trace = loglik_trace.head(used_iter);
+  res.diag.step_trace = step_trace.head(used_iter);
+  res.diag.gradnorm_trace = gradnorm_trace.head(used_iter);
+  
+  return res;
+}
+
 // ----------------------------------------------------------------------------
 // Main function with stable backtracking line search
 // ----------------------------------------------------------------------------
 
-// [[Rcpp::export(name="big_pls_cox_gd_cpp")]]
-List big_pls_cox_gd_cpp(SEXP X_ptr,
-                        NumericVector time,
-                        NumericVector status,
-                        int ncomp,
-                        int max_iter,
-                        double learning_rate,
-                        double tol,
-                        IntegerVector keepX)
+// [[Rcpp::export(name = "big_pls_cox_gd_cpp")]]
+Rcpp::List big_pls_cox_gd_cpp(SEXP X_ptr,
+                              Rcpp::NumericVector time,
+                              Rcpp::NumericVector status,
+                              int ncomp,
+                              int max_iter,
+                              double tol,
+                              double learning_rate,
+                              Rcpp::IntegerVector keepX,
+                              int method_code = 0,
+                              bool return_diag = true)  
 {
   Rcpp::XPtr<BigMatrix> xp(X_ptr);
   arma::mat X = map_bigmatrix(xp);
@@ -310,70 +525,82 @@ List big_pls_cox_gd_cpp(SEXP X_ptr,
   arma::mat T_ord = pls.scores.rows(ord);
   arma::vec status_ord = status_v.elem(ord);
   
-  // Gradient descent with backtracking
-  arma::uword k = pls.scores.n_cols;
-  arma::vec beta = arma::zeros(k);
-  double prev_ll = -std::numeric_limits<double>::infinity();
-  bool conv = false;
+  // run chosen optimizer in coefficient space
+  OptimResult opt = optimize_cox_beta(T_ord, status_ord,
+                                      max_iter, tol,
+                                      learning_rate,
+                                      method_code);
   
-  std::vector<double> loglik_trace;
-  std::vector<double> gradnorm_trace;
-  std::vector<double> step_trace;
-  std::vector< std::vector<double> > coef_trace;
-  std::vector< std::vector<double> > eta_trace;
+  // back to original row order for scores
+  // (scores themselves are stored in original order in pls.scores)
   
-  for (int it = 0; it < max_iter; ++it) {
-    
-    arma::vec eta = T_ord * beta;
-    arma::vec grad = compute_gradient(T_ord, status_ord, eta);
-    
-    double step = learning_rate;
-    arma::vec beta_new;
-    double ll_new = -std::numeric_limits<double>::infinity();
-    
-    while (step > 1e-20) {
-      beta_new = beta + step * grad;
-      ll_new = compute_loglik(T_ord, status_ord, T_ord * beta_new);
-      if (ll_new > prev_ll || it == 0) break;
-      step *= 0.5;
-    }
-    
-    if (step <= 1e-20 || std::abs(ll_new - prev_ll) < tol) {
-      conv = true;
-      beta = beta_new;
-      prev_ll = ll_new;
-      break;
-    }
-    
-    beta = beta_new;
-    prev_ll = ll_new;
-    
-    loglik_trace.push_back(ll_new);
-    gradnorm_trace.push_back(arma::norm(grad, 2));
-    step_trace.push_back(step);
-    
-    coef_trace.push_back( arma::conv_to<std::vector<double>>::from(beta_new) );
-    eta_trace.push_back( arma::conv_to<std::vector<double>>::from(T_ord * beta_new) );
+  // // Gradient descent with backtracking
+  // arma::uword k = pls.scores.n_cols;
+  // arma::vec beta = arma::zeros(k);
+  // double prev_ll = -std::numeric_limits<double>::infinity();
+  // bool conv = false;
+  // 
+  // std::vector<double> loglik_trace;
+  // std::vector<double> gradnorm_trace;
+  // std::vector<double> step_trace;
+  // std::vector< std::vector<double> > coef_trace;
+  // std::vector< std::vector<double> > eta_trace;
+  // 
+  // for (int it = 0; it < max_iter; ++it) {
+  //   
+  //   arma::vec eta = T_ord * beta;
+  //   arma::vec grad = compute_gradient(T_ord, status_ord, eta);
+  //   
+  //   double step = learning_rate;
+  //   arma::vec beta_new;
+  //   double ll_new = -std::numeric_limits<double>::infinity();
+  //   
+  //   while (step > 1e-20) {
+  //     beta_new = beta + step * grad;
+  //     ll_new = compute_loglik(T_ord, status_ord, T_ord * beta_new);
+  //     if (ll_new > prev_ll || it == 0) break;
+  //     step *= 0.5;
+  //   }
+  //   
+  //   if (step <= 1e-20 || std::abs(ll_new - prev_ll) < tol) {
+  //     conv = true;
+  //     beta = beta_new;
+  //     prev_ll = ll_new;
+  //     break;
+  //   }
+  //   
+  //   beta = beta_new;
+  //   prev_ll = ll_new;
+  //   
+  //   loglik_trace.push_back(ll_new);
+  //   gradnorm_trace.push_back(arma::norm(grad, 2));
+  //   step_trace.push_back(step);
+  //   
+  //   coef_trace.push_back( arma::conv_to<std::vector<double>>::from(beta_new) );
+  //   eta_trace.push_back( arma::conv_to<std::vector<double>>::from(T_ord * beta_new) );
+  // }
+  
+  Rcpp::List out = Rcpp::List::create(
+    Rcpp::Named("coefficients") = opt.beta,
+    Rcpp::Named("loglik")       = opt.loglik,
+    Rcpp::Named("iterations")   = opt.diag.iterations,
+    Rcpp::Named("converged")    = opt.diag.converged,
+    Rcpp::Named("scores")       = pls.scores,
+    Rcpp::Named("loadings")     = pls.loadings,
+    Rcpp::Named("weights")      = pls.weights,
+    Rcpp::Named("center")       = pls.center,
+    Rcpp::Named("scale")        = pls.scale,
+    Rcpp::Named("keepX")        = keepX,
+    Rcpp::Named("time")         = time,
+    Rcpp::Named("status")       = status
+  );
+  
+  if (return_diag) {
+    out["loglik_trace"]   = opt.diag.loglik_trace;
+    out["step_trace"]     = opt.diag.step_trace;
+    out["gradnorm_trace"] = opt.diag.gradnorm_trace;
   }
   
-  return List::create(
-    _["coefficients"] = beta,
-    _["loglik"] = prev_ll,
-    _["iterations"] = max_iter,
-    _["converged"] = conv,
-    _["scores"] = pls.scores,
-    _["loadings"] = pls.loadings,
-    _["weights"] = pls.weights,
-    _["center"] = pls.center,
-    _["scale"] = pls.scale,
-    _["keepX"] = keepX,
-    _["time"] = time,
-    _["status"] = status,
-    _["loglik_trace"] = loglik_trace,
-    _["gradnorm_trace"] = gradnorm_trace,
-    _["step_trace"] = step_trace,
-    _["coef_trace"] = coef_trace,
-    _["eta_trace"] = eta_trace
-  );
+  out.attr("class") = "big_pls_cox_gd";
+  return out;
 }
-

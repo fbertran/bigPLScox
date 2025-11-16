@@ -272,7 +272,7 @@ if (requireNamespace("bench", quietly = TRUE) && exists("X_big")) {
 
 ```{r timing-plot, cache=TRUE, eval=LOCAL}
 if (exists("bench_res")) {
-  plot(bench_res, type = "ridge")
+  plot(bench_res, type = "jitter")
 }
 ```
 

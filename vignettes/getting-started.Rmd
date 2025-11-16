@@ -217,47 +217,71 @@ legacy_fit_dense <- big_pls_cox(
 legacy_fit_dense$cox_fit
 ```
 
-# Scaling up with big-memory matrices
+## Fast PLS Cox vs gradient based PLS Cox
 
-When the dataset exceeds RAM capacity, convert it to a
-`bigmemory::big.matrix`. The fast backend natively operates on the resulting
-pointer without copying the data.
+The package provides two families of PLS Cox estimators:
 
-```{r big-memory, cache=TRUE, eval=LOCAL}
+- `big_pls_cox_fast`  
+  Exact PLS components computed in compiled code, with a single Cox fit at the end.
+- `big_pls_cox_gd`  
+  A gradient based Cox optimisation performed in the latent PLS space.
+
+Both approaches share the same preprocessing (centering and scaling), the same PLS deflation scheme and the same prediction interface. The main difference is how the final Cox coefficients are obtained.
+
+In the exact fast path, we build PLS components that are tailored to Cox score residuals, then fit a Cox model once on the resulting scores. In the gradient based path, we optimise the partial log-likelihood directly in the space spanned by the PLS scores, using one of several optimisers.
+
+The code below illustrates a typical benchmark on a moderate survival data set. The design is split into a training set used to fit the models and a test set used to evaluate concordance.
+
+```{r fastvsgd, cache=TRUE, eval=LOCAL}
+set.seed(2024)
+# Exact fast PLS Cox (dense)
+fast_fit_dense <- big_pls_cox_fast(
+  X     = X_train,
+  time  = Y_train,
+  status = status_train,
+  ncomp = 4
+)
+
+# Exact fast PLS Cox (big.matrix)
 if (requireNamespace("bigmemory", quietly = TRUE)) {
   library(bigmemory)
   X_big_train <- bigmemory::as.big.matrix(X_train)
-  X_big_test <- bigmemory::as.big.matrix(X_test)
+  X_big_test  <- bigmemory::as.big.matrix(X_test)
 
   fast_fit_big <- big_pls_cox_fast(
-    X = X_big_train,
-    time = Y_train,
+    X      = X_big_train,
+    time   = Y_train,
     status = status_train,
-    ncomp = 4
+    ncomp  = 4
   )
 
+  # Gradient based fit in the same latent space
   gd_fit <- big_pls_cox_gd(
-    X = X_big_train,
-    time = Y_train,
-    status = status_train,
-    ncomp = 4,
+    X        = X_big_train,
+    time     = Y_train,
+    status   = status_train,
+    ncomp    = 4,
     max_iter = 2000
   )
 
   risk_table <- data.frame(
-    subject = seq_along(test_id),
+    subject   = seq_along(test_id),
     fast_dense = predict(fast_fit_dense, newdata = X_test, type = "link"),
-    fast_big = predict(fast_fit_big, newdata = X_big_test, type = "link"),
-    gd = predict(gd_fit, newdata = X_big_test, type = "link")
+    fast_big   = predict(fast_fit_big,   newdata = X_big_test, type = "link"),
+    gd         = predict(gd_fit,         newdata = X_big_test, type = "link")
   )
 
-  apply(
+  concordances <- apply(
     risk_table[-1],
     2,
     function(lp) {
-      survival::concordance(survival::Surv(Y_test, status_test) ~ lp)$concordance
+      survival::concordance(
+        survival::Surv(Y_test, status_test) ~ lp
+      )$concordance
     }
   )
+
+  concordances
 }
 ```
 

@@ -40,17 +40,45 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.8.0" id="bigplscox-080">bigPLScox 0.8.0<a class="anchor" aria-label="anchor" href="#bigplscox-080"></a></h2>
-<ul><li>Added doi of the package.</li>
+<ul><li><p>Added DOI of the package.</p></li>
+<li>
+<p>Added high performance PLS Cox backends:</p>
+<ul><li>
+<code><a href="../reference/big_pls_cox_fast.html">big_pls_cox_fast()</a></code> for exact PLS Cox fits on both dense matrices and <code><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">bigmemory::big.matrix</a></code> objects.</li>
+<li>
+<code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code> for gradient based optimisation of Cox partial likelihood in the latent PLS space.</li>
+</ul></li>
+<li>
+<p><code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code> now supports several optimisation schemes via the <code>method</code> argument:</p>
+<ul><li>
+<code>"gd"</code> for a basic fixed step gradient descent,</li>
+<li>
+<code>"bb"</code> for a Barzilai Borwein step size,</li>
+<li>
+<code>"nesterov"</code> for Nesterov style acceleration,</li>
+<li>
+<code>"bfgs"</code> for a quasi Newton update.</li>
+</ul><p>All optimisers share the same PLS scores and differ only in how the Cox coefficients are updated.</p>
+</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.0" id="bigplscox-070">bigPLScox 0.7.0<a class="anchor" aria-label="anchor" href="#bigplscox-070"></a></h2>
-<ul><li>Fixed problem in C code that led to an additionnal error during CRAN tests.</li>
-<li>Added helpers for <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> and <code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code>.</li>
+<ul><li><p>Fixed problem in C code that led to an additional error during CRAN tests.</p></li>
+<li><p>Added helpers for <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> and <code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code>.</p></li>
+<li>
+<p>New prediction helpers:</p>
+<ul><li>
+<code><a href="../reference/predict.big_pls_cox_fast.html">predict.big_pls_cox_fast()</a></code> and <code><a href="../reference/predict.big_pls_cox_gd.html">predict.big_pls_cox_gd()</a></code> now handle dense matrices, <code>big.matrix</code> inputs and in-sample prediction.</li>
+<li>
+<code>type = "components"</code> returns the PLS scores for the requested components.</li>
+<li>Arguments <code>comps</code> and <code>coef</code> allow partial use of components and user supplied Cox coefficients.</li>
+</ul></li>
+<li><p>Added simple diagnostic accessors for gradient based fits, including iteration counts, log-likelihood trajectory, gradient norms and step sizes.</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.0" id="bigplscox-060">bigPLScox 0.6.0<a class="anchor" aria-label="anchor" href="#bigplscox-060"></a></h2><p class="text-muted">CRAN release: 2025-11-11</p>
 <p>See the “Release highlights” section of the README for a condensed overview of these changes.</p>
-<ul><li>Added C++ implementations for Cox deviance residuals with streaming support for  matrices together with benchmarking utilities.</li>
+<ul><li>Added C++ implementations for Cox deviance residuals with streaming support for <code>bigmemory</code> matrices together with benchmarking utilities.</li>
 <li>Introduced prediction wrappers and component selection helpers (AIC/BIC) for <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> and <code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code>.</li>
 <li>Enabled naive sparsity control in <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> and exposed survival model objects for downstream predictions.</li>
 <li>Added cross-validation helpers <code><a href="../reference/cv.big_pls_cox.html">cv.big_pls_cox()</a></code> and <code><a href="../reference/cv.big_pls_cox.html">cv.big_pls_cox_gd()</a></code> mirroring the <code>plsRcox</code> criteria, including the recommended survivalROC iAUC metric by default.</li>
@@ -61,10 +89,9 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.0" id="bigplscox-050">bigPLScox 0.5.0<a class="anchor" aria-label="anchor" href="#bigplscox-050"></a></h2>
 <ul><li>Added reproducible benchmarking utilities under <code>inst/benchmarks</code> comparing <code><a href="../reference/big_pls_cox.html">big_pls_cox()</a></code> against <code><a href="https://fbertran.github.io/plsRcox/reference/plsRcox.html" class="external-link">plsRcox::plsRcox()</a></code> on in-memory and file-backed matrices.</li>
-<li>Published two package vignettes that cover introductory workflows and large-scale analyses with <code>bigmemory</code>.</li>
+<li>Published two package vignettes covering introductory workflows and large-scale analyses with <code>bigmemory</code>.</li>
 <li>Added an introductory vignette covering the core Cox-PLS workflow.</li>
 <li>Refreshed the README and website copy to highlight core functionality and to demonstrate working examples without warnings, including guidance on learning materials and benchmarking resources.</li>
-<li>Refreshed the README with guidance on learning materials and benchmarking.</li>
 <li>Completed package-level documentation with bibliographic references.</li>
 <li>Updated package metadata to list optional dependencies used in docs and benchmarks.</li>
 </ul></div>

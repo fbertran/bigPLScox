@@ -66,7 +66,7 @@ Bertrand</h4>
 Paris<br><a class="author_email" href="mailto:#"></a><a href="mailto:frederic.bertrand@lecnam.net" class="email">frederic.bertrand@lecnam.net</a>
       </address>
                   
-            <h4 data-toc-skip class="date">2025-11-15</h4>
+            <h4 data-toc-skip class="date">2025-11-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/fbertran/bigPLScox/blob/HEAD/vignettes/getting-started.Rmd" class="external-link"><code>vignettes/getting-started.Rmd</code></a></small>
       <div class="d-none name"><code>getting-started.Rmd</code></div>
@@ -162,8 +162,8 @@ powers the new fast PLS routines.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 6</span></span></span>
 <span><span class="co">#&gt;   expression      min   median `itr/sec` mem_alloc `gc/sec`</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;bch:expr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:byt&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> survival    837.6µs    892µs     <span style="text-decoration: underline;">1</span>052.     169KB        0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> cpp          89.6µs     95µs     <span style="text-decoration: underline;">9</span>305.     163KB        0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> survival    813.7µs  855.5µs     <span style="text-decoration: underline;">1</span>136.     169KB        0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> cpp          88.7µs   91.9µs    <span style="text-decoration: underline;">10</span>259.     163KB        0</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="../reference/computeDR.html">computeDR</a></span><span class="op">(</span><span class="va">Y_train</span>, <span class="va">status_train</span>, engine <span class="op">=</span> <span class="st">"survival"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -466,54 +466,88 @@ components scaled to variance one.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $class</span></span>
 <span><span class="co">#&gt; [1] "coxph"</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="scaling-up-with-big-memory-matrices">Scaling up with big-memory matrices<a class="anchor" aria-label="anchor" href="#scaling-up-with-big-memory-matrices"></a>
-</h2>
-<p>When the dataset exceeds RAM capacity, convert it to a
-<code><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">bigmemory::big.matrix</a></code>. The fast backend natively operates
-on the resulting pointer without copying the data.</p>
+<div class="section level3">
+<h3 id="fast-pls-cox-vs-gradient-based-pls-cox">Fast PLS Cox vs gradient based PLS Cox<a class="anchor" aria-label="anchor" href="#fast-pls-cox-vs-gradient-based-pls-cox"></a>
+</h3>
+<p>The package provides two families of PLS Cox estimators:</p>
+<ul>
+<li>
+<code>big_pls_cox_fast</code><br>
+Exact PLS components computed in compiled code, with a single Cox fit at
+the end.</li>
+<li>
+<code>big_pls_cox_gd</code><br>
+A gradient based Cox optimisation performed in the latent PLS
+space.</li>
+</ul>
+<p>Both approaches share the same preprocessing (centering and scaling),
+the same PLS deflation scheme and the same prediction interface. The
+main difference is how the final Cox coefficients are obtained.</p>
+<p>In the exact fast path, we build PLS components that are tailored to
+Cox score residuals, then fit a Cox model once on the resulting scores.
+In the gradient based path, we optimise the partial log-likelihood
+directly in the space spanned by the PLS scores, using one of several
+optimisers.</p>
+<p>The code below illustrates a typical benchmark on a moderate survival
+data set. The design is split into a training set used to fit the models
+and a test set used to evaluate concordance.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bigmemory"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
+<span><span class="co"># Exact fast PLS Cox (dense)</span></span>
+<span><span class="va">fast_fit_dense</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox_fast.html">big_pls_cox_fast</a></span><span class="op">(</span></span>
+<span>  X     <span class="op">=</span> <span class="va">X_train</span>,</span>
+<span>  time  <span class="op">=</span> <span class="va">Y_train</span>,</span>
+<span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
+<span>  ncomp <span class="op">=</span> <span class="fl">4</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Exact fast PLS Cox (big.matrix)</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bigmemory"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaneplusplus/bigmemory" class="external-link">bigmemory</a></span><span class="op">)</span></span>
 <span>  <span class="va">X_big_train</span> <span class="op">&lt;-</span> <span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">X_train</span><span class="op">)</span></span>
-<span>  <span class="va">X_big_test</span> <span class="op">&lt;-</span> <span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">X_test</span><span class="op">)</span></span>
+<span>  <span class="va">X_big_test</span>  <span class="op">&lt;-</span> <span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">X_test</span><span class="op">)</span></span>
 <span></span>
 <span>  <span class="va">fast_fit_big</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox_fast.html">big_pls_cox_fast</a></span><span class="op">(</span></span>
-<span>    X <span class="op">=</span> <span class="va">X_big_train</span>,</span>
-<span>    time <span class="op">=</span> <span class="va">Y_train</span>,</span>
+<span>    X      <span class="op">=</span> <span class="va">X_big_train</span>,</span>
+<span>    time   <span class="op">=</span> <span class="va">Y_train</span>,</span>
 <span>    status <span class="op">=</span> <span class="va">status_train</span>,</span>
-<span>    ncomp <span class="op">=</span> <span class="fl">4</span></span>
+<span>    ncomp  <span class="op">=</span> <span class="fl">4</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
+<span>  <span class="co"># Gradient based fit in the same latent space</span></span>
 <span>  <span class="va">gd_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span></span>
-<span>    X <span class="op">=</span> <span class="va">X_big_train</span>,</span>
-<span>    time <span class="op">=</span> <span class="va">Y_train</span>,</span>
-<span>    status <span class="op">=</span> <span class="va">status_train</span>,</span>
-<span>    ncomp <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>    X        <span class="op">=</span> <span class="va">X_big_train</span>,</span>
+<span>    time     <span class="op">=</span> <span class="va">Y_train</span>,</span>
+<span>    status   <span class="op">=</span> <span class="va">status_train</span>,</span>
+<span>    ncomp    <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>    max_iter <span class="op">=</span> <span class="fl">2000</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span>  <span class="va">risk_table</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>    subject <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">test_id</span><span class="op">)</span>,</span>
+<span>    subject   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">test_id</span><span class="op">)</span>,</span>
 <span>    fast_dense <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fast_fit_dense</span>, newdata <span class="op">=</span> <span class="va">X_test</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span>,</span>
-<span>    fast_big <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fast_fit_big</span>, newdata <span class="op">=</span> <span class="va">X_big_test</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span>,</span>
-<span>    gd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">gd_fit</span>, newdata <span class="op">=</span> <span class="va">X_big_test</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span></span>
+<span>    fast_big   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fast_fit_big</span>,   newdata <span class="op">=</span> <span class="va">X_big_test</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span>,</span>
+<span>    gd         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">gd_fit</span>,         newdata <span class="op">=</span> <span class="va">X_big_test</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span></span>
+<span>  <span class="va">concordances</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span></span>
 <span>    <span class="va">risk_table</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span>
 <span>    <span class="fl">2</span>,</span>
 <span>    <span class="kw">function</span><span class="op">(</span><span class="va">lp</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/concordance.html" class="external-link">concordance</a></span><span class="op">(</span><span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">Y_test</span>, <span class="va">status_test</span><span class="op">)</span> <span class="op">~</span> <span class="va">lp</span><span class="op">)</span><span class="op">$</span><span class="va">concordance</span></span>
+<span>      <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/concordance.html" class="external-link">concordance</a></span><span class="op">(</span></span>
+<span>        <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">Y_test</span>, <span class="va">status_test</span><span class="op">)</span> <span class="op">~</span> <span class="va">lp</span></span>
+<span>      <span class="op">)</span><span class="op">$</span><span class="va">concordance</span></span>
 <span>    <span class="op">}</span></span>
 <span>  <span class="op">)</span></span>
+<span></span>
+<span>  <span class="va">concordances</span></span>
 <span><span class="op">}</span></span>
 <span><span class="co">#&gt; fast_dense   fast_big         gd </span></span>
 <span><span class="co">#&gt;  0.4418605  0.4418605  0.2790698</span></span></code></pre></div>
 <p><code><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code> is particularly useful for streamed
 data or when the number of active predictors per component is restricted
 via <code>keepX</code>.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="predictions-and-evaluation">Predictions and evaluation<a class="anchor" aria-label="anchor" href="#predictions-and-evaluation"></a>
@@ -565,15 +599,15 @@ mirrors the previous functions.</p>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; coxph(formula = YCsurv ~ ., data = tt_DKgplsDR)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           coef exp(coef) se(coef)     z        p</span></span>
-<span><span class="co">#&gt; dim.1   4.8792  131.5255   0.7348 6.640 3.14e-11</span></span>
-<span><span class="co">#&gt; dim.2   4.3106   74.4853   0.8523 5.058 4.25e-07</span></span>
-<span><span class="co">#&gt; dim.3   4.3799   79.8304   1.0374 4.222 2.42e-05</span></span>
-<span><span class="co">#&gt; dim.4   3.1313   22.9036   0.9043 3.463 0.000535</span></span>
-<span><span class="co">#&gt; dim.5   1.9561    7.0716   0.7031 2.782 0.005400</span></span>
-<span><span class="co">#&gt; dim.6   1.9467    7.0054   0.7344 2.651 0.008031</span></span>
+<span><span class="co">#&gt;          coef exp(coef) se(coef)     z        p</span></span>
+<span><span class="co">#&gt; dim.1  4.4294   83.8841   0.7310 6.060 1.36e-09</span></span>
+<span><span class="co">#&gt; dim.2  3.6711   39.2955   0.8183 4.487 7.24e-06</span></span>
+<span><span class="co">#&gt; dim.3  3.8127   45.2712   1.0314 3.697 0.000218</span></span>
+<span><span class="co">#&gt; dim.4  2.6709   14.4534   0.8963 2.980 0.002883</span></span>
+<span><span class="co">#&gt; dim.5  1.6486    5.1998   0.6897 2.390 0.016827</span></span>
+<span><span class="co">#&gt; dim.6  1.4384    4.2139   0.7022 2.048 0.040517</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Likelihood ratio test=77.54  on 6 df, p=1.151e-14</span></span>
+<span><span class="co">#&gt; Likelihood ratio test=66.07  on 6 df, p=2.612e-12</span></span>
 <span><span class="co">#&gt; n= 60, number of events= 60</span></span></code></pre></div>
 <p>Cross-validation is available for the DK-splines estimator as
 well.</p>

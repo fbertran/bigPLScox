@@ -66,7 +66,7 @@ Bertrand</h4>
 Paris<br><a class="author_email" href="mailto:#"></a><a href="mailto:frederic.bertrand@lecnam.net" class="email">frederic.bertrand@lecnam.net</a>
       </address>
                   
-            <h4 data-toc-skip class="date">2025-11-15</h4>
+            <h4 data-toc-skip class="date">2025-11-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/fbertran/bigPLScox/blob/HEAD/vignettes/bigPLScox-benchmarking.Rmd" class="external-link"><code>vignettes/bigPLScox-benchmarking.Rmd</code></a></small>
       <div class="d-none name"><code>bigPLScox-benchmarking.Rmd</code></div>
@@ -154,21 +154,23 @@ measurements when running locally.</p>
 <span>  <span class="op">)</span>,</span>
 <span>  big_pls <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox.html">big_pls_cox</a></span><span class="op">(</span><span class="va">cox_data</span><span class="op">$</span><span class="va">x</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
 <span>  big_pls_fast <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox_fast.html">big_pls_cox_fast</a></span><span class="op">(</span><span class="va">cox_data</span><span class="op">$</span><span class="va">x</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
-<span>  big_pls_gd <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span><span class="va">X_big</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  big_pls_bb <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span><span class="va">X_big</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  big_pls_gd <span class="op">=</span> <span class="fu"><a href="../reference/big_pls_cox_gd.html">big_pls_cox_gd</a></span><span class="op">(</span><span class="va">X_big</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span>, ncomp <span class="op">=</span> <span class="fl">5</span>, method <span class="op">=</span> <span class="st">"gd"</span><span class="op">)</span>,</span>
 <span>  coxph <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">cox_data</span><span class="op">$</span><span class="va">time</span>, <span class="va">cox_data</span><span class="op">$</span><span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">cox_data</span><span class="op">$</span><span class="va">x</span>, ties <span class="op">=</span> <span class="st">"breslow"</span><span class="op">)</span>,</span>
 <span>  iterations <span class="op">=</span> <span class="fl">75</span>,</span>
 <span>  check <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">bench_dense</span><span class="op">$</span><span class="va">expression</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">bench_dense</span><span class="op">$</span><span class="va">expression</span><span class="op">)</span></span>
 <span><span class="va">bench_dense</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"expression"</span>, <span class="st">"median"</span>, <span class="st">"itr/sec"</span>, <span class="st">"mem_alloc"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 4</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 4</span></span></span>
 <span><span class="co">#&gt;   expression     median `itr/sec` mem_alloc</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:byt&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> coxgpls       20.61ms     47.9    31.06MB</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls       136.9ms      7.24    4.34MB</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_fast   8.62ms    116.      5.42MB</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> big_pls_gd    14.24ms     69.7     6.41MB</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> coxph         28.34ms     35.2    13.39MB</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> coxgpls       22.01ms     43.6    31.06MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls       144.7ms      6.90    4.34MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_fast   8.88ms    110.      5.42MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> big_pls_bb   394.41ms      2.51    5.71MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> big_pls_gd   395.27ms      2.52    5.63MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> coxph         28.32ms     35.0    13.39MB</span></span></code></pre></div>
 <p>A higher <code>itr/sec</code> value indicates faster throughput. The
 fast backend should provide the best compromise between speed and
 accuracy in the dense setting.</p>
@@ -192,9 +194,9 @@ requires an in-memory matrix, it is not included in this round.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 4</span></span></span>
 <span><span class="co">#&gt;   expression     median `itr/sec` mem_alloc</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;bch:tm&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;bch:byt&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> big_pls_fast   7.25ms    137.      3.41MB</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls      142.74ms      6.89    4.25MB</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_gd    14.77ms     66.5     6.34MB</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> big_pls_fast   7.34ms    136.      3.41MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> big_pls      144.98ms      6.93    4.25MB</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> big_pls_gd       66ms     15.0     5.59MB</span></span></code></pre></div>
 <p>The classical solver is still run on the dense matrix for reference,
 but only the fast and SGD routines operate on the
 <code>big.matrix</code> without copying. Expect the fast backend to
@@ -208,10 +210,10 @@ workflows.</p>
 <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> helpers for visual inspection of the timing
 distribution.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bench_dense</span>, type <span class="op">=</span> <span class="st">"ridge"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bench_dense</span>, type <span class="op">=</span> <span class="st">"jitter"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figures/benchmarking-dense-plot-1.png" width="1050"></p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bench_big</span>, type <span class="op">=</span> <span class="st">"ridge"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">bench_big</span>, type <span class="op">=</span> <span class="st">"jitter"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figures/benchmarking-big-plot-1.png" width="1050"></p>
 <p>Additional geometries, such as ridge plots, are available via
 <code>autoplot(bench_res, type = "jitter")</code>.</p>

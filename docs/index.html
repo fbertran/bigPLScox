@@ -57,38 +57,23 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="bigplscox-">bigPLScox <img src="reference/figures/logo_bigPLScox.svg" align="right" width="200"><a class="anchor" aria-label="anchor" href="#bigplscox-"></a>
 </h1></div>
-</div>
-<div class="section level1">
-<h1 id="bigplscox-pls-models-and-their-extension-for-big-data-in-r">bigPLScox, PLS models and their extension for big data in R<a class="anchor" aria-label="anchor" href="#bigplscox-pls-models-and-their-extension-for-big-data-in-r"></a>
-</h1>
 <div class="section level2">
-<h2 id="frédéric-bertrand-and-myriam-maumy-bertrand">Frédéric Bertrand and Myriam Maumy-Bertrand<a class="anchor" aria-label="anchor" href="#fr%C3%A9d%C3%A9ric-bertrand-and-myriam-maumy-bertrand"></a>
+<h2 id="pls-models-for-cox-regression-with-big-data-in-r">PLS models for Cox regression with big data in R<a class="anchor" aria-label="anchor" href="#pls-models-for-cox-regression-with-big-data-in-r"></a>
 </h2>
+<div class="section level3">
+<h3 id="frédéric-bertrand-and-myriam-maumy-bertrand">Frédéric Bertrand and Myriam Maumy-Bertrand<a class="anchor" aria-label="anchor" href="#fr%C3%A9d%C3%A9ric-bertrand-and-myriam-maumy-bertrand"></a>
+</h3>
 <p><a href="https://doi.org/10.32614/CRAN.package.bigPLScox" class="external-link uri">https://doi.org/10.32614/CRAN.package.bigPLScox</a></p>
 <!-- badges: start -->
 
-<p><code>bigPLScox</code> provides Partial Least Squares (PLS) methods tailored for Cox proportional hazards models with large, high-dimensional feature matrices. The package works directly with <a href="https://cran.r-project.org/package=bigmemory" class="external-link"><code>bigmemory</code></a> objects, enabling native C++ accelerators and iterative algorithms to run without loading the full dataset into memory. In addition to the classical <code><a href="reference/coxgpls.html">coxgpls()</a></code> solver, the package contains accelerated variants, cross-validation helpers, and model diagnostics.</p>
+<p><code>bigPLScox</code> provides Partial Least Squares (PLS) methods for Cox proportional hazards models, with a particular focus on high dimensional and big memory settings. The package supports classical PLS Cox methods together with accelerated C++ backends that operate directly on <code><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">bigmemory::big.matrix</a></code> objects.</p>
+<p>The main design goals are:</p>
 <ul>
-<li>Generalised PLS Cox regression via <code><a href="reference/coxgpls.html">coxgpls()</a></code> with support for grouped predictors.</li>
-<li>Sparse and structured sparse extensions (<code><a href="reference/coxsgpls.html">coxsgpls()</a></code>, <code><a href="reference/coxspls_sgpls.html">coxspls_sgpls()</a></code>).</li>
-<li>Deviance-residual estimators (<code><a href="reference/coxgplsDR.html">coxgplsDR()</a></code>, <code><a href="reference/coxsgplsDR.html">coxsgplsDR()</a></code>) for robust fits.</li>
-<li>Cross-validation helpers (<code><a href="reference/cv.coxgpls.html">cv.coxgpls()</a></code>, <code><a href="reference/cv.coxsgpls.html">cv.coxsgpls()</a></code>, …) to select the number of latent components.</li>
-<li>Dataset generators, and diagnostics such as <code><a href="reference/computeDR.html">computeDR()</a></code> for quick residual exploration.</li>
-<li>High-performance deviance residuals via <code>computeDR(engine = "cpp")</code> for both in-memory and big-memory workflows.</li>
-<li>Sparse, group-sparse, and stochastic gradient variants able to consume file-backed <code>big.matrix</code> objects while leveraging <code>foreach</code> parallelism.</li>
-<li>Interfaces for big-memory data through <code><a href="reference/big_pls_cox.html">big_pls_cox()</a></code> and <code><a href="reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code>.</li>
-</ul>
-<p>GPU support is <strong>not</strong> available in the current release; ongoing development focuses on improving the multi-core CPU back-end instead.</p>
-<p>Additional articles are available in the <code>vignettes/</code> directory:</p>
-<ul>
-<li>
-<em>Getting started with bigPLScox</em> — a walkthrough of core modelling, cross-validation, and diagnostic helpers.</li>
-<li>
-<em>Overview of bigPLScox</em> — a tour of the main modelling functions with practical guidance on choosing estimators.</li>
-<li>
-<em>Big-memory workflows with bigPLScox</em> — guidance on using <code>bigmemory</code> matrices and parallel back-ends.</li>
-<li>
-<em>Benchmarking bigPLScox</em> — reproducible performance comparisons using the <strong>bench</strong> package.</li>
+<li>Efficient PLS based Cox models for large p and large n<br>
+</li>
+<li>First class support for file backed big matrices<br>
+</li>
+<li>Unified prediction, cross validation and diagnostic tools</li>
 </ul>
 <p>Standalone benchmarking scripts that complement the vignette live under <code>inst/benchmarks/</code>.</p>
 <p>The documentation website and examples are maintained by Frédéric Bertrand and Myriam Maumy.</p>
@@ -99,21 +84,179 @@
 <p><strong>Conference highlight.</strong> Maumy, M. and Bertrand, F. (2023). <em>“bigPLS: Fitting and cross-validating PLS-based Cox models to censored big data”</em>. Poster at BioC2023: The Bioconductor Annual Conference, Dana-Farber Cancer Institute, Boston, MA, USA, Aug 2–4, 2023. <a href="doi:10.7490/f1000research.1119546.1" class="uri">doi:10.7490/f1000research.1119546.1</a>.</p>
 </blockquote>
 </div>
+</div>
 <div class="section level2">
-<h2 id="key-features">Key features<a class="anchor" aria-label="anchor" href="#key-features"></a>
+<h2 id="core-modelling-functions">Core modelling functions<a class="anchor" aria-label="anchor" href="#core-modelling-functions"></a>
 </h2>
+<p>The following families of PLS Cox estimators are available.</p>
+<ul>
+<li><p><code><a href="reference/coxgpls.html">coxgpls()</a></code> and <code><a href="reference/coxgplsDR.html">coxgplsDR()</a></code><br>
+Generalised PLS Cox regression based on partial likelihood, with an optional deviance residual based variant (<code>coxgplsDR</code>).</p></li>
+<li><p><code><a href="reference/coxsgpls.html">coxsgpls()</a></code> and <code><a href="reference/coxsgplsDR.html">coxsgplsDR()</a></code><br>
+Sparse PLS Cox estimators that encourage variable selection at the latent component level.</p></li>
+<li><p><code><a href="reference/coxspls_sgpls.html">coxspls_sgpls()</a></code> and <code><a href="reference/coxspls_sgplsDR.html">coxspls_sgplsDR()</a></code><br>
+Structured sparse PLS Cox versions that support group information.</p></li>
+<li><p>DK style estimators<br><code><a href="reference/coxDKgplsDR.html">coxDKgplsDR()</a></code>, <code><a href="reference/coxDKsgplsDR.html">coxDKsgplsDR()</a></code> and <code><a href="reference/coxDKspls_sgplsDR.html">coxDKspls_sgplsDR()</a></code> implement deviance residual based variants following the DK strategy.</p></li>
+</ul>
+<p>All these functions come in both <code>default</code> and <code>formula</code> interfaces and have matching <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> methods with support for <code>type = "link"</code>, <code>"risk"</code> and other standard Cox outputs.</p>
+<p>Cross validation helpers are provided through:</p>
 <ul>
 <li>
-<strong>Scalable Cox-PLS solvers</strong> (<code><a href="reference/coxgpls.html">coxgpls()</a></code>, <code><a href="reference/coxgplsDR.html">coxgplsDR()</a></code>) that operate on big matrices stored on disk.</li>
+<code><a href="reference/cv.coxgpls.html">cv.coxgpls()</a></code>, <code><a href="reference/cv.coxgplsDR.html">cv.coxgplsDR()</a></code><br>
+</li>
 <li>
-<strong>Cross-validation tooling</strong> to select the optimal number of PLS components with time-dependent performance metrics.</li>
+<code><a href="reference/cv.coxsgpls.html">cv.coxsgpls()</a></code>, <code><a href="reference/cv.coxsgplsDR.html">cv.coxsgplsDR()</a></code><br>
+</li>
 <li>
-<strong>Model diagnostics</strong> such as deviance residual visualisation through <code><a href="reference/computeDR.html">computeDR()</a></code>.</li>
+<code><a href="reference/cv.coxspls_sgpls.html">cv.coxspls_sgpls()</a></code> and <code><a href="reference/cv.coxspls_sgplsDR.html">cv.coxspls_sgplsDR()</a></code><br>
+</li>
 <li>
-<strong>Benchmark scripts</strong> in <code>inst/benchmarks/</code> to quantify runtime trade-offs between the available solvers.</li>
-<li>
-<strong>Comprehensive vignette</strong> (<code>vignettes/bigPLScox.Rmd</code>) showing a complete modelling workflow.</li>
+<code><a href="reference/cv.coxDKgplsDR.html">cv.coxDKgplsDR()</a></code>, <code><a href="reference/cv.coxDKsgplsDR.html">cv.coxDKsgplsDR()</a></code>, <code><a href="reference/cv.coxDKspls_sgplsDR.html">cv.coxDKspls_sgplsDR()</a></code>
+</li>
 </ul>
+<p>These mirror the criteria used in <code>plsRcox</code> and include time dependent survival metrics.</p>
+</div>
+<div class="section level2">
+<h2 id="big-memory-pls-cox-backends">Big memory PLS Cox backends<a class="anchor" aria-label="anchor" href="#big-memory-pls-cox-backends"></a>
+</h2>
+<p>The package offers dedicated functions for Cox PLS fits on large matrices, including file backed <code><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">bigmemory::big.matrix</a></code> objects.</p>
+<ul>
+<li><p><code><a href="reference/big_pls_cox.html">big_pls_cox()</a></code><br>
+Iterative construction of PLS components for Cox models using big matrices, with optional naive sparsity through <code>keepX</code>.</p></li>
+<li><p><code><a href="reference/big_pls_cox_fast.html">big_pls_cox_fast()</a></code><br>
+High performance exact PLS Cox backend. It operates on both standard dense matrices and <code>big.matrix</code> inputs and is implemented entirely in C++ for speed.</p></li>
+<li>
+<p><code><a href="reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code><br>
+Gradient based optimisation of the Cox partial likelihood in the latent PLS space. The <code>method</code> argument selects the optimisation scheme:</p>
+<ul>
+<li>
+<code>"gd"</code> for a basic fixed step gradient descent<br>
+</li>
+<li>
+<code>"bb"</code> for a Barzilai Borwein step size<br>
+</li>
+<li>
+<code>"nesterov"</code> for Nesterov style acceleration<br>
+</li>
+<li>
+<code>"bfgs"</code> for a quasi Newton type update</li>
+</ul>
+<p>All optimisation methods share the same PLS scores and differ only in how the Cox coefficients are updated.</p>
+</li>
+<li><p><code><a href="reference/big_pls_cox_transform.html">big_pls_cox_transform()</a></code><br>
+Low level interface that applies a trained PLS Cox transformation to new data, used internally by the prediction helpers and also exported for advanced workflows.</p></li>
+</ul>
+<p>Cross validation for the big memory backends is provided by:</p>
+<ul>
+<li>
+<code><a href="reference/cv.big_pls_cox.html">cv.big_pls_cox()</a></code><br>
+</li>
+<li><code><a href="reference/cv.big_pls_cox.html">cv.big_pls_cox_gd()</a></code></li>
+</ul>
+<p>These functions help select the number of components and compare the exact and gradient based backends.</p>
+</div>
+<div class="section level2">
+<h2 id="prediction-plots-and-summaries">Prediction, plots and summaries<a class="anchor" aria-label="anchor" href="#prediction-plots-and-summaries"></a>
+</h2>
+<p>The following S3 methods are provided for PLS Cox fits.</p>
+<ul>
+<li><p><code><a href="reference/predict.big_pls_cox.html">predict.big_pls_cox()</a></code><br>
+Prediction method for the original big memory PLS Cox solver.</p></li>
+<li>
+<p><code><a href="reference/predict.big_pls_cox_fast.html">predict.big_pls_cox_fast()</a></code><br>
+Unified prediction interface for exact PLS Cox fits on both dense and big matrices. Supports:</p>
+<ul>
+<li>
+<code>type = "link"</code>, <code>"risk"</code>, <code>"response"</code><br>
+</li>
+<li>
+<code>type = "components"</code> to return PLS scores<br>
+</li>
+<li>
+<code>comps</code> to select a subset of components<br>
+</li>
+<li>
+<code>coef</code> to supply custom Cox coefficients</li>
+</ul>
+</li>
+<li><p><code><a href="reference/predict.big_pls_cox_gd.html">predict.big_pls_cox_gd()</a></code><br>
+Prediction for gradient based fits that supports the same <code>type</code>, <code>comps</code> and <code>coef</code> arguments and uses the stored Cox fit by default.</p></li>
+<li><p><code><a href="reference/plot.big_pls_cox.html">plot.big_pls_cox()</a></code> and <code><a href="reference/plot.big_pls_cox_gd.html">plot.big_pls_cox_gd()</a></code><br>
+Simple visual summaries of component effects, often used together with deviance residual plots.</p></li>
+<li><p><code><a href="reference/summary.big_pls_cox.html">summary.big_pls_cox()</a></code>, <code><a href="reference/summary.big_pls_cox_fast.html">summary.big_pls_cox_fast()</a></code> and <code><a href="reference/summary.big_pls_cox_gd.html">summary.big_pls_cox_gd()</a></code><br>
+Text summaries that expose the PLS structure, number of components, and the embedded Cox fit.</p></li>
+<li><p><code><a href="reference/print.big_pls_cox.html">print.big_pls_cox()</a></code>, <code><a href="reference/print.big_pls_cox_gd.html">print.big_pls_cox_gd()</a></code> and <code><a href="reference/print.summary.big_pls_cox_fast.html">print.summary.big_pls_cox_fast()</a></code><br>
+Compact console output for quick inspection.</p></li>
+</ul>
+<p>Several internal PLS models from <code>plsRcox</code> (for example <code>gPLS</code>, <code>sPLS</code>, <code>sgPLS</code>, <code>pls.cox</code>) also have <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">stats::predict()</a></code> methods registered in the namespace so that standard <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> calls continue to work.</p>
+</div>
+<div class="section level2">
+<h2 id="diagnostics-and-model-selection">Diagnostics and model selection<a class="anchor" aria-label="anchor" href="#diagnostics-and-model-selection"></a>
+</h2>
+<p><code>bigPLScox</code> provides a range of tools for residual diagnostics, component selection and inspection of gradient based fits.</p>
+<ul>
+<li>Deviance residual tools
+<ul>
+<li>
+<code><a href="reference/computeDR.html">computeDR()</a></code> carries out deviance residual computation and can use a pure R or C++ engine, with optional support for big matrices.<br>
+</li>
+<li>
+<code><a href="reference/cox_deviance_residuals.html">cox_deviance_residuals()</a></code> and <code><a href="reference/cox_deviance_residuals.html">cox_deviance_residuals_big()</a></code> implement low level deviance residuals for dense and big memory data.<br>
+</li>
+<li>
+<code><a href="reference/cox_deviance_residuals.html">cox_partial_deviance_big()</a></code> and <code><a href="reference/cox_deviance_residuals.html">cox_deviance_details()</a></code> expose partial deviance and internal calculations.<br>
+</li>
+<li>
+<code><a href="reference/cox_deviance_residuals.html">benchmark_deviance_residuals()</a></code> provides a simple wrapper to compare different implementations on synthetic data.</li>
+</ul>
+</li>
+<li>Component summaries
+<ul>
+<li>
+<code><a href="reference/component_information.html">component_information()</a></code> extracts per component information such as variance explained and effective variable usage from both <code>big_pls_cox</code> and <code>big_pls_cox_gd</code> fits.<br>
+</li>
+<li>
+<code><a href="reference/component_information.html">select_ncomp()</a></code> offers information criteria based choices for the number of components, for example AIC or BIC like rules.</li>
+</ul>
+</li>
+<li>Gradient based diagnostics
+<ul>
+<li>
+<code><a href="reference/gd_diagnostics.html">gd_diagnostics()</a></code> returns optimisation diagnostics for gradient based backends, including iteration counts, log likelihood progression, gradient norms and step sizes.</li>
+</ul>
+</li>
+</ul>
+<p>These tools are intended to complement classic survival model diagnostics such as <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">survival::coxph()</a></code> residual plots.</p>
+</div>
+<div class="section level2">
+<h2 id="utilities-data-and-scaling">Utilities, data and scaling<a class="anchor" aria-label="anchor" href="#utilities-data-and-scaling"></a>
+</h2>
+<p>A small number of helper functions and data objects round out the package.</p>
+<ul>
+<li><p><code>bigscale</code><br>
+Scaling of big matrices that is compatible with the big memory PLS Cox workflow.</p></li>
+<li><p><code><a href="reference/bigSurvSGD.na.omit.html">bigSurvSGD.na.omit()</a></code> and <code><a href="reference/partialbigSurvSGDv0.html">partialbigSurvSGDv0()</a></code><br>
+Interfaces for survival stochastic gradient methods provided by the companion <code>bigSurvSGD</code> package.</p></li>
+<li><p><code>dataCox</code><br>
+Example survival dataset used in documentation and unit tests.</p></li>
+</ul>
+<p>The package also re exports the <code>%*%</code> and <code>Arith</code> methods used with some big matrix types.</p>
+</div>
+<div class="section level2">
+<h2 id="vignettes-and-learning-material">Vignettes and learning material<a class="anchor" aria-label="anchor" href="#vignettes-and-learning-material"></a>
+</h2>
+<p>Several vignettes ship with the package and are accessible once it is installed.</p>
+<ul>
+<li>Getting started with <code>bigPLScox</code><br>
+</li>
+<li>Overview of the main modelling functions and their extensions<br>
+</li>
+<li>Big memory workflows with <code>bigmemory</code> matrices<br>
+</li>
+<li>Benchmarking <code>bigPLScox</code> against baseline Cox implementations</li>
+</ul>
+<p>Refer to the pkgdown site for rendered versions of these documents and a complete function reference:</p>
+<p><a href="https://fbertran.github.io/bigPLScox/" class="uri">https://fbertran.github.io/bigPLScox/</a></p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -127,128 +270,75 @@
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"fbertran/bigPLScox"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="learning-materials">Learning materials<a class="anchor" aria-label="anchor" href="#learning-materials"></a>
+<h2 id="minimal-example">Minimal example<a class="anchor" aria-label="anchor" href="#minimal-example"></a>
 </h2>
-<ul>
-<li>Browse the <strong>Getting started</strong> vignette with <code><a href="articles/getting-started.html">vignette("getting-started",   package = "bigPLScox")</a></code> for a worked example.</li>
-<li>Explore <code><a href="articles/bigPLScox.html">vignette("bigPLScox", package = "bigPLScox")</a></code> for big-memory workflows and streaming solvers.</li>
-<li>Consult the function reference at <a href="https://fbertran.github.io/bigPLScox/" class="uri">https://fbertran.github.io/bigPLScox/</a>.</li>
-<li>Run the benchmarking scripts in <code>inst/benchmarks/</code> to compare solver performance on simulated data.</li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="release-highlights">Release highlights<a class="anchor" aria-label="anchor" href="#release-highlights"></a>
-</h2>
-<p>The full changelog lives in <a href="NEWS.html"><code>NEWS.md</code></a>. Recent releases include:</p>
-<ul>
-<li>
-<strong>0.6.0</strong> — C++ deviance residuals with benchmarking helpers, prediction wrappers for <code><a href="reference/big_pls_cox.html">big_pls_cox()</a></code>/<code><a href="reference/big_pls_cox_gd.html">big_pls_cox_gd()</a></code>, and new component selection utilities.</li>
-<li>
-<strong>0.5.0</strong> — pkgdown documentation refresh, reproducible benchmarking scripts, and expanded vignettes covering large-scale workflows.</li>
-</ul>
-</div>
-</div>
-<div class="section level1">
-<h1 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
-</h1>
-<p>The following example demonstrates the typical workflow on a subset of the allelotyping dataset bundled with the package. Chunks are evaluated by default when the README is rendered locally, but they can be toggled with <code>knitr::opts_chunk$set(eval = FALSE)</code> for faster builds.</p>
+<p>The following minimal example uses the micro array data bundled with the package.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fbertran.github.io/bigPLScox/">bigPLScox</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">micro.censure</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">Xmicro.censure_compl_imp</span><span class="op">)</span></span>
-<span><span class="va">Y_train</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">survyear</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
-<span><span class="va">status_train</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">DC</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span><span class="op">]</span></span>
-<span><span class="va">X_train</span> <span class="op">&lt;-</span> <span class="va">Xmicro.censure_compl_imp</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">80</span>, <span class="op">]</span></span></code></pre></div>
-<p>Fit a Cox-PLS model with six components and inspect the fit summary:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span><span class="va">cox_pls_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
-<span>  Xplan <span class="op">=</span> <span class="va">X_train</span>,</span>
-<span>  time <span class="op">=</span> <span class="va">Y_train</span>,</span>
-<span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
-<span>  ncomp <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error in colMeans(x, na.rm = TRUE): 'x' must be numeric</span></span>
-<span><span class="va">cox_pls_fit</span></span>
-<span><span class="co">#&gt; Error: object 'cox_pls_fit' not found</span></span></code></pre></div>
-<p>Visualise deviance residuals to assess the baseline model fit and verify the agreement between the R and C++ engines:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">residuals_overview</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/computeDR.html">computeDR</a></span><span class="op">(</span><span class="va">Y_train</span>, <span class="va">status_train</span>, plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
-<img src="reference/figures/README-unnamed-chunk-5-1.png" alt="plot of chunk unnamed-chunk-5" width="100%"><p class="caption">
-plot of chunk unnamed-chunk-5
-</p>
-</div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">residuals_overview</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          1          2          3          4          5          6 </span></span>
-<span><span class="co">#&gt; -1.4843296 -0.5469540 -0.2314550 -0.3400301 -0.9763372 -0.3866766</span></span>
 <span></span>
-<span><span class="va">cpp_residuals</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/computeDR.html">computeDR</a></span><span class="op">(</span></span>
-<span>  <span class="va">Y_train</span>,</span>
-<span>  <span class="va">status_train</span>,</span>
-<span>  engine <span class="op">=</span> <span class="st">"cpp"</span>,</span>
-<span>  eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">cox_pls_fit</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error: object 'cox_pls_fit' not found</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="va">residuals_overview</span>, <span class="va">cpp_residuals</span>, tolerance <span class="op">=</span> <span class="fl">1e-7</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error: object 'cpp_residuals' not found</span></span></code></pre></div>
-<p>Cross-validate the number of components and re-fit using the deviance residual solver for comparison:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span><span class="va">cv_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cv.coxgpls.html">cv.coxgpls</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">X_train</span>, time <span class="op">=</span> <span class="va">Y_train</span>, status <span class="op">=</span> <span class="va">status_train</span><span class="op">)</span>,</span>
-<span>  nt <span class="op">=</span> <span class="fl">6</span>,</span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">survyear</span></span>
+<span><span class="va">status</span> <span class="op">&lt;-</span> <span class="va">micro.censure</span><span class="op">$</span><span class="va">DC</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="va">Xmicro.censure_compl_imp</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/coxgpls.html">coxgpls</a></span><span class="op">(</span></span>
+<span>  Xplan <span class="op">=</span> <span class="va">X</span>,</span>
+<span>  time <span class="op">=</span> <span class="va">Y</span>,</span>
+<span>  status <span class="op">=</span> <span class="va">status</span>,</span>
+<span>  ncomp <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Error in colMeans(x, na.rm = TRUE): 'x' must be numeric</span></span>
-<span><span class="va">cv_results</span><span class="op">$</span><span class="va">opt_nt</span></span>
-<span><span class="co">#&gt; Error: object 'cv_results' not found</span></span>
-<span><span class="va">cox_pls_dr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/coxgplsDR.html">coxgplsDR</a></span><span class="op">(</span></span>
-<span>  Xplan <span class="op">=</span> <span class="va">X_train</span>,</span>
-<span>  time <span class="op">=</span> <span class="va">Y_train</span>,</span>
-<span>  status <span class="op">=</span> <span class="va">status_train</span>,</span>
-<span>  ncomp <span class="op">=</span> <span class="va">cv_results</span><span class="op">$</span><span class="va">opt_nt</span>,</span>
-<span>  ind.block.x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Partial Least Squares Cox model (big_pls_cox_gd)</span></span>
+<span><span class="co">#&gt; -------------------------------------------------</span></span>
+<span><span class="co">#&gt; Observations: 120 </span></span>
+<span><span class="co">#&gt; Predictors  : 20 </span></span>
+<span><span class="co">#&gt; Components  : 2 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Score variances (per component):</span></span>
+<span><span class="co">#&gt; [1] 1.469 1.019</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; keepX (sparsity per component): 0, 0 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients (gradient-descent fit):</span></span>
+<span><span class="co">#&gt; [1] -0.332 -0.221</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Partial log-likelihood: -302.309 </span></span>
+<span><span class="co">#&gt; Iterations           : 8 </span></span>
+<span><span class="co">#&gt; Converged            : TRUE </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Predictors centered and scaled.</span></span>
+<span><span class="co">#&gt; Harrell's C-index    : 0.514</span></span></code></pre></div>
+<p>A big memory workflow uses <code><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">bigmemory::big.matrix</a></code> objects.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaneplusplus/bigmemory" class="external-link">bigmemory</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">X_big</span> <span class="op">&lt;-</span> <span class="fu">bigmemory</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">as.big.matrix</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">fast_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/big_pls_cox_fast.html">big_pls_cox_fast</a></span><span class="op">(</span></span>
+<span>  X <span class="op">=</span> <span class="va">X_big</span>,</span>
+<span>  time <span class="op">=</span> <span class="va">Y</span>,</span>
+<span>  status <span class="op">=</span> <span class="va">status</span>,</span>
+<span>  ncomp <span class="op">=</span> <span class="fl">4</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error in colMeans(x, na.rm = TRUE): 'x' must be numeric</span></span>
-<span><span class="va">cox_pls_dr</span></span>
-<span><span class="co">#&gt; Error: object 'cox_pls_dr' not found</span></span></code></pre></div>
-<p>Explore alternative estimators such as <code><a href="reference/coxgplsDR.html">coxgplsDR()</a></code> for deviance-residual fitting or <code><a href="reference/coxsgpls.html">coxsgpls()</a></code> for sparse component selection. Refer to the package reference for the full list of available models and helper functions.</p>
-<div class="section level2">
-<h2 id="benchmarking">Benchmarking<a class="anchor" aria-label="anchor" href="#benchmarking"></a>
-</h2>
-<p>We provide reproducible benchmarks that compare <code><a href="reference/coxgpls.html">coxgpls()</a></code> and the big-memory solvers against <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">survival::coxph()</a></code>. Start with the <strong>Benchmarking bigPLScox</strong> vignette for an interactive tour.</p>
-<p>For command-line experiments, execute the scripts in <code>inst/benchmarks/</code> after installing the optional dependencies listed under <code>Suggests</code> in the <code>DESCRIPTION</code> file. Each script accepts environment variables (for example, <code>bigPLScox.benchmark.n</code>, <code>bigPLScox.benchmark.p</code>, and <code>bigPLScox.benchmark.ncomp</code>) to control the simulation size.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox-benchmark.R</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/cox_pls_benchmark.R</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="ex">Rscript</span> inst/benchmarks/benchmark_bigPLScox.R</span></code></pre></div>
-<p>Results are stored under <code>inst/benchmarks/results/</code> with time-stamped filenames for traceability.</p>
+<span></span>
+<span><span class="va">lp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fast_fit</span>, newdata <span class="op">=</span> <span class="va">X_big</span>, type <span class="op">=</span> <span class="st">"link"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">lp</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] -0.4296294 -0.7809034  1.6411946 -1.3885315  1.2299486 -1.7144312</span></span></code></pre></div>
+<p>For more elaborate examples, including cross validation and comparisons between the exact and gradient based backends, see the vignettes and the scripts under <code>inst/benchmarks</code>.</p>
 </div>
 <div class="section level2">
-<h2 id="vignettes-and-documentation">Vignettes and documentation<a class="anchor" aria-label="anchor" href="#vignettes-and-documentation"></a>
+<h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
-<p>Four vignettes ship with the package:</p>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Getting started with bigPLScox</strong> – an end-to-end introduction covering data preparation, fitting, and validation workflows.</li>
-<li>
-<strong>Overview of bigPLScox</strong> – a high-level description of the modelling functions and their typical use cases.</li>
-<li>
-<strong>Big-memory workflows with bigPLScox</strong> – instructions for working with <code>bigmemory</code> matrices and the streaming solvers.</li>
-<li>
-<strong>Benchmarking bigPLScox</strong> – guidance for evaluating performance against baseline Cox implementations using the <strong>bench</strong> package.</li>
-</ol>
-<p>The full reference documentation and pkgdown website are available at <a href="https://fbertran.github.io/bigPLScox/" class="uri">https://fbertran.github.io/bigPLScox/</a>.</p>
-</div>
-<div class="section level2">
-<h2 id="bug-reports-and-feature-requests">Bug reports and feature requests<a class="anchor" aria-label="anchor" href="#bug-reports-and-feature-requests"></a>
-</h2>
-<p>Bug reports and feature requests can be filed on the <a href="https://github.com/fbertran/bigPLScox/issues/" class="external-link">issue tracker</a>. Please make sure that new code comes with unit tests or reproducible examples when applicable.</p>
+<p>If you use <code>bigPLScox</code> in scientific work, please cite the package and the associated conference material.</p>
+<p>Maumy, M. and Bertrand, F. (2023). PLS models and their extension for big data. Joint Statistical Meetings, Toronto, Ontario, Canada.</p>
+<p>Maumy, M. and Bertrand, F. (2023). bigPLS: Fitting and cross validating PLS based Cox models to censored big data. BioC2023, Dana Farber Cancer Institute, Boston, MA, poster contribution. <a href="doi:10.7490/f1000research.1119546.1" class="uri">doi:10.7490/f1000research.1119546.1</a>.</p>
 </div>
 </div>
-
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">

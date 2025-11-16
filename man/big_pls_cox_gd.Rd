@@ -2,18 +2,20 @@
 % Please edit documentation in R/big_pls_cox_gd.R
 \name{big_pls_cox_gd}
 \alias{big_pls_cox_gd}
-\title{Gradient-Descent Solver for Cox Models on Big Matrices}
+\title{Gradient based PLS Cox for big matrices}
 \usage{
 big_pls_cox_gd(
   X,
   time,
   status,
-  ncomp = NULL,
-  max_iter = 500L,
-  tol = 1e-06,
-  learning_rate = 0.01,
+  ncomp = 2L,
+  max_iter = 2000L,
+  tol = 1e-08,
+  learning_rate = 0.05,
   keepX = NULL,
-  coxfit = TRUE
+  coxfit = TRUE,
+  method = c("gd", "bb", "nesterov", "bfgs"),
+  diag = TRUE
 )
 }
 \arguments{
@@ -29,21 +31,47 @@ containing the event indicators (1 for an event, 0 for censoring).}
 \item{ncomp}{An integer giving the number of components (columns) to use from
 \code{X}. Defaults to \code{min(5, ncol(X))}.}
 
-\item{max_iter}{Maximum number of gradient-descent iterations (default 500).}
+\item{max_iter}{Maximum number of gradient iterations.}
 
-\item{tol}{Convergence tolerance on the Euclidean distance between successive
-coefficient vectors.}
+\item{tol}{Convergence tolerance for the optimisation in the Cox space.
+Both the change in log-likelihood and the Euclidean change in the
+coefficient vector are monitored.}
 
-\item{learning_rate}{Step size used for the gradient-descent updates.}
+\item{learning_rate}{Initial learning rate for first order methods.
+This is used by \code{"gd"} and as a starting scale for \code{"bb"} and
+\code{"nesterov"}. It is ignored by \code{"bfgs"}.}
 
 \item{keepX}{Optional integer vector describing the number of predictors to
 retain per component (naive sparsity). A value of zero keeps all
 predictors.}
 
 \item{coxfit}{Optional Boolean to fit a Cox model on the extracted components.}
+
+\item{method}{Optimisation scheme used in the latent space. One of
+\describe{
+\item{\code{"gd"}}{Simple fixed step gradient descent. This is the most
+transparent method and is useful for debugging and didactic
+purposes.}
+\item{\code{"bb"}}{Barzilai Borwein step size. Uses a diagonal
+quasi-second-order update of the step size based on the last
+two gradients. Often converges faster than \code{"gd"} at similar
+computational cost.}
+\item{\code{"nesterov"}}{Nesterov type accelerated gradient with a
+fixed momentum schedule. Can yield smoother convergence in
+early iterations, at the price of slightly more bookkeeping.}
+\item{\code{"bfgs"}}{Quasi Newton update in the latent space, with a
+limited memory BFGS type approximation of the Hessian. This
+gives the most accurate coefficients in a small number of
+iterations but requires more linear algebra per step.}
+}
+
+The default is \code{"bb"}, which provides a good balance between speed
+and robustness in most examples.}
+
+\item{diag}{Logical. If TRUE, store iteration level diagnostics.}
 }
 \value{
-A list with components:
+An object of class \code{"big_pls_cox_gd"} that contains:
 \itemize{
 \item \code{coefficients}: Estimated Cox regression coefficients on the latent scores.
 \item \code{loglik}: Final partial log-likelihood value.
@@ -54,13 +82,41 @@ A list with components:
 \item \code{weights}: Matrix of PLS weight vectors.
 \item \code{center}: Column means used to centre the predictors.
 \item \code{scale}: Column scales (standard deviations) used to standardise the predictors.
+\item \code{keepX}: Vector describing the number of predictors retained per component.
+\item \code{time}: Numeric vector of follow-up times.
+\item \code{status}: Numeric or integer vector containing the event indicators.
+\item \code{loglik_trace}: Trace of the loglik.
+\item \code{step_trace}: Trace of the steps
+\item \code{gradnorm_trace}: Trace of the gradnorm.
+\item \code{cox_fit}: Final Cox model fitted on the components.
 }
 }
 \description{
-Fits a Cox proportional hazards regression model using a gradient-descent
-optimizer implemented in C++. The function operates directly on a
-\code{\link[bigmemory:big.matrix-class]{bigmemory::big.matrix}} object to avoid
-materialising large design matrices in memory.
+Fit a PLS Cox model where the PLS components are computed once and
+the Cox regression in the latent space is optimised by gradient based
+methods.
+
+This function is intended as a faster, approximate alternative to
+\code{\link[=big_pls_cox_fast]{big_pls_cox_fast()}} when many fits are required or when the design
+is stored as a \code{\link[bigmemory:big.matrix]{bigmemory::big.matrix}}.
+}
+\details{
+The function first computes PLS components using the same procedure
+as \code{\link[=big_pls_cox_fast]{big_pls_cox_fast()}}, then holds these components fixed and
+optimises the Cox partial log-likelihood in the reduced space.
+
+The coefficients stored in \code{fit$coefficients} are the result of the
+chosen optimisation method and are approximate. The field
+\code{fit$cox_fit} contains the Cox model refitted by
+\code{\link[survival:coxph]{survival::coxph()}} on the final PLS scores. Prediction functions
+use the coefficients from \code{cox_fit} so that linear predictors are
+directly interpretable as Cox risk scores.
+
+The optimisation tolerances control the compromise between speed
+and accuracy. If you need very close agreement with the exact PLS
+Cox solution, use \code{\link[=big_pls_cox_fast]{big_pls_cox_fast()}}. If you only need accurate
+risk rankings and want to fit many models, the gradient based
+method with \code{"bb"} or \code{"bfgs"} is usually sufficient.
 }
 \examples{
 library(bigmemory)

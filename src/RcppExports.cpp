@@ -106,20 +106,22 @@ BEGIN_RCPP
 END_RCPP
 }
 // big_pls_cox_gd_cpp
-List big_pls_cox_gd_cpp(SEXP X_ptr, NumericVector time, NumericVector status, int ncomp, int max_iter, double learning_rate, double tol, IntegerVector keepX);
-RcppExport SEXP _bigPLScox_big_pls_cox_gd_cpp(SEXP X_ptrSEXP, SEXP timeSEXP, SEXP statusSEXP, SEXP ncompSEXP, SEXP max_iterSEXP, SEXP learning_rateSEXP, SEXP tolSEXP, SEXP keepXSEXP) {
+Rcpp::List big_pls_cox_gd_cpp(SEXP X_ptr, Rcpp::NumericVector time, Rcpp::NumericVector status, int ncomp, int max_iter, double tol, double learning_rate, Rcpp::IntegerVector keepX, int method_code, bool return_diag);
+RcppExport SEXP _bigPLScox_big_pls_cox_gd_cpp(SEXP X_ptrSEXP, SEXP timeSEXP, SEXP statusSEXP, SEXP ncompSEXP, SEXP max_iterSEXP, SEXP tolSEXP, SEXP learning_rateSEXP, SEXP keepXSEXP, SEXP method_codeSEXP, SEXP return_diagSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type X_ptr(X_ptrSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type status(statusSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type status(statusSEXP);
     Rcpp::traits::input_parameter< int >::type ncomp(ncompSEXP);
     Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
-    Rcpp::traits::input_parameter< double >::type learning_rate(learning_rateSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type keepX(keepXSEXP);
-    rcpp_result_gen = Rcpp::wrap(big_pls_cox_gd_cpp(X_ptr, time, status, ncomp, max_iter, learning_rate, tol, keepX));
+    Rcpp::traits::input_parameter< double >::type learning_rate(learning_rateSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type keepX(keepXSEXP);
+    Rcpp::traits::input_parameter< int >::type method_code(method_codeSEXP);
+    Rcpp::traits::input_parameter< bool >::type return_diag(return_diagSEXP);
+    rcpp_result_gen = Rcpp::wrap(big_pls_cox_gd_cpp(X_ptr, time, status, ncomp, max_iter, tol, learning_rate, keepX, method_code, return_diag));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -294,7 +296,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_bigPLScox_matrix_pls_cox_transform_cpp", (DL_FUNC) &_bigPLScox_matrix_pls_cox_transform_cpp, 6},
     {"_bigPLScox_big_pls_cox_fast_big_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_fast_big_cpp, 7},
     {"_bigPLScox_big_pls_cox_fast_dense_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_fast_dense_cpp, 7},
-    {"_bigPLScox_big_pls_cox_gd_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_gd_cpp, 8},
+    {"_bigPLScox_big_pls_cox_gd_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_gd_cpp, 10},
     {"_bigPLScox_big_pls_cox_transform_dense_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_transform_dense_cpp, 6},
     {"_bigPLScox_big_pls_cox_transform_big_cpp", (DL_FUNC) &_bigPLScox_big_pls_cox_transform_big_cpp, 6},
     {"_bigPLScox_cox_score_residuals_fast", (DL_FUNC) &_bigPLScox_cox_score_residuals_fast, 3},

@@ -25,8 +25,8 @@ big_pls_cox_fast_dense_cpp <- function(X, time, status, ncomp, means, sds, keepX
     .Call(`_bigPLScox_big_pls_cox_fast_dense_cpp`, X, time, status, ncomp, means, sds, keepX)
 }
 
-big_pls_cox_gd_cpp <- function(X_ptr, time, status, ncomp, max_iter, learning_rate, tol, keepX) {
-    .Call(`_bigPLScox_big_pls_cox_gd_cpp`, X_ptr, time, status, ncomp, max_iter, learning_rate, tol, keepX)
+big_pls_cox_gd_cpp <- function(X_ptr, time, status, ncomp, max_iter, tol, learning_rate, keepX, method_code = 0L, return_diag = TRUE) {
+    .Call(`_bigPLScox_big_pls_cox_gd_cpp`, X_ptr, time, status, ncomp, max_iter, tol, learning_rate, keepX, method_code, return_diag)
 }
 
 big_pls_cox_transform_dense_cpp <- function(X, means, sds, weights, loadings, comps) {
