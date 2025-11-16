@@ -82,7 +82,8 @@ std::vector<bool> build_keep_mask(const NumericVector& weights, int keep) {
     if (loadings.ncol() != total_components) {
       stop("weights and loadings must have the same number of columns");
     }
-    if (means.size() != p || sds.size() != p) {
+    if (static_cast<std::size_t>(means.size()) != p
+          || static_cast<std::size_t>(sds.size()) != p) {
       stop("Length of 'means' and 'sds' must match the number of predictors");
     }
     

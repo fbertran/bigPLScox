@@ -259,26 +259,7 @@ fit <- coxgpls(
 #> Error in colMeans(x, na.rm = TRUE): 'x' must be numeric
 
 summary(fit)
-#> Partial Least Squares Cox model (big_pls_cox_gd)
-#> -------------------------------------------------
-#> Observations: 120 
-#> Predictors  : 20 
-#> Components  : 2 
-#> 
-#> Score variances (per component):
-#> [1] 1.469 1.019
-#> 
-#> keepX (sparsity per component): 0, 0 
-#> 
-#> Coefficients (gradient-descent fit):
-#> [1] -0.332 -0.221
-#> 
-#> Partial log-likelihood: -302.309 
-#> Iterations           : 8 
-#> Converged            : TRUE 
-#> 
-#> Predictors centered and scaled.
-#> Harrell's C-index    : 0.514
+#> Error: object 'fit' not found
 ```
 
 A big memory workflow uses `bigmemory::big.matrix` objects.

@@ -1,3 +1,7 @@
+# bigPLScox 0.8.1
+
+* Fix links in the DESCRIPTION files.
+
 # bigPLScox 0.8.0
 
 * Added DOI of the package.

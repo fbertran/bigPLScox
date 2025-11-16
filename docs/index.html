@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">bigPLScox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -274,7 +274,7 @@ Example survival dataset used in documentation and unit tests.</p></li>
 </h2>
 <p>The following minimal example uses the micro array data bundled with the package.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fbertran.github.io/bigPLScox/">bigPLScox</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fbertran.github.io/bigPLScox">bigPLScox</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">micro.censure</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">Xmicro.censure_compl_imp</span><span class="op">)</span></span>
 <span></span>
@@ -293,26 +293,7 @@ Example survival dataset used in documentation and unit tests.</p></li>
 <span><span class="co">#&gt; Error in colMeans(x, na.rm = TRUE): 'x' must be numeric</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Partial Least Squares Cox model (big_pls_cox_gd)</span></span>
-<span><span class="co">#&gt; -------------------------------------------------</span></span>
-<span><span class="co">#&gt; Observations: 120 </span></span>
-<span><span class="co">#&gt; Predictors  : 20 </span></span>
-<span><span class="co">#&gt; Components  : 2 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Score variances (per component):</span></span>
-<span><span class="co">#&gt; [1] 1.469 1.019</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; keepX (sparsity per component): 0, 0 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Coefficients (gradient-descent fit):</span></span>
-<span><span class="co">#&gt; [1] -0.332 -0.221</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Partial log-likelihood: -302.309 </span></span>
-<span><span class="co">#&gt; Iterations           : 8 </span></span>
-<span><span class="co">#&gt; Converged            : TRUE </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Predictors centered and scaled.</span></span>
-<span><span class="co">#&gt; Harrell's C-index    : 0.514</span></span></code></pre></div>
+<span><span class="co">#&gt; Error: object 'fit' not found</span></span></code></pre></div>
 <p>A big memory workflow uses <code><a href="https://rdrr.io/pkg/bigmemory/man/big.matrix.html" class="external-link">bigmemory::big.matrix</a></code> objects.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaneplusplus/bigmemory" class="external-link">bigmemory</a></span><span class="op">)</span></span>
@@ -344,7 +325,7 @@ Example survival dataset used in documentation and unit tests.</p></li>
 <ul class="list-unstyled">
 <li><a href="https://cloud.r-project.org/package=bigPLScox" class="external-link">View on CRAN</a></li>
 <li><a href="https://github.com/fbertran/bigPLScox/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/fbertran/bigPLScox/issues/" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/fbertran/bigPLScox/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 

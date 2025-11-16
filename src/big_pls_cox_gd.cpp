@@ -239,11 +239,11 @@ double compute_loglik(const arma::mat& X, const arma::vec& status, const arma::v
   }
   
   double ll = 0.0;
-  for (arma::uword i=0;i<n;++i)
+  for (arma::uword i=0;i<n;++i) {
     if (status(i) > 0.5)
       ll += eta(i) - std::log(denom(i));
-    
-    return ll;
+  }
+  return ll;
 }
 
 arma::vec compute_gradient(const arma::mat& X, const arma::vec& status, const arma::vec& eta)
